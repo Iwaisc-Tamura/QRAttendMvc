@@ -1,0 +1,18 @@
+.result-icon {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* フェード＋ポップ（軽い強調） */
+@keyframes popFade {
+  0%   { opacity: 0; transform: scale(0.85); }
+  60%  { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1.00); }
+}
+
+.pop-animate {
+  animation: popFade 160ms ease-out;
+}

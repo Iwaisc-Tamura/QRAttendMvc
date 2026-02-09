@@ -1,0 +1,55 @@
+/* 右上 日付・時刻表示（Layout共通） */
+.layout-clock {
+    line-height: 1.2;
+}
+
+.layout-login {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* ★ メインの日時表示 */
+.layout-datetime {
+    font-size: 48px; /* ← ここを調整 */
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-top: 2px;
+}
+
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        background-color: #f7f8fa;
+}
+
+.card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.result-mark {
+    display: inline-block;
+    width: 64px;
+    text-align: center;
+    font-size: 3rem;
+    font-weight: bold;
+    line-height: 1;
+}
+
+    /* 登録あり → 緑の「〇」 */
+    .result-mark.ok {
+        color: #28a745;
+    }
+
+    /* 未登録 → 赤の「×」 */
+    .result-mark.ng {
+        color: #dc3545;
+    }
+textarea#logArea {
+    font-family: "Consolas", monospace;
+    font-size: 0.9rem;
+}
+/* 【最終兵器】Layout 右上 日時表示を強制的に大きくする */
+.layout-datetime {
+    font-size: 64px !important;
+    font-weight: 800 !important;
+}

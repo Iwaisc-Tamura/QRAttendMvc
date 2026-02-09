@@ -1,0 +1,147 @@
+
+@model IEnumerable<QRAttendMvc.Models.AttendeeSearchRow>
+@using QRAttendMvc.Models
+
+@{
+    ViewData["Title"] = "入退場照会";
+    string currentKaisaiCd = ViewBag.CurrentKaisaiCd as string ?? "";
+
+    string companyKana     = ViewBag.CompanyKana     as string ?? "";
+    string companyName     = ViewBag.CompanyName     as string ?? "";
+    string workerKanaLast  = ViewBag.WorkerKanaLast  as string ?? "";
+    string workerKanaFirst = ViewBag.WorkerKanaFirst as string ?? "";
+    string workerId        = ViewBag.WorkerId        as string ?? "";
+    string birthDate       = ViewBag.BirthDate       as string ?? "";
+    bool includeLower      = ViewBag.IncludeLower is bool b && b;
+}
+
+<div class="card p-4">
+    <div class="d-flex justify-content-between">
+        <h2 class="mb-3">入退場照会</h2>
+        <div class="text-end small">
+            <div>ログイン　XXXXXX</div>
+            <div>日付　@DateTime.Now.ToString("yyyy/MM/dd")</div>
+            <div>時刻　<span id="clock">@DateTime.Now.ToString("HH:mm:ss")</span></div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(currentKaisaiCd))
+    {
+        <div class="mb-3 border-bottom pb-2">
+            <div>開催コード　@currentKaisaiCd</div>
+        </div>
+    }
+
+    <form method="get" class="mb-3">
+        <div class="row g-2 mb-2">
+            <div class="col-md-4">
+                <label class="form-label">会社名（カナ）</label>
+                <input name="companyKana" value="@companyKana" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">会社名</label>
+                <input name="companyName" value="@companyName" class="form-control" />
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="includeLower" value="true"
+                           @(includeLower ? "checked" : "") />
+                    <label class="form-check-label">2次店以下含む</label>
+                </div>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">検索</button>
+            </div>
+        </div>
+
+        <div class="row g-2 mb-2">
+            <div class="col-md-3">
+                <label class="form-label">作業員名（カナ） 姓</label>
+                <input name="workerKanaLast" value="@workerKanaLast" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">名</label>
+                <input name="workerKanaFirst" value="@workerKanaFirst" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">作業員ID</label>
+                <input name="workerId" value="@workerId" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">生年月日</label>
+                <input name="birthDate" type="date" value="@birthDate" class="form-control" />
+            </div>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-sm table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>会社名</th>
+                    <th>作業員ID</th>
+                    <th>作業員名</th>
+                    <th>生年月日</th>
+                    <th>名簿対象除外日</th>
+                    <th>入場記録</th>
+                    <th>退場記録</th>
+                    <th>名簿</th>
+                    <th>作業員</th>
+                    <th>代表他</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var r in Model)
+            {
+                <tr>
+                    <td>@r.CompanyName</td>
+                    <td>@r.WorkerId</td>
+                    <td>@r.WorkerName</td>
+
+                    <td>@(r.LastInTime?.ToString("HH:mm"))</td>
+                    <td>@(r.LastOutTime?.ToString("HH:mm"))</td>
+                    <td class="text-center">
+                        <input type="radio" name="role_@r.WorkerId" @(r.RoleType=="名簿" ? "checked" : "") />
+                    </td>
+                    <td class="text-center">
+                        <input type="radio" name="role_@r.WorkerId" @(r.RoleType=="作業員" ? "checked" : "") />
+                    </td>
+                    <td class="text-center">
+                        <input type="radio" name="role_@r.WorkerId" @(r.RoleType=="代表他" ? "checked" : "") />
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-3 d-flex justify-content-end">
+        <a asp-action="Export"
+           asp-route-companyKana="@companyKana"
+           asp-route-companyName="@companyName"
+           asp-route-workerKanaLast="@workerKanaLast"
+           asp-route-workerKanaFirst="@workerKanaFirst"
+           asp-route-workerId="@workerId"
+           asp-route-birthDate="@birthDate"
+           asp-route-includeLower="@includeLower"
+           class="btn btn-success me-2">
+            CSV出力（タブ区切り）
+        </a>
+        <!-- メインメニュー -->
+        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">
+            メインメニューに戻る
+        </a>
+        <!-- EventMasters 画面は廃止（GT01_KAISAI_EVENT を使用） -->
+    </div>
+</div>
+
+@section Scripts{
+<script>
+    setInterval(function () {
+        const d = new Date();
+        const pad = n => n.toString().padStart(2, '0');
+        document.getElementById('clock').textContent =
+            `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }, 1000);
+</script>
+}

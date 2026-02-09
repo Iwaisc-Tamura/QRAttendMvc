@@ -1,0 +1,36 @@
+@{
+    ViewData["Title"] = "";
+}
+
+<div class="card p-0">
+    <!-- 画面内タイトルバー -->
+    <div class="bg-success text-white py-2 px-3" style="border-top-left-radius:12px; border-top-right-radius:12px;">
+        <div class="fw-bold">協力会社入退場記録システムメニュー
+<form asp-controller="TestUtility"
+      asp-action="UpdateTodayEventDate"
+      method="post"
+      onsubmit="return confirm('テスト用処理です。\n開催日を本日に更新します。\nよろしいですか？');"
+      style="margin-top:15px;">
+    <button type="submit" class="btn btn-warning">
+        【テスト用】開催日を本日に更新
+    </button>
+</form>
+
+
+</div>
+    </div>
+
+    <div class="p-4">
+        <div class="row align-items-center" style="min-height:320px;">
+            <div class="col-md-12 text-center">
+                <h2 class="fw-bold mb-4">入退場記録メインメニュー</h2>
+
+                <a asp-controller="EventSelection" asp-action="Index"
+                   class="btn btn-primary btn-lg px-5 py-4"
+                   style="font-size:1.5rem; min-width:260px;">
+                    イベント選択
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

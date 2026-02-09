@@ -1,0 +1,300 @@
+@using QRAttendMvc.Models
+@{
+    string kind = ViewBag.Kind as string ?? "IN";
+    string modeLabel = kind == "IN" ? "入場" : "退場";
+    string title = "入退場登録（一括）";
+    string kaisaiCd = ViewBag.CurrentKaisaiCd as string ?? "";
+    string login = ViewBag.LoginDisplay as string ?? "XXXXXX";
+    var ev = ViewBag.Event as Gt01KaisaiEvent;
+
+    string FmtYmd(string? ymd)
+    {
+        if (string.IsNullOrWhiteSpace(ymd)) return "";
+        // DBの "yyyy/M/d" などの表記揺れをそのまま表示（設計書: yyyy/m/d）
+        return ymd.Replace("-", "/");
+    }
+    string FmtHm(string? hhmm)
+    {
+        if (string.IsNullOrWhiteSpace(hhmm)) return "";
+        var s = hhmm.Trim().PadLeft(4,'0');
+        return s.Substring(0,2) + ":" + s.Substring(2,2);
+    }
+}
+
+<link rel="stylesheet" href="~/css/scan-result.css" />
+<link rel="stylesheet" href="~/css/entryexit-batch.css" />
+
+<div class="ee-header">
+    <div class="ee-mode @(kind == "IN" ? "ee-mode-in" : "ee-mode-out")">@modeLabel</div>
+    <div class="ee-title">@title</div>
+</div>
+
+<div class="card ee-card">
+
+    @if (string.IsNullOrEmpty(kaisaiCd) || ev == null)
+    {
+        <div class="alert alert-warning">
+            イベントが確定していません。先に「イベント選択」で確定してください。
+        </div>
+    }
+    else
+    {
+        <!-- イベント情報 -->
+        <div class="ee-top">
+            <div class="ee-event">
+                <div class="ee-row"><div class="ee-k">イベント開催日</div><div class="ee-v">@FmtYmd(ev.KaisaiYmd)</div></div>
+                <div class="ee-row"><div class="ee-k">区分</div><div class="ee-v">@($"{ev.EventCd} {ev.EventName}")</div></div>
+                <div class="ee-row"><div class="ee-k">開催拠点</div><div class="ee-v">@($"{ev.BranchCd} {ev.BranchName}")</div></div>
+                <div class="ee-row"><div class="ee-k">受講場所</div><div class="ee-v">@ev.Location</div></div>
+                <div class="ee-row ee-row-inline">
+                    <div class="ee-k">開催時刻</div>
+                    <div class="ee-v">@($"{FmtHm(ev.StartTime)} ～ {FmtHm(ev.EndTime)}")</div>
+                    <div class="ee-k ee-k-small">受付開始時刻</div><div class="ee-v ee-v-small">@FmtHm(ev.ReceptTime)</div>
+                </div>
+				<div class="ee-row"><div class="ee-k">開催コード</div><div class="ee-v">@ev.KaisaiCd</div></div>
+			</div>
+
+            <div class="ee-side">
+                <div class="ee-login">
+                    <div>ログイン　@login</div>
+                    <div>日付　@DateTime.Now.ToString("yyyy/MM/dd")</div>
+                    <div>時刻　<span id="clock">@DateTime.Now.ToString("HH:mm:ss")</span></div>
+                </div>
+                <div class="ee-now">
+                    <div class="ee-now-label">現在時刻</div>
+                    <div id="clockBig" class="ee-now-time">@DateTime.Now.ToString("HH:mm:ss")</div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="ee-section-title">読み取り結果</div>
+    <div class="ee-read">
+        <div class="ee-icon-wrap">
+            <img id="resultIcon" class="result-icon" src="/images/Circle.png" alt="結果" style="visibility:hidden;" />
+        </div>
+
+        <div class="ee-read-text">
+            <div class="ee-code" id="lastCode">－</div>
+            <div class="ee-name-row">
+                <span id="lastName">－</span>
+                <span id="lastTime" class="ee-read-time"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="ee-input">
+        <div class="ee-section-title">QRスキャナからの入力</div>
+        <input id="scanInput" class="form-control form-control-lg"
+               placeholder="ここにカーソルを置いたままQRを読み取ります" />
+    </div>
+
+    <hr />
+    <div class="ee-section-title">記録結果</div>
+    <div class="ee-log-box">
+        <textarea id="logArea" class="form-control ee-log" rows="6" readonly></textarea>
+    </div>
+
+    <div class="ee-footer">
+        <button id="btnRelease" class="btn btn-warning ee-btn-release" disabled>解除</button>
+        <a asp-controller="EventSelection" asp-action="Index" class="btn btn-primary ee-btn-back">
+            イベント選択画面に戻る
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // 時計表示（右上＋現在時刻）
+    setInterval(function () {
+        const d = new Date();
+        const pad = n => n.toString().padStart(2, '0');
+        const now = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        document.getElementById('clock').textContent = now;
+        const big = document.getElementById('clockBig');
+        if (big) big.textContent = now;
+    }, 1000);
+
+    const input      = document.getElementById('scanInput');
+    const logArea    = document.getElementById('logArea');
+    const lastCode   = document.getElementById('lastCode');
+    const lastName   = document.getElementById('lastName');
+    const lastTime   = document.getElementById('lastTime');
+    const resultIcon = document.getElementById('resultIcon');
+    const btnRelease = document.getElementById('btnRelease');
+
+    const kind = '@kind'; // IN / OUT
+    let locked = false;  // ブザー中は読取不可
+    let buzzerCtx = null;
+    let buzzerOsc = null;
+    let buzzerGain = null;
+
+    function appendLog(line) {
+        const prev = logArea.value || "";
+        logArea.value = (line + "\n" + prev).trimEnd();
+    }
+
+    function setIcon(result) {
+    // result: OK / WARN / NG
+    let src = "";
+    let alt = "";
+    if (result === "OK")   { src = "/images/Circle.png";   alt = "正常"; }
+    if (result === "WARN") { src = "/images/Triangle.png"; alt = "警告"; }
+    if (result === "NG")   { src = "/images/Cross.png";    alt = "エラー"; }
+
+    resultIcon.src = src;
+    resultIcon.alt = alt;
+    resultIcon.style.visibility = "visible";
+
+    // アニメーションを毎回発火させる（class付け直し）
+    resultIcon.classList.remove("pop-animate");
+    void resultIcon.offsetWidth; // reflow
+    resultIcon.classList.add("pop-animate");
+}
+
+    function showReadResult(code, name, timeText) {
+        lastCode.textContent = code || "－";
+        lastName.textContent = name || "－";
+        lastTime.textContent = timeText || "";
+    }
+
+
+// 単発ビープ（アイコン表示と同期）
+function playBeep(result) {
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+
+        // ブザーとは別コンテキストで単発音を出す（同期が安定）
+        const ctx = new AudioCtx();
+        if (ctx.state === "suspended") ctx.resume();
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        const freq = (result === "OK") ? 880 : (result === "WARN") ? 660 : 220; // OK/WARN/NG
+        osc.type = "sine";
+        osc.frequency.value = freq;
+
+        const t0 = ctx.currentTime;
+        gain.gain.setValueAtTime(0.0001, t0);
+        gain.gain.exponentialRampToValueAtTime(0.18, t0 + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.12);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(t0);
+        osc.stop(t0 + 0.13);
+
+        osc.onended = () => { try { ctx.close(); } catch (e) {} };
+    } catch (e) {}
+}
+
+    // ブザー（解除まで鳴り続け）
+    function startBuzzer() {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            if (!buzzerCtx) buzzerCtx = new AudioCtx();
+            if (buzzerCtx.state === "suspended") buzzerCtx.resume();
+
+            if (buzzerOsc) return; // already running
+            buzzerOsc = buzzerCtx.createOscillator();
+            buzzerGain = buzzerCtx.createGain();
+
+            buzzerOsc.type = "square";
+            buzzerOsc.frequency.value = 880; // ブザー音
+            buzzerGain.gain.value = 0.08;
+
+            buzzerOsc.connect(buzzerGain);
+            buzzerGain.connect(buzzerCtx.destination);
+            buzzerOsc.start();
+        } catch (e) {}
+    }
+
+    function stopBuzzer() {
+        try {
+            if (buzzerOsc) {
+                buzzerOsc.stop();
+                buzzerOsc.disconnect();
+                buzzerOsc = null;
+            }
+            if (buzzerGain) {
+                buzzerGain.disconnect();
+                buzzerGain = null;
+            }
+        } catch (e) {}
+    }
+
+    function lockReading() {
+        locked = true;
+        input.disabled = true;
+        btnRelease.disabled = false;
+        startBuzzer();
+    }
+
+    function unlockReading() {
+        stopBuzzer();
+        locked = false;
+        input.disabled = false;
+        btnRelease.disabled = true;
+        input.value = "";
+        input.focus();
+    }
+
+    btnRelease.addEventListener("click", () => {
+        unlockReading();
+    });
+
+    // 初期フォーカス
+    window.addEventListener('load', () => input.focus());
+
+    // Enterで送信（スキャナ想定）
+    input.addEventListener('keydown', async function (e) {
+        if (e.key !== 'Enter') return;
+
+        const code = (input.value || "").trim();
+        input.value = "";
+
+        if (!code) return;
+
+        // ブザー中は読取不可（設計書）
+        if (locked) return;
+
+        const res = await fetch('@Url.Action("Record", "Scan")', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: code, kind: kind, kaisaiCd: '@kaisaiCd' })
+        });
+
+        const data = await res.json();
+        const t = data.time ? data.time.slice(0,2) + ":" + data.time.slice(2,4) : "";
+
+        // 読取結果表示
+        showReadResult(data.code || code, data.name || (data.result === "NG" ? data.message : "－"), t);
+
+        if (data.result === "OK") {
+            setIcon("OK");
+            playBeep("OK");
+            appendLog(`${data.code} ${data.name ?? ""} ${t} ${data.message}`);
+            input.focus();
+            return;
+        }
+
+        if (data.result === "WARN") {
+            setIcon("WARN");
+            playBeep("WARN");
+            appendLog(`${data.code ?? code} ${data.name ?? ""} ${t} ${data.message}`);
+            lockReading(); // 解除まで停止
+            return;
+        }
+
+        // NG
+        setIcon("NG");
+        playBeep("NG");
+        appendLog(`${data.code ?? code} ${t} ${data.message}`);
+        lockReading(); // 解除まで停止
+    });
+</script>
+}

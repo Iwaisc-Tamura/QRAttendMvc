@@ -1,0 +1,180 @@
+@using QRAttendMvc.Models
+@{
+    string kind = ViewBag.Kind as string ?? "IN";
+    string modeLabel = kind == "IN" ? "入場" : "退場";
+    string title = "入退場登録（臨時対応）";
+    string kaisaiCd = ViewBag.CurrentKaisaiCd as string ?? "";
+    string login = ViewBag.LoginDisplay as string ?? "XXXXXX";
+    var ev = ViewBag.Event as Gt01KaisaiEvent;
+
+    string FmtYmd(string? ymd)
+    {
+        if (string.IsNullOrWhiteSpace(ymd)) return "";
+        // DBの "yyyy/M/d" などの表記揺れをそのまま表示（設計書: yyyy/m/d）
+        return ymd.Replace("-", "/");
+    }
+    string FmtHm(string? hhmm)
+    {
+        if (string.IsNullOrWhiteSpace(hhmm)) return "";
+        var s = hhmm.Trim().PadLeft(4, '0');
+        return s.Substring(0, 2) + ":" + s.Substring(2, 2);
+    }
+}
+
+<link rel="stylesheet" href="~/css/scan-result.css" />
+<link rel="stylesheet" href="~/css/entryexit-batch.css" />
+
+<div class="ee-header">
+    <div class="ee-mode @(kind == "IN" ? "ee-mode-in" : "ee-mode-out")">@modeLabel</div>
+    <div class="ee-title">@title</div>
+</div>
+
+<div class="card ee-card">
+
+        <!-- イベント情報（Batchと同一） -->
+        <div class="ee-top">
+            <div class="ee-event">
+                <div class="ee-row"><div class="ee-k">イベント開催日</div><div class="ee-v">@FmtYmd(ev.KaisaiYmd)</div></div>
+                <div class="ee-row"><div class="ee-k">区分</div><div class="ee-v">@($"{ev.EventCd} {ev.EventName}")</div></div>
+                <div class="ee-row"><div class="ee-k">開催拠点</div><div class="ee-v">@($"{ev.BranchCd} {ev.BranchName}")</div></div>
+                <div class="ee-row"><div class="ee-k">受講場所</div><div class="ee-v">@ev.Location</div></div>
+                <div class="ee-row ee-row-inline">
+                    <div class="ee-k">開催時刻</div>
+                    <div class="ee-v">@($"{FmtHm(ev.StartTime)} ～ {FmtHm(ev.EndTime)}")</div>
+                    <div class="ee-k ee-k-small">受付開始時刻</div><div class="ee-v ee-v-small">@FmtHm(ev.ReceptTime)</div>
+                </div>
+                <div class="ee-row"><div class="ee-k">開催コード</div><div class="ee-v">@ev.KaisaiCd</div></div>
+            </div>
+
+            <div class="ee-side">
+                <div class="ee-login">
+                    <div>ログイン　@login</div>
+                    <div>日付　@DateTime.Now.ToString("yyyy/MM/dd")</div>
+                    <div>時刻　<span id="clock">@DateTime.Now.ToString("HH:mm:ss")</span></div>
+                </div>
+                <div class="ee-now">
+                    <div class="ee-now-label">現在時刻</div>
+                    <div id="clockBig" class="ee-now-time">@DateTime.Now.ToString("HH:mm:ss")</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ★ 臨時入力フォーム（ここだけBatchと違う） -->
+
+            <div class="col-md-4">
+                <label class="form-label">作業員ID</label>
+                <input id="scanInput" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">協力会社コード</label>
+                <input id="companyCd" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">会社名カナ</label>
+                <input class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">会社名</label>
+                <input class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">作業員名カナ</label>
+                <input class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">作業員名</label>
+                <input id="workerName" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">生年月日</label>
+                <input type="date" class="form-control" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">名簿対象除外日</label>
+                <input type="date" class="form-control" />
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">入場記録</label>
+                <input class="form-control" />
+            </div>
+
+            <div class="col-md-8">
+                    <label class="form-label">事由</label>
+                    <input class="form-control" />
+                </div>
+            </div>
+
+        <button id="btnTempRegister" class="btn btn-primary mb-3">
+            登録
+        </button>
+
+        <!-- 記録結果（Batchと同一） -->
+        <div class="ee-section-title">読み取り結果</div>
+        <div class="ee-read">
+            <div class="ee-icon-wrap">
+                <img id="resultIcon" class="result-icon" src="/images/Circle.png" alt="結果" style="visibility:hidden;" />
+            </div>
+
+            <div class="ee-read-text">
+                <div class="ee-code" id="lastCode">－</div>
+                <div class="ee-name-row">
+                    <span id="lastName">－</span>
+                    <span id="lastTime" class="ee-read-time"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="ee-section-title">記録結果</div>
+        <div class="ee-log-box">
+            <textarea id="logArea" class="form-control ee-log" rows="6" readonly></textarea>
+        </div>
+
+        <div class="ee-footer">
+            <a asp-controller="EventSelection" asp-action="Index"
+               class="btn btn-primary ee-btn-back">
+                イベント選択画面に戻る
+            </a>
+        </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        // 時計（Batchと同一）
+        setInterval(function () {
+            const d = new Date();
+            const pad = n => n.toString().padStart(2, '0');
+            const now = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+            document.getElementById('clock').textContent = now;
+            const big = document.getElementById('clockBig');
+            if (big) big.textContent = now;
+        }, 1000);
+
+        // ★ 登録（Batchと同じ Record() を呼ぶ）
+        document.getElementById("btnTempRegister").addEventListener("click", async () => {
+            const companyCd = document.getElementById("companyCd").value.trim();
+            const workerName = document.getElementById("workerName").value.trim();
+
+            if (!companyCd || !workerName) {
+                alert("協力会社コード・作業員名は必須です");
+                return;
+            }
+
+            // ※ 臨時入力用の仮コード（Controller側で生成）
+            const res = await fetch('@Url.Action("TempRecord", "Scan")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    companyCd: companyCd,
+                    workerName: workerName,
+                    kind: '@kind'
+                })
+            });
+
+            const data = await res.json();
+            document.getElementById("logArea").value =
+                `${data.time} ${data.message}\n` + document.getElementById("logArea").value;
+        });
+    </script>
+}

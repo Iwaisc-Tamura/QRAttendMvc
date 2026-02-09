@@ -1,0 +1,24 @@
+
+-- サンプル用データベース・テーブル作成スクリプト
+IF DB_ID('QRCodeTraining') IS NULL
+BEGIN
+    CREATE DATABASE QRCodeTraining;
+END
+GO
+
+USE QRCodeTraining;
+GO
+
+-- 旧サンプルテーブル（Participants / EventMasters / Events）は現在未使用のため削除
+
+IF OBJECT_ID('TT01_TARGET_EVENT') IS NULL
+BEGIN
+    CREATE TABLE TT01_TARGET_EVENT (
+        BRANCH_CD   NVARCHAR(10) NOT NULL,
+        TARGET_DATE DATE         NOT NULL,
+        EVENT_CD    NVARCHAR(20) NOT NULL,
+        UPDATED_AT  DATETIME2    NOT NULL DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT PK_TT01_TARGET_EVENT PRIMARY KEY (BRANCH_CD, TARGET_DATE)
+    );
+END
+

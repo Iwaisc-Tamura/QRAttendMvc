@@ -1,0 +1,375 @@
+@using System.Text.Json
+@{
+    ViewData["Title"] = "イベント選択画面";
+    bool autoSelected = ViewBag.AutoSelected != null && (bool)ViewBag.AutoSelected;
+
+    // 事前読込イベント（複数件時のみ）
+    string preloadedJson = "[]";
+    try
+    {
+        // JS側は camelCase で参照しているため、JSON も camelCase で出力する
+        preloadedJson = JsonSerializer.Serialize(
+            ViewBag.PreloadedEvents ?? Array.Empty<object>(),
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
+    }
+    catch { }
+
+    // 1件時の確定済み詳細（サーバ側で確定）
+    string selectedJson = "{}";
+    try
+    {
+        selectedJson = JsonSerializer.Serialize(
+            ViewBag.Selected ?? new { },
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
+    }
+    catch { }
+}
+
+<link rel="stylesheet" href="~/css/scan-result.css" />
+<link rel="stylesheet" href="~/css/entryexit-batch.css" />
+
+<div class="ee-header">
+    <div class="ee-mode ee-mode-event">イベント</div>
+    <div class="ee-title">イベント選択画面</div>
+</div>
+
+<div class="card ee-card">
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+    @if (ViewData["BusinessMessage"] != null)
+    {
+        <div class="alert alert-warning">@Html.Raw(ViewData["BusinessMessage"].ToString()!.Replace("\n","<br />"))</div>
+    }
+    <div class="ee-top">
+        <div class="ee-event">
+            <div class="ee-row"><div class="ee-k">開催支店：</div><span class="ee-v" id="branchDisplay"></span></div>
+        </div>
+		<div class="ee-side">
+			<div class="ee-login">
+				<div>ログイン　@(ViewBag.LoginText ?? "XXXXXX-YYYYY")</div>
+				<div>日付　@DateTime.Now.ToString("yyyy/MM/dd")</div>
+				<div>時刻　<span id="clock">@DateTime.Now.ToString("HH:mm:ss")</span></div>
+			</div>
+		</div>
+        <div class="ee-event">
+            <!-- 複数該当の場合：区分 → 開始時刻 の順で絞り込み -->
+        <div class="ee-k" id="divisionArea">
+                <label class="form-label">区分：</label>
+            <div id="divisionText" class="form-control d-none">-</div>
+            <select id="divisionSelect" class="form-select d-none">
+                <option value="">選択してください</option>
+            </select>
+        </div>
+
+        <BR>
+        <div class="ee-k">
+                <div class="ee-row">
+                    <div class="ee-k">受講場所：</div>
+                    <span class="ee-v" id="evLoc"></span>
+                    <BR>
+                </div>
+                <div class="ee-row">
+                    <div class="ee-k">イベント開催日：</div>
+                    <span class="ee-v" id="dateDisplay">@DateTime.Today.ToString("yyyy/MM/dd")</span>
+                </div>
+                <BR>
+                <div class="ee-row">
+                    <div class="ee-k">年度：</div>
+                    <span id="evYear"></span>
+                </div>
+        </div>
+
+        <BR>
+        <div class="ee-k" id="startArea">
+                <label class="form-label">開始時刻：</label>
+            <div id="startText" class="form-control d-none">-</div>
+            <select id="startSelect" class="form-select d-none">
+                <option value="">選択してください</option>
+            </select>
+        </div>
+        <BR>
+
+        <div class="ee-k">
+                <div class="ee-row">
+                    <div class="ee-k">終了時刻：</div>
+                    <span id="evEnd"></span>
+		        </div>
+				<BR>
+                <div class="ee-row">
+                    <div class="ee-k">受付開始時刻：</div>
+                    <span id="evRecept"></span>
+        </div>
+    </div>
+
+    <div class="border-top pt-3 mt-3" >
+        <div class="mb-2 fw-bold">イベント情報</div>
+
+        <div>EventCode：<span id="evCode"></span></div>
+        <div>イベント名：<span id="evName"></span></div>
+        <div>開始時刻：<span id="evStart"></span></div>
+    </div>
+
+            <div class="mt-4">
+
+                <!-- 入場登録（一括） -->
+                <form asp-action="GoToBatch" method="post" class="d-inline">
+                    <input type="hidden" name="mode" value="IN" />
+                    <button type="submit" id="btnBatchIn" class="btn btn-primary me-2" disabled>
+                        入場登録（一括）
+                    </button>
+                </form>
+                <!-- 入場登録（臨時） -->
+                <form asp-action="GoToTemp" method="post" class="d-inline">
+                    <input type="hidden" name="kind" value="IN" />
+                    <button type="submit" id="btnTempIn" class="btn btn-outline-primary me-2" disabled>
+                        入場登録（臨時）
+                    </button>
+                </form>
+                <!-- 退場登録（一括） -->
+                <form asp-action="GoToBatch" method="post" class="d-inline">
+                    <input type="hidden" name="mode" value="OUT" />
+                    <button type="submit" id="btnBatchOut" class="btn btn-warning me-2" disabled>
+                        退場登録（一括）
+                    </button>
+                </form>
+                <!-- ★ 退場登録（臨時） -->
+                <form asp-action="GoToTemp" method="post" class="d-inline">
+                    <input type="hidden" name="kind" value="OUT" />
+                    <button type="submit" id="btnTempOut" class="btn btn-outline-warning me-2" disabled>
+                        退場登録（臨時）
+                    </button>
+                </form>
+                <!-- 入退場照会 -->
+                <form asp-controller="AttendeeSearch"
+                      asp-action="Index"
+                      method="get"
+                      class="d-inline">
+                    <button type="submit"
+                            id="btnAttendeeSearch"
+                            class="btn btn-info me-2"
+                            >
+                        入退場照会
+                    </button>
+                </form>
+                <!-- メインメニュー -->
+                <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">
+                    メインメニューに戻る
+                </a>
+
+            </div>
+</div>
+
+@section Scripts {
+<script>
+  // 時計
+  setInterval(function () {
+    const d = new Date();
+    const pad = n => n.toString().padStart(2, '0');
+    document.getElementById('clock').textContent =
+      `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }, 1000);
+
+  const autoSelected = @((autoSelected) ? "true" : "false");
+  const preloaded = @Html.Raw(preloadedJson);
+  const selected = @Html.Raw(selectedJson);
+
+  const branchDisplay = document.getElementById('branchDisplay');
+
+  const divisionArea = document.getElementById('divisionArea');
+  const divisionText = document.getElementById('divisionText');
+  const divisionSelect = document.getElementById('divisionSelect');
+
+  const startArea = document.getElementById('startArea');
+  const startText = document.getElementById('startText');
+  const startSelect = document.getElementById('startSelect');
+
+  const evCode = document.getElementById('evCode');
+  const evName = document.getElementById('evName');
+  const evYear = document.getElementById('evYear');
+  const evLoc  = document.getElementById('evLoc');
+  const evRecept = document.getElementById('evRecept');
+  const evStart = document.getElementById('evStart');
+  const evEnd   = document.getElementById('evEnd');
+
+  const btnIn  = document.getElementById('btnBatchIn');
+  const btnOut = document.getElementById('btnBatchOut');
+
+  const btnTempIn  = document.getElementById('btnTempIn');
+  const btnTempOut = document.getElementById('btnTempOut');
+
+  function clearDetail() {
+    evCode.textContent = "";
+    evName.textContent = "";
+    evYear.textContent = "";
+    evLoc.textContent = "";
+    evRecept.textContent = "";
+    evStart.textContent = "";
+    evEnd.textContent = "";
+    btnIn.disabled = true;
+    btnOut.disabled = true;
+    btnTempIn.disabled = true;
+    btnTempOut.disabled = true;
+  }
+
+  function setDetail(d) {
+    if (!d) return;
+    branchDisplay.textContent = (d.branchCd ? d.branchCd : "") + (d.branchName ? " " + d.branchName : "");
+    evCode.textContent = d.eventCode ?? "－";
+    evName.textContent = d.eventName ?? "－";
+    evYear.textContent = d.fiscalYear ?? "－";
+    evLoc.textContent  = d.location ?? "－";
+    evRecept.textContent = d.receptTime ?? "－";
+    evStart.textContent = d.startTime ?? "－";
+    evEnd.textContent   = d.endTime ?? "－";
+    btnIn.disabled = false;
+    btnOut.disabled = false;
+    btnTempIn.disabled = false;
+    btnTempOut.disabled = false;
+
+  }
+  async function decide(divisionCode, startTime) {
+    clearDetail();
+    const fd = new FormData();
+    fd.append("divisionCode", divisionCode);
+    fd.append("startTime", startTime);
+
+    const res = await fetch("/EventSelection/Decide", { method: "POST", body: fd });
+    if (!res.ok) {
+      alert("イベント確定に失敗しました。");
+      return;
+    }
+    const info = await res.json();
+    setDetail(info);
+  }
+
+  function showDivisionAsText(text) {
+    divisionText.textContent = text;
+    divisionText.classList.remove('d-none');
+    divisionSelect.classList.add('d-none');
+  }
+  function showDivisionAsSelect() {
+    divisionText.classList.add('d-none');
+    divisionSelect.classList.remove('d-none');
+  }
+
+  function showStartAsText(text) {
+    startText.textContent = text;
+    startText.classList.remove('d-none');
+    startSelect.classList.add('d-none');
+  }
+  function showStartAsSelect() {
+    startText.classList.add('d-none');
+    startSelect.classList.remove('d-none');
+  }
+
+  function initMulti() {
+    // 支店表示（先頭データから）
+    if (preloaded.length > 0) {
+      const d0 = preloaded[0];
+      branchDisplay.textContent = (d0.branchCd ? d0.branchCd : "") + (d0.branchName ? " " + d0.branchName : "");
+    }
+
+    clearDetail();
+
+    // 区分のユニーク一覧
+    const divMap = new Map();
+    preloaded.forEach(e => {
+      if (!divMap.has(e.eventCd)) divMap.set(e.eventCd, e.eventName ?? "");
+    });
+    const divs = Array.from(divMap.entries()).map(x => ({ code: x[0], name: x[1] }))
+                      .sort((a,b) => (a.code > b.code ? 1 : -1));
+
+    let selectedDiv = "";
+
+    if (divs.length === 1) {
+      // 区分が1件の場合：区分は表示のみ
+      selectedDiv = divs[0].code;
+      showDivisionAsText(`${divs[0].code} ${divs[0].name}`);
+    } else {
+      // 区分選択
+      divisionSelect.innerHTML = '<option value="">選択してください</option>';
+      divs.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.code;
+        opt.textContent = `${d.code} ${d.name}`;
+        divisionSelect.appendChild(opt);
+      });
+      showDivisionAsSelect();
+    }
+
+    // 区分が確定したら開始時刻候補を構築
+    async function refreshStartTimes() {
+      clearDetail();
+      startSelect.innerHTML = '<option value="">選択してください</option>';
+
+      const divCode = selectedDiv || divisionSelect.value;
+      if (!divCode) {
+        startArea.classList.remove('d-none');
+        showStartAsSelect();
+        return;
+      }
+
+      const candidates = preloaded.filter(e => e.eventCd === divCode);
+      const timeMap = new Map();
+      candidates.forEach(e => {
+        if (!timeMap.has(e.startTimeRaw)) timeMap.set(e.startTimeRaw, e.startTime);
+      });
+      const times = Array.from(timeMap.entries())
+        .map(x => ({ raw: x[0], disp: x[1] }))
+        .sort((a,b) => (a.raw > b.raw ? 1 : -1));
+
+      if (times.length === 1) {
+        // 開始時刻が1件なら表示のみ＆自動確定
+        showStartAsText(times[0].disp);
+        await decide(divCode, times[0].disp);
+      } else {
+        showStartAsSelect();
+        startSelect.innerHTML = '<option value="">選択してください</option>';
+        times.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t.disp;
+          opt.textContent = t.disp;
+          startSelect.appendChild(opt);
+        });
+      }
+    }
+
+    if (divs.length === 1) {
+      // 区分固定 → 開始時刻へ
+      refreshStartTimes();
+    } else {
+      divisionSelect.addEventListener('change', () => {
+        refreshStartTimes();
+      });
+    }
+
+    startSelect.addEventListener('change', () => {
+      const divCode = selectedDiv || divisionSelect.value;
+      const st = startSelect.value;
+      if (!divCode || !st) return;
+      decide(divCode, st);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (autoSelected) {
+      // 1件：表示のみ（確定済み）
+      // 区分・開始時刻エリアは非表示にしてOK
+      divisionArea.classList.add('d-none');
+      startArea.classList.add('d-none');
+      setDetail(selected);
+      return;
+    }
+
+    // 複数
+    divisionArea.classList.remove('d-none');
+    startArea.classList.remove('d-none');
+    initMulti();
+  });
+</script>
+}
