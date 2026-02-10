@@ -53,3 +53,230 @@ textarea#logArea {
     font-size: 64px !important;
     font-weight: 800 !important;
 }
+
+/ /* =====================================================
+   Common (全体共通)
+   ===================================================== */
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background-color: #f7f8fa;
+}
+
+/* Card（※Index以外の画面ではこの丸角・影を使う想定） */
+.card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* =====================================================
+   Layout 右上 日付・時刻（Layout共通）
+   ※ 現状のファイルでは 64px !important が最終的に効いているため、
+      それを「唯一の定義」として残します（挙動維持）。
+   ===================================================== */
+
+.layout-clock {
+    line-height: 1.2;
+}
+
+.layout-login {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* 【最終】Layout 右上 日時表示（強制サイズ） */
+.layout-datetime {
+    font-size: 64px !important;
+    font-weight: 800 !important;
+    letter-spacing: 1px;
+    margin-top: 2px;
+}
+
+/* =====================================================
+   Scan / Result など（共通で使っているもの）
+   ===================================================== */
+
+.result-mark {
+    display: inline-block;
+    width: 64px;
+    text-align: center;
+    font-size: 3rem;
+    font-weight: bold;
+    line-height: 1;
+}
+
+    .result-mark.ok {
+        color: #28a745;
+    }
+
+    .result-mark.ng {
+        color: #dc3545;
+    }
+
+textarea#logArea {
+    font-family: "Consolas", monospace;
+    font-size: 0.9rem;
+}
+
+/* =====================================================
+   Index（メニュー）画面専用
+   ===================================================== */
+
+/* body を縦flex */
+body.index-menu {
+    display: flex;
+    flex-direction: column;
+    background-color: #f7f8fa;
+}
+
+    /* container-fluid をフルサイズ化 */
+    body.index-menu .container-fluid {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        max-width: none;
+        width: 100%;
+        padding: 0;
+    }
+
+    /* Indexのcardは画面全体に広げ、丸角・影は無効 */
+    body.index-menu .card {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    /* Bootstrap角丸無効化（Indexのみ） */
+    body.index-menu .btn,
+    body.index-menu .form-control,
+    body.index-menu .form-select {
+        border-radius: 0;
+    }
+
+    /* -----------------------------------------------------
+   上段：緑帯（タイトル中央）
+   ----------------------------------------------------- */
+
+    body.index-menu .menu-topbar {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        min-height: 84px;
+        padding: 0 24px;
+    }
+
+    body.index-menu .menu-topbar-title {
+        text-align: center !important;
+        font-weight: 700; /* menu10以降の調整を反映 */
+        font-size: 20pt !important; /* 指定の20pt */
+        letter-spacing: .5px;
+        margin: 0;
+    }
+
+    /* -----------------------------------------------------
+   2段目：左にテストボタン／右にログイン・日付・時刻
+   ----------------------------------------------------- */
+
+    body.index-menu .menu-subbar {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        justify-content: space-between !important;
+        align-items: center !important; /* 最終的に縦中央 */
+        min-height: 90px;
+        padding: 22px 24px;
+        background: #ffffff;
+    }
+
+    body.index-menu .menu-sub-left {
+        flex: 0 0 auto;
+    }
+
+    body.index-menu .menu-sub-right {
+        flex: 0 0 auto;
+        margin-left: auto !important;
+    }
+
+    /* 右上（ログイン/日付/時刻） */
+    body.index-menu .menu-clock {
+        width: 320px;
+        font-size: 16pt !important;
+        line-height: 1.4;
+        padding-right: 6px;
+    }
+
+    /* ラベル左／値右（2列） */
+    body.index-menu .menu-clock-row {
+        display: grid;
+        grid-template-columns: 90px 1fr;
+        column-gap: 10px;
+    }
+
+    body.index-menu .menu-clock-label {
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    body.index-menu .menu-clock-value {
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    /* ※ Index内で layout-datetime を使う場合の保険（小さく固定） */
+    body.index-menu .layout-datetime,
+    body.index-menu .menu-header-right .layout-datetime {
+        font-size: 16pt !important;
+        font-weight: 400 !important;
+        letter-spacing: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* -----------------------------------------------------
+   メイン：白い領域（menu14の最終配置）
+   ----------------------------------------------------- */
+
+    body.index-menu .menu-main {
+        flex: 1;
+        background-color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start !important; /* 中央寄せ解除 */
+        /* ここは「上げ下げ調整」の最終値に合わせて残しています */
+        padding-bottom: 500pt;
+    }
+
+    body.index-menu .menu-main-inner {
+        width: 100%;
+        padding: 0 24px;
+    }
+
+    body.index-menu .menu-main-title {
+        text-align: left;
+        margin: 40px 0 40px 0;
+    }
+
+    /* メニューボタン（最終値：あなたの調整を反映） */
+    body.index-menu .menu-btn {
+        width: 400px !important;
+        height: 160px !important;
+        font-size: 36px !important;
+        font-weight: 800;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+        /* ボタン角丸の保険 */
+        body.index-menu .menu-btn.btn {
+            border-radius: 0 !important;
+        }
