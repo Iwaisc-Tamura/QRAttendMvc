@@ -1,72 +1,200 @@
-/* =====================================================
-   Common
-   ===================================================== */
+/* 右上 日付・時刻表示（Layout共通） */
+.layout-clock {
+    line-height: 1.2;
+}
 
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
+.layout-login {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* ★ メインの日時表示 */
+.layout-datetime {
+    font-size: 48px; /* ← ここを調整 */
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-top: 2px;
 }
 
 body {
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    background: #ffffff;
-    color: #111;
+        background-color: #f7f8fa;
 }
 
-    /* =====================================================
-   Home (index1) : body.index-menu
-   ① 白い部分がボタン下で切れる → card を画面高いっぱいにする
+.card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.result-mark {
+    display: inline-block;
+    width: 64px;
+    text-align: center;
+    font-size: 3rem;
+    font-weight: bold;
+    line-height: 1;
+}
+
+    /* 登録あり → 緑の「〇」 */
+    .result-mark.ok {
+        color: #28a745;
+    }
+
+    /* 未登録 → 赤の「×」 */
+    .result-mark.ng {
+        color: #dc3545;
+    }
+textarea#logArea {
+    font-family: "Consolas", monospace;
+    font-size: 0.9rem;
+}
+/* 【最終兵器】Layout 右上 日時表示を強制的に大きくする */
+.layout-datetime {
+    font-size: 64px !important;
+    font-weight: 800 !important;
+}
+
+/ /* =====================================================
+   Common (全体共通)
+   ===================================================== */
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background-color: #f7f8fa;
+}
+
+/* Card（※Index以外の画面ではこの丸角・影を使う想定） */
+.card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* =====================================================
+   Layout 右上 日付・時刻（Layout共通）
+   ※ 現状のファイルでは 64px !important が最終的に効いているため、
+      それを「唯一の定義」として残します（挙動維持）。
    ===================================================== */
 
+.layout-clock {
+    line-height: 1.2;
+}
+
+.layout-login {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* 【最終】Layout 右上 日時表示（強制サイズ） */
+.layout-datetime {
+    font-size: 64px !important;
+    font-weight: 800 !important;
+    letter-spacing: 1px;
+    margin-top: 2px;
+}
+
+/* =====================================================
+   Scan / Result など（共通で使っているもの）
+   ===================================================== */
+
+.result-mark {
+    display: inline-block;
+    width: 64px;
+    text-align: center;
+    font-size: 3rem;
+    font-weight: bold;
+    line-height: 1;
+}
+
+    .result-mark.ok {
+        color: #28a745;
+    }
+
+    .result-mark.ng {
+        color: #dc3545;
+    }
+
+textarea#logArea {
+    font-family: "Consolas", monospace;
+    font-size: 0.9rem;
+}
+
+/* =====================================================
+   Index（メニュー）画面専用
+   ===================================================== */
+
+/* body を縦flex */
+body.index-menu {
+    display: flex;
+    flex-direction: column;
+    background-color: #f7f8fa;
+}
+
+    /* container-fluid をフルサイズ化 */
     body.index-menu .container-fluid {
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-    }
-
-    /* ★ 白枠(card)を「画面いっぱい」に固定 */
-    body.index-menu .card {
-        width: 100% !important;
-        max-width: none !important;
-        margin: 0 !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-        border: 1px solid rgba(0,0,0,.15);
-        /* ここが重要 */
-        min-height: 100vh; /* 画面高いっぱい */
-        display: flex; /* 中身を伸ばす */
+        flex: 1;
+        display: flex;
         flex-direction: column;
+        max-width: none;
+        width: 100%;
+        padding: 0;
     }
 
-    /* card の中身（メイン）を伸ばして、白が途切れないようにする */
-    body.index-menu .menu-main {
-        flex: 1 1 auto; /* 余白分を吸収 */
-        padding: 0 24px 24px; /* 下に少し余白 */
+    /* Indexのcardは画面全体に広げ、丸角・影は無効 */
+    body.index-menu .card {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
     }
 
-    /* 上部の緑帯 */
+    /* Bootstrap角丸無効化（Indexのみ） */
+    body.index-menu .btn,
+    body.index-menu .form-control,
+    body.index-menu .form-select {
+        border-radius: 0;
+    }
+
+    /* -----------------------------------------------------
+   上段：緑帯（タイトル中央）
+   ----------------------------------------------------- */
+
     body.index-menu .menu-topbar {
-        background: #129a3e !important;
-        color: #fff !important;
-        padding: 16px 24px;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        min-height: 84px;
+        padding: 0 24px;
     }
 
     body.index-menu .menu-topbar-title {
-        text-align: left;
-        font-weight: 800;
-        font-size: 18pt;
+        text-align: center !important;
+        font-weight: 700; /* menu10以降の調整を反映 */
+        font-size: 20pt !important; /* 指定の20pt */
+        letter-spacing: .5px;
         margin: 0;
     }
 
-    /* 2段目: 左=テストボタン / 右=ログイン日時 */
+    /* -----------------------------------------------------
+   2段目：左にテストボタン／右にログイン・日付・時刻
+   ----------------------------------------------------- */
+
     body.index-menu .menu-subbar {
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: nowrap !important;
         justify-content: space-between !important;
-        align-items: flex-start !important;
-        padding: 10px 24px;
-        gap: 16px;
+        align-items: center !important; /* 最終的に縦中央 */
+        min-height: 90px;
+        padding: 22px 24px;
+        background: #ffffff;
     }
 
     body.index-menu .menu-sub-left {
@@ -75,27 +203,26 @@ body {
 
     body.index-menu .menu-sub-right {
         flex: 0 0 auto;
-        margin-left: auto !important; /* 右へ */
+        margin-left: auto !important;
     }
 
-    /* 右側（ログイン/日付/時刻）を右端揃え */
+    /* 右上（ログイン/日付/時刻） */
     body.index-menu .menu-clock {
-        text-align: right !important;
-        min-width: 280px;
-        line-height: 1.6;
+        width: 320px;
+        font-size: 16pt !important;
+        line-height: 1.4;
+        padding-right: 6px;
     }
 
-    /* 「ログイン：」等は左、「値」は右、全体は右寄せ */
+    /* ラベル左／値右（2列） */
     body.index-menu .menu-clock-row {
         display: grid;
-        grid-template-columns: 90px 200px;
-        justify-content: end;
+        grid-template-columns: 90px 1fr;
         column-gap: 10px;
     }
 
     body.index-menu .menu-clock-label {
         text-align: left;
-        font-weight: 700;
         white-space: nowrap;
     }
 
@@ -104,386 +231,52 @@ body {
         white-space: nowrap;
     }
 
-    /* 見出し */
-    body.index-menu .menu-main-title {
-        margin: 24px 0 24px 0;
-        font-weight: 800;
-        font-size: 28pt;
+    /* ※ Index内で layout-datetime を使う場合の保険（小さく固定） */
+    body.index-menu .layout-datetime,
+    body.index-menu .menu-header-right .layout-datetime {
+        font-size: 16pt !important;
+        font-weight: 400 !important;
+        letter-spacing: 0 !important;
+        margin: 0 !important;
     }
 
-    /* 中央のボタン */
+    /* -----------------------------------------------------
+   メイン：白い領域（menu14の最終配置）
+   ----------------------------------------------------- */
+
+    body.index-menu .menu-main {
+        flex: 1;
+        background-color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start !important; /* 中央寄せ解除 */
+        /* ここは「上げ下げ調整」の最終値に合わせて残しています */
+        padding-bottom: 500pt;
+    }
+
+    body.index-menu .menu-main-inner {
+        width: 100%;
+        padding: 0 24px;
+    }
+
+    body.index-menu .menu-main-title {
+        text-align: left;
+        margin: 40px 0 40px 0;
+    }
+
+    /* メニューボタン（最終値：あなたの調整を反映） */
     body.index-menu .menu-btn {
-        width: 420px !important;
+        width: 400px !important;
         height: 160px !important;
         font-size: 36px !important;
-        font-weight: 800 !important;
-        border-radius: 8px !important;
+        font-weight: 800;
+        padding: 0 !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
     }
 
-
-    /* =====================================================
-   EventSelection (index2) : body.event-page
-   ② 開催拠点/受付場所を区分(520px)と同じ幅
-   ③ ログイン欄をもっと右へ＋入力欄との間に余白
-   ===================================================== */
-
-    body.event-page {
-        background: #ffffff;
-        color: #111;
-        font-size: 11pt; /* 白領域の最小フォント */
-    }
-
-        /* 上部：紫タブ＋緑タイトル（黒枠なし） */
-        body.event-page .ev-header {
-            display: flex;
-            align-items: stretch;
-            width: 100%;
-            border: none;
+        /* ボタン角丸の保険 */
+        body.index-menu .menu-btn.btn {
+            border-radius: 0 !important;
         }
-
-        body.event-page .ev-tab,
-        body.event-page .ev-title {
-            height: 90px;
-            border: none;
-        }
-
-        body.event-page .ev-tab {
-            width: 140px;
-            background: #e8b7e8;
-            color: #fff;
-            font-weight: 800;
-            font-size: 18pt;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            letter-spacing: .5px;
-        }
-
-        body.event-page .ev-title {
-            flex: 1;
-            background: #129a3e;
-            color: #fff;
-            font-weight: 800;
-            font-size: 18pt;
-            display: flex;
-            align-items: center;
-            padding-left: 18px;
-            letter-spacing: .5px;
-        }
-
-        /* 中身 */
-        body.event-page .ev-container {
-            max-width: 980px;
-            margin: 0 auto;
-            padding: 18px 18px 10px;
-        }
-
-        /* アラート */
-        body.event-page .ev-alert {
-            border: 1px solid #999;
-            padding: 12px 14px;
-            margin: 0 0 16px;
-            border-radius: 4px;
-            font-size: 11pt;
-        }
-
-        body.event-page .ev-alert-warn {
-            background: #fff3cd;
-            border-color: #ffe69c;
-        }
-
-        body.event-page .ev-alert-danger {
-            background: #f8d7da;
-            border-color: #f1aeb5;
-        }
-
-        /* 行 */
-        body.event-page .ev-row {
-            display: grid;
-            grid-template-columns: 140px 1fr;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 0;
-        }
-
-        /* 区分 + 右ログイン欄
-   ★③ 余白を増やす（gap拡大）＋ログイン欄を右端へ */
-        body.event-page .ev-row-3 {
-            grid-template-columns: 140px 520px 1fr;
-            align-items: start;
-            column-gap: 48px; /* ←入力欄とログイン欄の間隔を広げる */
-        }
-
-        /* ラベル */
-        body.event-page .ev-label {
-            font-weight: 800;
-            font-size: 11pt;
-        }
-
-        /* フィールド幅 */
-        body.event-page .ev-field {
-            width: 100%;
-        }
-
-        body.event-page .ev-field-mid {
-            width: 520px;
-            max-width: 520px;
-        }
-
-        body.event-page .ev-field-short {
-            max-width: 260px;
-        }
-
-        /* select / 枠 */
-        body.event-page .ev-select,
-        body.event-page .ev-selectlike {
-            width: 100%;
-            max-width: 100%;
-            box-sizing: border-box;
-            height: 34px;
-            border: 2px solid #1d1d1d;
-            background: #ffffff;
-            font-size: 11pt;
-            padding: 4px 10px;
-        }
-
-        /* select矢印（枠内） */
-        body.event-page .ev-select {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-image: linear-gradient(45deg, transparent 50%, #2f9e44 50%), linear-gradient(135deg, #2f9e44 50%, transparent 50%);
-            background-position: calc(100% - 18px) 13px, calc(100% - 10px) 13px;
-            background-size: 8px 8px, 8px 8px;
-            background-repeat: no-repeat;
-            padding-right: 34px;
-        }
-
-        body.event-page .ev-readonly {
-            display: flex;
-            align-items: center;
-        }
-
-        /* 下線 */
-        body.event-page .ev-underline {
-            min-height: 24px;
-            border-bottom: 2px solid #1d1d1d;
-            padding: 4px 6px;
-            box-sizing: border-box;
-            font-size: 11pt;
-        }
-
-        /* ★② 開催拠点・受付場所を 520px に固定（区分と同じ幅） */
-        body.event-page #branchDisplay {
-            width: 520px !important;
-            max-width: 520px !important;
-            box-sizing: border-box;
-        }
-
-        body.event-page #evLoc {
-            width: 520px !important;
-            max-width: 520px !important;
-            box-sizing: border-box;
-        }
-
-        /* 右ログイン
-   ★③ 右端に寄せる（グリッドの右に押し付ける） */
-        body.event-page .ev-loginbox {
-            font-size: 11pt;
-            line-height: 1.6;
-            min-width: 260px;
-            padding-top: 2px;
-            justify-self: end; /* ←右寄せ */
-        }
-
-        body.event-page .ev-login-row {
-            display: grid;
-            grid-template-columns: 60px 1fr;
-            column-gap: 10px;
-        }
-
-        body.event-page .ev-login-label {
-            font-weight: 700;
-        }
-
-        body.event-page .ev-login-value {
-            text-align: right;
-            min-width: 140px;
-        }
-
-        /* 開催日/年度 */
-        body.event-page .ev-row-split {
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            align-items: center;
-        }
-
-        body.event-page .ev-split-left {
-            display: grid;
-            grid-template-columns: 140px 1fr;
-            align-items: center;
-            gap: 12px;
-        }
-
-        body.event-page .ev-split-right {
-            display: flex;
-            justify-content: flex-start;
-        }
-
-        body.event-page .ev-inline {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        body.event-page .ev-label-inline {
-            font-weight: 800;
-            font-size: 11pt;
-        }
-
-        body.event-page .ev-yearbox {
-            display: inline-flex;
-            min-width: 72px;
-            justify-content: center;
-            border-bottom: 2px solid #1d1d1d;
-            padding: 4px 6px;
-            font-weight: 700;
-            font-size: 11pt;
-        }
-
-        /* イベント情報 */
-        body.event-page .ev-info {
-            margin-top: 18px;
-            padding-top: 12px;
-            border-top: 1px solid #bfbfbf;
-            max-width: 640px;
-        }
-
-        body.event-page .ev-info-title {
-            font-weight: 800;
-            margin-bottom: 8px;
-            font-size: 11pt;
-        }
-
-        body.event-page .ev-info-row {
-            font-size: 11pt;
-            margin: 2px 0;
-        }
-
-        /* ボタン（黒枠なし） */
-        body.event-page .ev-actions {
-            margin-top: 18px;
-            display: flex;
-            gap: 10px;
-            justify-content: flex-start;
-            flex-wrap: nowrap;
-        }
-
-            body.event-page .ev-actions form {
-                margin: 0;
-            }
-
-        body.event-page .ev-btn {
-            width: 150px;
-            height: 74px;
-            border: none;
-            outline: none;
-            font-weight: 800;
-            font-size: 11pt;
-            line-height: 1.2;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            box-sizing: border-box;
-            user-select: none;
-        }
-
-        body.event-page .ev-btn-link {
-            text-decoration: none;
-            color: #fff;
-        }
-
-        body.event-page .ev-btn-blue {
-            background: #1e88e5;
-            color: #fff;
-        }
-
-        body.event-page .ev-btn-blue2 {
-            background: #2196f3;
-            color: #fff;
-        }
-
-        body.event-page .ev-btn-orange {
-            background: #f57c00;
-            color: #fff;
-        }
-
-        body.event-page .ev-btn-orange2 {
-            background: #fb8c00;
-            color: #fff;
-        }
-
-        body.event-page .ev-btn-green {
-            background: #2e7d32;
-            color: #fff;
-        }
-
-        body.event-page .ev-btn-sky {
-            background: #2a78c5;
-            color: #fff;
-        }
-
-@media (max-width: 980px) {
-    body.event-page .ev-actions {
-        flex-wrap: wrap;
-    }
-
-    body.event-page .ev-row-3 {
-        grid-template-columns: 140px 1fr;
-        align-items: center;
-        column-gap: 12px;
-    }
-
-    body.event-page .ev-field-mid {
-        width: 100%;
-        max-width: 100%;
-    }
-
-    body.event-page #branchDisplay,
-    body.event-page #evLoc {
-        width: 100% !important;
-        max-width: 100% !important;
-    }
-
-    body.event-page .ev-loginbox {
-        justify-self: start;
-        margin-top: 8px;
-    }
-}
-/* =========================
-   index1 (Home)
-   ①「入退場メインメニュー」を 20ptくらいに
-   ========================= */
-body.index-menu .menu-main-title {
-    font-size: 20pt !important;
-}
-
-
-/* =========================
-   index2 (EventSelection)
-   ② 区分プルダウンの左端を他の項目と揃える
-   ③ 区分プルダウン内の文字色を黒
-   ④ 開始時刻プルダウン内の文字色を黒
-   ⑤ ログイン/日付/時刻を右端に寄せる
-   ========================= */
-
-/* ⑤ 右側をもっと右へ寄せたい → コンテナ幅を広げて右端を遠くする */
-body.event-page .ev-container {
-    max-width: 950px !important; /* 980 → 1400 に拡張 */
-}
-
