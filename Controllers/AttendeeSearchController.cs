@@ -37,7 +37,6 @@ namespace QRAttendMvc.Controllers
 
             if (!string.IsNullOrWhiteSpace(companyName))
                 // 会社名での検索はマスタ未使用のため未対応（必要なら協力会社マスタと連携）
-                ;
 
             ViewBag.CompanyKana = companyKana;
             ViewBag.CompanyName = companyName;
@@ -74,6 +73,10 @@ namespace QRAttendMvc.Controllers
                     WorkerId = p.EmployeeCd,
                     WorkerName = p.DisplayName,
 
+                    /* 追加 2026.02.14 Takada　*/
+                    BirthDate = ParseYyyyMMdd(p.BirthYmd),
+                    ExcludeDate = ParseYyyyMMdd(p.RetireYmd),
+
                     LastInTime = lastIn,
                     LastOutTime = lastOut,
                     RoleType = "名簿"
@@ -99,7 +102,8 @@ namespace QRAttendMvc.Controllers
                 q = q.Where(p => p.EmployeeCd.Contains(workerId));
 
             if (!string.IsNullOrWhiteSpace(companyName))
-                ;
+                q = q.Where(p => p.EmployeeCd.Contains(companyName));
+
 
             var employees = await q
                 .OrderBy(p => p.EmployeeCd)
@@ -130,8 +134,11 @@ namespace QRAttendMvc.Controllers
                     "",
                     Esc(p.EmployeeCd),
                     Esc(p.DisplayName),
-                    "",
-                    "",
+
+                    /* 追加 2026.02.14 Takada　*/
+                    ParseYyyyMMdd(p.BirthYmd)?.ToString("yyyy/MM/dd") ?? "",
+                    ParseYyyyMMdd(p.RetireYmd)?.ToString("yyyy/MM/dd") ?? "",
+
                     lastIn?.ToString("HH:mm") ?? "",
                     lastOut?.ToString("HH:mm") ?? "",
                     "名簿"
@@ -155,6 +162,20 @@ namespace QRAttendMvc.Controllers
             if (!int.TryParse(s.Substring(2, 2), out var m)) return null;
             if (h < 0 || h > 23 || m < 0 || m > 59) return null;
             return DateTime.Today.AddHours(h).AddMinutes(m);
+        }
+        /* 追加 2026.02.14　Takada */
+        private static DateTime? ParseYyyyMMdd(string? yyyymmdd)
+        {
+            if (string.IsNullOrWhiteSpace(yyyymmdd)) return null;
+            var s = yyyymmdd.Trim();
+            if (s.Length != 8) return null;
+
+            if (!int.TryParse(s.Substring(0, 4), out var y)) return null;
+            if (!int.TryParse(s.Substring(4, 2), out var m)) return null;
+            if (!int.TryParse(s.Substring(6, 2), out var d)) return null;
+
+            try { return new DateTime(y, m, d); }
+            catch { return null; }
         }
     }
 }

@@ -14,23 +14,19 @@ body {
     color: #111;
 }
 
-
-    /* =====================================================
-   index1（Home） : body.index-menu
+ /* =====================================================
+   index（Home） : body.index-home
    ===================================================== */
 
-    /* コンテナ余白削除 */
-    body.index-menu .container-fluid {
+    body.index-home .container-fluid {
         padding-left: 0 !important;
         padding-right: 0 !important;
     }
 
-    /* 白い枠を画面いっぱいに */
-    body.index-menu .card {
+    body.index-home .card {
         width: 100% !important;
         max-width: none !important;
         margin: 0 !important;
-        border-radius: 0 !important;
         box-shadow: none !important;
         border: 1px solid rgba(0,0,0,.15);
         min-height: 100vh;
@@ -38,115 +34,361 @@ body {
         flex-direction: column;
     }
 
-    /* 上部緑バー（タイトル中央寄せ） */
-    body.index-menu .menu-topbar {
+    body.index-home .home-topbar {
+        height: 90px;
         background: #129a3e !important;
         color: #fff !important;
         padding: 16px 24px;
         text-align: center !important;
     }
 
-    body.index-menu .menu-topbar-title {
+    body.index-home .home-topbar-title {
         width: 100% !important;
-        font-size: 18pt;
+        font-size: 20pt;
         font-weight: 800;
         margin: 0 auto !important;
         text-align: center !important;
     }
 
-    /* サブバー（テストボタン＋ログイン情報） */
-    body.index-menu .menu-subbar {
+    body.index-home .home-subbar {
         display: flex !important;
         justify-content: space-between !important;
         align-items: flex-start !important;
         padding: 10px 24px;
     }
 
-    body.index-menu .menu-sub-right {
+    body.index-home .home-sub-right {
         margin-left: auto !important;
     }
 
-    /* ログイン情報（右端寄せ） */
-    body.index-menu .menu-clock {
-        text-align: right !important;
+    body.index-home .home-clock {
+        text-align: left !important;
         min-width: 280px;
         line-height: 1.6;
     }
 
-    body.index-menu .menu-clock-row {
+    body.index-home .home-clock-row {
         display: grid;
         grid-template-columns: 90px 200px;
         justify-content: end;
         column-gap: 10px;
     }
 
-    body.index-menu .menu-clock-label {
+    body.index-home .home-clock-label {
         font-weight: 700;
     }
 
-    body.index-menu .menu-clock-value {
+    body.index-home .home-clock-value {
         text-align: right;
     }
 
-    /* メイン領域 */
-    body.index-menu .menu-main {
+    body.index-home .home-main {
         flex: 1 1 auto;
         padding: 0 24px 24px;
     }
 
-    /* 見出し（20ptくらい） */
-    body.index-menu .menu-main-title {
+    body.index-home .home-main-title {
         font-size: 20pt !important;
         font-weight: 800;
         margin: 24px 0;
     }
 
-    /* イベント選択ボタン */
-    body.index-menu .menu-btn {
+    body.index-home .home-btn {
         width: 420px !important;
         height: 160px !important;
         font-size: 36px !important;
         font-weight: 800 !important;
-        border-radius: 8px !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
     }
 
+    body.index-home .btn,
+    body.index-home .badge,
+    body.index-home .card,
+    body.index-home .container,
+    body.index-home .container-fluid {
+        border-radius: 0 !important;
+    }
 
-    /* =====================================================
-   index2（EventSelection） : body.event-page
-   ===================================================== */
+/* =====================================================
+   index（EventSelection） : body.event-page
+ ===================================================== */
 
     body.event-page {
         font-size: 11pt;
-        overflow-x: hidden; /* 横スクロールを出さない保険 */
+        overflow-x: hidden; 
     }
 
-        /* 上部ヘッダー */
-        body.event-page .ev-header {
+    body.event-page .ev-container {
+        position: relative; 
+        padding-top: 38px !important; 
+    }
+
+    body.event-page .ev-header {
+        display: flex;
+        width: 100%;
+    }
+
+    body.event-page .ev-tab,
+    body.event-page .ev-title {
+        height: 90px;
+        border: none;
+    }
+
+    body.event-page .ev-tab {
+        width: 140px;
+        background: #e8b7e8;
+        color: #fff;
+        font-weight: 800;
+        font-size: 18pt;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    body.event-page .ev-title {
+        flex: 1;
+        background: #129a3e;
+        color: #fff;
+        font-weight: 800;
+        font-size: 18pt;
+        display: flex;
+        align-items: center;
+        padding-left: calc(18px + 2ch);
+    }
+
+    body.event-page .ev-container {
+        box-sizing: border-box !important;
+        max-width: none !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding-left: 350pt !important;
+        padding-right: 30px !important;
+        padding-top: 18px;
+        padding-bottom: 10px;
+        font-size: 11pt;
+    }
+
+    body.event-page .ev-row:not(.ev-row-split) {
+        display: grid !important;
+        grid-template-columns: 140px 520px 1fr !important;
+        column-gap: 48px !important;
+        align-items: center !important;
+        padding: 10px 0;
+    }
+
+    body.event-page .ev-label {
+        font-weight: 800;
+    }
+
+    body.event-page .ev-select,
+    body.event-page .ev-selectlike {
+        width: 520px;
+        height: 34px;
+        border: 2px solid #1d1d1d;
+
+        padding: 4px 10px;
+        box-sizing: border-box;
+        margin: 0 !important; 
+    }
+
+    body.event-page select,
+    body.event-page select option {
+        color: #000 !important;
+    }
+
+    body.event-page .ev-select {
+        appearance: none;
+        background-image: linear-gradient(45deg, transparent 50%, #2f9e44 50%), linear-gradient(135deg, #2f9e44 50%, transparent 50%);
+        background-position: calc(100% - 18px) 13px, calc(100% - 10px) 13px;
+        background-size: 8px 8px;
+        background-repeat: no-repeat;
+        padding-right: 34px;
+    }
+
+    body.event-page .ev-underline {
+        width: 520px;
+        border-bottom: 2px solid #1d1d1d;
+        padding: 4px 6px;
+        box-sizing: border-box;
+    }
+
+    body.event-page .ev-row.ev-row-split {
+        display: grid !important;
+        grid-template-columns: 500px 360px 1fr !important;
+        column-gap: 40px !important;
+        justify-content: start !important;
+        align-items: center !important;
+        padding: 30px 0;
+    }
+
+    body.event-page .ev-row.ev-row-split .ev-split-left {
+        display: grid !important;
+        grid-template-columns: 175px 150px !important; 
+        column-gap: 12px !important;
+        align-items: center !important;
+    }
+
+    body.event-page .ev-row.ev-row-split .ev-underline {
+        width: 360px !important;
+        max-width:120px !important;
+    }
+
+    body.event-page .ev-row.ev-row-split .ev-split-right {
+        display: flex !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        gap: 10px !important;
+    }
+
+    body.event-page .ev-row.ev-row-split .ev-split-right .ev-yearbox {
+        font-weight: 400 !important;
+    }
+
+    body.event-page .ev-label-inline {
+        font-weight: 800 !important;
+    }
+
+    body.event-page .ev-field-short .ev-underline {
+        width: 50px;
+        border-bottom: 2px solid #1d1d1d;
+        padding: 4px 6px;
+        box-sizing: border-box;
+    }
+
+    body.event-page .ev-yearbox {
+        display: inline-flex !important;
+        min-width: 72px !important;
+        justify-content: center !important;
+        border-bottom: 2px solid #1d1d1d !important;
+        padding: 4px 6px !important;
+        font-weight: 700 !important;
+    }
+
+    body.event-page .ev-info {
+        width: 940px;
+        border-top: 2px solid #cfcfcf;
+        margin-top: 14px;
+        padding-top: 12px;
+    }
+
+    body.event-page .ev-loginbox {
+        position: absolute !important;
+        top: 10px; 
+        right: 15px; 
+        justify-self: auto !important;
+        text-align: left !important;
+        min-width: 310px;
+        font-size: 12pt;
+        line-height: 1.6;
+    }
+
+    body.event-page .ev-login-row {
+        display: grid !important;
+        grid-template-columns: 70px 180px !important;
+        column-gap: 10px !important;
+        justify-content: start !important;
+        align-items: center !important;
+    }
+
+    body.event-page .ev-login-label {
+        grid-template-columns: 300px 90px !important;
+        text-align: left !important;
+        font-weight: 700 !important;
+    }
+
+    body.event-page .ev-login-value {
+        width: 220px;
+        text-align: right !important;
+        font-size: 12pt;
+        line-height: 1.6;
+    }
+
+    body.event-page .ev-actions {
+        margin-top: 18px;
+        display: flex;
+        gap: 10px;
+    }
+
+    body.event-page .ev-btn {
+        width: 150px;
+        height: 74px;
+        border: none;
+        outline: none;
+        box-shadow: none;
+        font-weight: 800;
+        font-size: 11pt;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        body.event-page .ev-btn:focus,
+        body.event-page .ev-btn:active {
+            outline: none;
+            box-shadow: none;
+        }
+
+    body.event-page .ev-btn-blue {
+        background: #1e88e5;
+        color: #fff;
+    }
+
+    body.event-page .ev-btn-blue2 {
+        background: #2196f3;
+        color: #fff;
+    }
+
+    body.event-page .ev-btn-orange {
+        background: #f57c00;
+        color: #fff;
+    }
+
+    body.event-page .ev-btn-orange2 {
+        background: #fb8c00;
+        color: #fff;
+    }
+
+    body.event-page .ev-btn-green {
+        background: #2e7d32;
+        color: #fff;
+    }
+
+    body.event-page .ev-btn-sky {
+        background: #2a78c5;
+        color: #fff;
+    }
+
+    /* =====================================================
+   Index_attendeeSearch : body.index-attende
+   （_Layout無し単独表示前提）
+   ===================================================== */
+
+    body.index-attende {
+        font-size: 11pt;
+        overflow-x: hidden;
+    }
+
+        /* ヘッダー（masterのピンクタブ＋緑帯） */
+        body.index-attende .as-header {
             display: flex;
             width: 100%;
-        }
-
-        body.event-page .ev-tab,
-        body.event-page .ev-title {
             height: 90px;
-            border: none;
         }
 
-        body.event-page .ev-tab {
+        body.index-attende .as-tab {
             width: 140px;
             background: #e8b7e8;
             color: #fff;
             font-weight: 800;
             font-size: 18pt;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
         }
 
-        body.event-page .ev-title {
+        body.index-attende .as-title {
             flex: 1;
             background: #129a3e;
             color: #fff;
@@ -154,205 +396,190 @@ body {
             font-size: 18pt;
             display: flex;
             align-items: center;
-            /* 「イベント」〜「イベント選択画面」を2文字分ほど右へ */
-            padding-left: calc(18px + 2ch);
+            padding-left: 36px; /* master寄せ */
         }
 
-        /* 白い領域全体（event11 調整：右寄せしすぎない・画面内に収める） */
-        body.event-page .ev-container {
-            box-sizing: border-box !important;
-            max-width: none !important;
-            width: 100% !important;
-            margin: 0 !important;
-            /* ここで全体を右へ（スクロールバーが出ない範囲に調整済み） */
-            padding-left: 100px !important; /* 必要なら 80〜120 で微調整 */
-            padding-right: 30px !important;
-            padding-top: 18px;
-            padding-bottom: 10px;
+        /* コンテンツ領域 */
+        body.index-attende .as-container {
+            position: relative; /* ログインボックスを右上に固定するため */
+            padding: 18px 30px 20px 24px;
+            box-sizing: border-box;
         }
 
-        /* 行（通常） */
-        body.event-page .ev-row:not(.ev-row-split) {
-            display: grid !important;
-            grid-template-columns: 140px 520px 1fr !important;
-            column-gap: 48px !important;
-            align-items: center !important;
-            padding: 10px 0;
+        /* ★② 指定クラス ev-loginbox の見た目（event-page の流用を index-attende 向けに） */
+        body.index-attende .ev-loginbox {
+            position: absolute;
+            top: 18px;
+            right: 30px;
+            min-width: 310px;
+            font-size: 12pt;
+            line-height: 1.6;
         }
 
-        /* ラベル */
-        body.event-page .ev-label {
+        body.index-attende .ev-login-row {
+            display: grid;
+            grid-template-columns: 70px 180px;
+            column-gap: 10px;
+            align-items: center;
+        }
+
+        body.index-attende .ev-login-label {
+            font-weight: 700;
+            text-align: left;
+        }
+
+        body.index-attende .ev-login-value {
+            text-align: right;
+        }
+
+        /* 開催コードなど上部情報 */
+        body.index-attende .as-eventinfo {
+            padding-top: 4px;
+            padding-right: 360px; /* ログインボックス分の逃げ */
+            margin-bottom: 12px;
+        }
+
+        body.index-attende .as-info-row {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            column-gap: 18px;
+            padding: 6px 0 10px 0;
+            border-bottom: 2px solid #1d1d1d; /* masterの太線寄せ */
+        }
+
+        body.index-attende .as-info-label {
             font-weight: 800;
         }
 
-        /* 入力欄共通 */
-        body.event-page .ev-select,
-        body.event-page .ev-selectlike {
-            width: 520px;
+        body.index-attende .as-info-value {
+            font-weight: 400;
+        }
+
+        /* フォーム */
+        body.index-attende .as-form {
+            padding-top: 10px;
+            border-bottom: 2px dashed #1d1d1d; /* masterの区切り線寄せ */
+            padding-bottom: 12px;
+            margin-bottom: 10px;
+            padding-right: 360px; /* ログインボックス分の逃げ */
+        }
+
+        body.index-attende .as-grid {
+            display: grid;
+            column-gap: 16px;
+            align-items: end;
+            margin-bottom: 10px;
+        }
+
+        body.index-attende .as-grid-1 {
+            grid-template-columns: 260px 520px 160px 140px;
+        }
+
+        body.index-attende .as-grid-2 {
+            grid-template-columns: 260px 260px 260px 260px;
+        }
+
+        body.index-attende .as-label {
+            display: block;
+            font-weight: 800;
+            margin: 0 0 6px 0;
+        }
+
+        body.index-attende .as-input {
+            width: 100%;
             height: 34px;
             border: 2px solid #1d1d1d;
-            font-size: 11pt;
             padding: 4px 10px;
             box-sizing: border-box;
-            margin: 0 !important; /* 左端ズレ防止 */
+            background: #fff;
+            color: #000;
         }
 
-        /* select文字色を黒（区分・開始時刻など） */
-        body.event-page select,
-        body.event-page select option {
-            color: #000 !important;
+        body.index-attende .as-check {
+            display: flex;
+            align-items: center;
+            padding-top: 24px; /* ラベル行に合わせる */
         }
 
-        /* select矢印 */
-        body.event-page .ev-select {
-            appearance: none;
-            background-image: linear-gradient(45deg, transparent 50%, #2f9e44 50%), linear-gradient(135deg, #2f9e44 50%, transparent 50%);
-            background-position: calc(100% - 18px) 13px, calc(100% - 10px) 13px;
-            background-size: 8px 8px;
-            background-repeat: no-repeat;
-            padding-right: 34px;
-        }
-
-        /* 下線（テキスト表示系） */
-        body.event-page .ev-underline {
-            width: 520px;
-            border-bottom: 2px solid #1d1d1d;
-            padding: 4px 6px;
-            box-sizing: border-box;
-        }
-
-        /* ------------------------------
-   イベント開催日 + 年度（event11 修正）
-   ------------------------------ */
-
-        /* 行：左（開催日ブロック固定）＋右（年度 auto）で近づける */
-        body.event-page .ev-row.ev-row-split {
-            display: grid !important;
-            grid-template-columns: 560px auto !important; /* 140(label) + 420(field) */
-            column-gap: 40px !important;
-            justify-content: start !important;
-            align-items: center !important;
-            padding: 10px 0;
-        }
-
-            /* 左：開催日（幅を短く） */
-            body.event-page .ev-row.ev-row-split .ev-split-left {
-                display: grid !important;
-                grid-template-columns: 140px 420px !important; /* ←開催日を 420px に */
-                column-gap: 12px !important;
-                align-items: center !important;
-            }
-
-            /* 開催日の下線も短く */
-            body.event-page .ev-row.ev-row-split .ev-underline {
-                width: 420px !important;
-                max-width: 420px !important;
-            }
-
-            /* 右：年度（横並び） */
-            body.event-page .ev-row.ev-row-split .ev-split-right {
-                display: flex !important;
-                justify-content: flex-start !important;
-                align-items: center !important;
-                gap: 10px !important;
-            }
-
-        /* 年度の下線ボックス */
-        body.event-page .ev-yearbox {
-            display: inline-flex !important;
-            min-width: 72px !important;
-            justify-content: center !important;
-            border-bottom: 2px solid #1d1d1d !important;
-            padding: 4px 6px !important;
-            font-weight: 700 !important;
-        }
-
-        /* ------------------------------
-   ログイン枠（event11 修正）
-   ④ ラベル右寄せ＋値左寄せ
-   ------------------------------ */
-
-        body.event-page .ev-loginbox {
-            justify-self: end !important;
-            text-align: right !important;
-            max-width: 260px !important; /* 画面外に飛ばないよう制限 */
-        }
-
-        body.event-page .ev-login-row {
-            display: grid !important;
-            grid-template-columns: 70px 180px !important;
-            column-gap: 10px !important;
-            justify-content: end !important;
-            align-items: center !important;
-        }
-
-        body.event-page .ev-login-label {
-            text-align: right !important;
-            font-weight: 700 !important;
-        }
-
-        body.event-page .ev-login-value {
-            text-align: left !important;
-            white-space: nowrap;
-        }
-
-        /* ------------------------------
-   ボタン
-   ------------------------------ */
-
-        body.event-page .ev-actions {
-            margin-top: 18px;
+        body.index-attende .as-checkline {
             display: flex;
             gap: 10px;
+            align-items: center;
+            font-weight: 700;
         }
 
-        /* 外枠線を消す */
-        body.event-page .ev-btn {
-            width: 150px;
-            height: 74px;
-            border: none;
-            outline: none;
-            box-shadow: none;
-            font-weight: 800;
-            font-size: 11pt;
+        body.index-attende .as-action {
+            padding-top: 18px;
+        }
+
+        /* 検索ボタン */
+        body.index-attende .as-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            border: none;
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 800;
+            height: 48px;
+            padding: 0 18px;
+            box-sizing: border-box;
         }
 
-            body.event-page .ev-btn:focus,
-            body.event-page .ev-btn:active {
-                outline: none;
-                box-shadow: none;
+        body.index-attende .as-btn-search {
+            width: 140px;
+            background: #2a78c5; /* masterの検索ボタン寄せ */
+            color: #fff;
+        }
+
+        /* 一覧テーブル */
+        body.index-attende .as-tablewrap {
+            margin-top: 6px;
+        }
+
+        body.index-attende .as-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 11pt;
+        }
+
+            body.index-attende .as-table thead th {
+                background: #e9e9e9;
+                border-bottom: 2px solid #bdbdbd;
+                padding: 6px 8px;
+                text-align: left;
+                font-weight: 800;
             }
 
-        /* ボタン色 */
-        body.event-page .ev-btn-blue {
-            background: #1e88e5;
-            color: #fff;
+            body.index-attende .as-table td {
+                border-bottom: 1px solid #d7d7d7;
+                padding: 6px 8px;
+                vertical-align: middle;
+            }
+
+        body.index-attende .as-center {
+            text-align: center;
         }
 
-        body.event-page .ev-btn-blue2 {
-            background: #2196f3;
-            color: #fff;
+        /* フッターボタン（masterの大きめボタン寄せ） */
+        body.index-attende .as-footer {
+            margin-top: 16px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
         }
 
-        body.event-page .ev-btn-orange {
-            background: #f57c00;
-            color: #fff;
-        }
-
-        body.event-page .ev-btn-orange2 {
-            background: #fb8c00;
-            color: #fff;
-        }
-
-        body.event-page .ev-btn-green {
-            background: #2e7d32;
-            color: #fff;
-        }
-
-        body.event-page .ev-btn-sky {
+        body.index-attende .as-btn-primary {
+            min-width: 220px;
+            height: 64px;
             background: #2a78c5;
+            color: #fff;
+        }
+
+        body.index-attende .as-btn-secondary {
+            min-width: 260px;
+            height: 64px;
+            background: #5c8fd6;
             color: #fff;
         }

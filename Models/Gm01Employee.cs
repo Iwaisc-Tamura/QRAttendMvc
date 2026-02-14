@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace QRAttendMvc.Models
 {
@@ -21,6 +22,14 @@ namespace QRAttendMvc.Models
 
         /// <summary>名</summary>
         public string? FirstName { get; set; }
+
+        /* 追加 2026.02.14 Takada 生年月日（yyyyMMdd）*/
+        [Column("BIRTH_YMD")]
+        public string? BirthYmd { get; set; }
+
+        /* 追加 2026.02.14 Takada 名簿対象除外日（= 退職日 yyyyMMdd）*/
+        [Column("RETIRE_YMD")]
+        public string? RetireYmd { get; set; }
 
         /// <summary>フルネーム（画面表示用）</summary>
         public string DisplayName

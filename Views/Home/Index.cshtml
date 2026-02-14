@@ -18,20 +18,20 @@
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
 
-<body class="index-menu">
+<body class="index-home">
     <div class="container-fluid">
         <div class="card">
 
             <!-- 上段：緑帯（タイトル中央） -->
-            <header class="menu-topbar bg-success text-white">
-                <div class="menu-topbar-title">
+            <header class="home-topbar bg-success text-white">
+                <div class="home-topbar-title">
                     協力会社入退場記録システムメニュー
                 </div>
             </header>
 
             <!-- 2段目：左にテストボタン／右にログイン・日付・時刻 -->
-            <section class="menu-subbar">
-                <div class="menu-sub-left">
+            <section class="home-subbar">
+                <div class="home-sub-left">
                     <form asp-controller="TestUtility"
                           asp-action="UpdateTodayEventDate"
                           method="post"
@@ -42,7 +42,7 @@
                     </form>
                 </div>
 
-                <div class="menu-sub-right">
+                <div class="home-sub-right">
                     @{
                         var b = Context?.Session?.GetString("BRANCH_CD") ?? "";
                         var e = Context?.Session?.GetString("EMPLOYEE_CD") ?? "";
@@ -51,34 +51,34 @@
                         : "XXXXX-YYYYY";
                     }
 
-                    <div class="menu-clock">
-                        <div class="menu-clock-row">
-                            <span class="menu-clock-label">ログイン</span>
-                            <span class="menu-clock-value">@login</span>
+                    <div class="home-clock">
+                        <div class="home-clock-row">
+                            <span class="home-clock-label">ログイン</span>
+                            <span class="home-clock-value">@login</span>
                         </div>
 
-                        <div class="menu-clock-row">
-                            <span class="menu-clock-label">日付</span>
-                            <span class="menu-clock-value" id="layoutDate"></span>
+                        <div class="home-clock-row">
+                            <span class="home-clock-label">日付</span>
+                            <span class="home-clock-value" id="layoutDate"></span>
                         </div>
 
-                        <div class="menu-clock-row">
-                            <span class="menu-clock-label">時刻</span>
-                            <span class="menu-clock-value" id="layoutTime"></span>
+                        <div class="home-clock-row">
+                            <span class="home-clock-label">時刻</span>
+                            <span class="home-clock-value" id="layoutTime"></span>
                         </div>
                     </div>
                 </div>
             </section>
 
             <!-- 白いメイン領域（中央配置） -->
-            <main class="menu-main">
-                <div class="menu-main-inner">
-                    <h2 class="fw-bold menu-main-title">入退場記録メインメニュー</h2>
+            <main class="home-main">
+                <div class="home-main-inner">
+                    <h2 class="fw-bold home-main-title">入退場記録メインメニュー</h2>
 
                     <div class="text-center">
                         <a asp-controller="EventSelection"
                            asp-action="Index"
-                           class="btn btn-primary btn-lg px-5 py-4 fw-bold menu-btn">
+                           class="btn btn-primary btn-lg px-5 py-4 fw-bold home-btn">
                             イベント選択
                         </a>
                     </div>
@@ -105,16 +105,24 @@
                 pad(d.getMonth() + 1) + "/" +
                 pad(d.getDate()) + " " + w;
 
-            // 画像は「時刻：16：59」なので秒なし＋全角コロンに寄せる
+            //時：分：秒　に変更
             const time =
                 pad(d.getHours()) + "：" +
-                pad(d.getMinutes());
+                pad(d.getMinutes()) + "：" +
+                pad(d.getSeconds());
 
             const elDate = document.getElementById("layoutDate");
             if (elDate) elDate.textContent = date;
 
             const elTime = document.getElementById("layoutTime");
             if (elTime) elTime.textContent = time;
+
+            /*画面を開いた日時をセッションに記録する*/
+            if (!sessionStorage.getItem("fixedLayoutTime")) {
+                const now = new Date();
+                sessionStorage.setItem("fixedLayoutTime", now.toISOString());
+            }
+
         }
 
         updateLayoutClock();
