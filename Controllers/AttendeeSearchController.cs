@@ -30,6 +30,23 @@ namespace QRAttendMvc.Controllers
             // 名簿検索画面では「現在選択中のイベント」は必須ではないため、ここでは参照のみ。
             ViewBag.CurrentKaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
 
+            // 追加 2026.02.16 Takada ；ログインコードの遷移
+            var userBranch = HttpContext.Session.GetString("BRANCH_CD") ?? string.Empty;
+            var empCd = HttpContext.Session.GetString("EMPLOYEE_CD") ?? string.Empty;
+
+            ViewBag.LoginText = (!string.IsNullOrEmpty(userBranch) && !string.IsNullOrEmpty(empCd))
+                ? $"{userBranch}-{empCd}"
+                : "     -     ";
+
+            // 追加 2026.02.16 Takada ；イベント表示用（EventSelectionController で Session に入れた値）
+            ViewBag.EventDate = HttpContext.Session.GetString("SelectedEventDate") ?? "";
+            ViewBag.Kubun = HttpContext.Session.GetString("SelectedKubun") ?? "";
+            ViewBag.Kyoten = HttpContext.Session.GetString("SelectedKyoten") ?? "";
+            ViewBag.Place = HttpContext.Session.GetString("SelectedPlace") ?? "";
+            ViewBag.StartTime = HttpContext.Session.GetString("SelectedStartTime") ?? "";
+            ViewBag.EndTime = HttpContext.Session.GetString("SelectedEndTime") ?? "";
+            ViewBag.Uketsuke = HttpContext.Session.GetString("SelectedUketsuke") ?? "";
+
             var q = _db.Employees.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(workerId))

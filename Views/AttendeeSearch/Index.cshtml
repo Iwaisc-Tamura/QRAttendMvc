@@ -13,10 +13,9 @@
     string workerKanaFirst = ViewBag.WorkerKanaFirst as string ?? "";
     string workerId = ViewBag.WorkerId as string ?? "";
     string birthDate = ViewBag.BirthDate as string ?? "";
-    bool includeLower = ViewBag.IncludeLower is bool b && b;
-
-    // ログイン表示（既存の値の取り方に合わせてください）
-    var login = "XXXXXX-yyyyy";
+    bool includeLower = ViewBag.IncludeLower is bool b && b;   
+    
+    string login = ViewBag.LoginText as string ?? "";
 }
 
 <!doctype html>
@@ -60,16 +59,51 @@
             </div>
         </div>
 
-        <!-- 開催コード（既存項目名は変更しない③） -->
-        @if (!string.IsNullOrEmpty(currentKaisaiCd))
-        {
-            <section class="as-eventinfo">
-                <div class="as-info-row">
-                    <div class="as-info-label">開催コード</div>
-                    <div class="as-info-value">@currentKaisaiCd</div>
-                </div>
-            </section>
-        }
+        <div class="as-event-header">
+            <!-- 開催コード（既存項目名は変更しない③） -->
+            @if (!string.IsNullOrEmpty(currentKaisaiCd))
+            {
+                <section class="as-eventinfo">
+                    <div class="as-info-row">
+                        <div class="as-info-label">開催コード</div>
+                        <div class="as-info-value">@currentKaisaiCd</div>
+                    </div>
+                </section>
+            }
+
+            <div class="as-event-row">
+                <div class="as-ev-label">イベント開催日</div>
+                <div class="as-ev-value">@ViewBag.EventDate</div>
+            </div>
+
+            <div class="as-event-row">
+                <div class="as-ev-label">区分</div>
+                <div class="as-ev-value">@ViewBag.Kubun</div>
+            </div>
+
+            <div class="as-event-row">
+                <div class="as-ev-label">開催拠点</div>
+                <div class="as-ev-value">@ViewBag.Kyoten</div>
+            </div>
+
+            <div class="as-event-row">
+                <div class="as-ev-label">講習場所</div>
+                <div class="as-ev-value">@ViewBag.Place</div>
+            </div>
+
+            <div class="as-event-row as-event-row-time">
+                <div class="as-ev-label">開催時刻</div>
+                <div class="as-ev-value">@ViewBag.StartTime ～ @ViewBag.EndTime</div>
+
+                <div class="as-ev-label as-ev-label-inline">受付開始時刻</div>
+                <div class="as-ev-value as-ev-value-inline">@ViewBag.Uketsuke</div>
+            </div>
+
+        </div>
+
+        <div class="as-dashline"></div>
+
+
 
         <!-- ===== 検索条件 ===== -->
         <form method="get" class="as-form">
@@ -185,7 +219,7 @@
             </a>
 
             <a asp-controller="Home" asp-action="Index" class="as-btn as-btn-secondary">
-                メインメニューに戻る
+                メインメニューに<br>戻る
             </a>
         </section>
     </main>

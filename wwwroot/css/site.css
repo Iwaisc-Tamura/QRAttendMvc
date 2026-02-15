@@ -351,7 +351,7 @@ body {
     }
 
     body.event-page .ev-btn-green {
-        background: #2e7d32;
+        background: #3cb371;
         color: #fff;
     }
 
@@ -379,7 +379,7 @@ body {
 
         body.index-attende .as-tab {
             width: 140px;
-            background: #e8b7e8;
+            background: #3cb371; /* ミディアムグリーン */
             color: #fff;
             font-weight: 800;
             font-size: 18pt;
@@ -401,8 +401,10 @@ body {
 
         /* コンテンツ領域 */
         body.index-attende .as-container {
-            position: relative; /* ログインボックスを右上に固定するため */
-            padding: 18px 30px 20px 24px;
+            position: relative;
+            width: 1000pt;
+            margin: 0 auto;
+            padding: 18px 0 20px 0;
             box-sizing: border-box;
         }
 
@@ -410,10 +412,12 @@ body {
         body.index-attende .ev-loginbox {
             position: absolute;
             top: 18px;
-            right: 30px;
-            min-width: 310px;
+            right: 10pt; /* 30px → 10pt */
+            min-width: 0; /* 固定幅を外す */
             font-size: 12pt;
             line-height: 1.6;
+            width: fit-content; /* 中身幅に合わせる */
+            text-align: right;
         }
 
         body.index-attende .ev-login-row {
@@ -433,35 +437,41 @@ body {
         }
 
         /* 開催コードなど上部情報 */
-        body.index-attende .as-eventinfo {
+            body .index-attende .as-eventinfo {
             padding-top: 4px;
-            padding-right: 360px; /* ログインボックス分の逃げ */
+            padding-right: 0; /* ログインボックス分の逃げ */
             margin-bottom: 12px;
         }
 
         body.index-attende .as-info-row {
             display: grid;
-            grid-template-columns: 140px 1fr;
-            column-gap: 18px;
-            padding: 6px 0 10px 0;
-            border-bottom: 2px solid #1d1d1d; /* masterの太線寄せ */
+            grid-template-columns: 180px 1fr;
+            column-gap: 20px;
+            padding: 6px 0;
         }
 
         body.index-attende .as-info-label {
+            width: 100pt;
             font-weight: 800;
         }
 
         body.index-attende .as-info-value {
-            font-weight: 400;
+            width: 100pt;
+            border-bottom: 2px solid #1d1d1d; /* masterの太線寄せ */
+        }
+
+        body.index-attende .as-dashline {
+            border-bottom: 2px dashed #1d1d1d;
+            margin: 12px 0 14px 0;
         }
 
         /* フォーム */
         body.index-attende .as-form {
             padding-top: 10px;
-            border-bottom: 2px dashed #1d1d1d; /* masterの区切り線寄せ */
+            border-bottom: none;
             padding-bottom: 12px;
             margin-bottom: 10px;
-            padding-right: 360px; /* ログインボックス分の逃げ */
+            padding-right: 0; /* ログインボックス分の逃げ */
         }
 
         body.index-attende .as-grid {
@@ -527,8 +537,8 @@ body {
         }
 
         body.index-attende .as-btn-search {
-            width: 140px;
-            background: #2a78c5; /* masterの検索ボタン寄せ */
+            width: 150px;
+            background: #3cb371; /* ミディアムグリーン */
             color: #fff;
         }
 
@@ -571,15 +581,62 @@ body {
         }
 
         body.index-attende .as-btn-primary {
-            min-width: 220px;
+            width: 150pt;
+            min-width: 150px;
             height: 64px;
-            background: #2a78c5;
+            background: #3cb371; /* ミディアムグリーン */
             color: #fff;
         }
 
         body.index-attende .as-btn-secondary {
-            min-width: 260px;
+            width: 150pt;
+            min-width: 150px;
             height: 64px;
-            background: #5c8fd6;
+            background: #2a78c5; /* 青 */
             color: #fff;
+            text-decoration: underline; /* 下線 */
+            line-height: 1.1; /* 改行表示を詰める */
+        }
+
+        body.index-attende .as-event-header {
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        body.index-attende .as-event-row {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            column-gap: 20px;
+            padding: 6px 0;
+        }
+
+        body.index-attende .as-ev-label {
+            font-weight: 800;
+        }
+
+        body.index-attende .as-ev-value {
+            font-weight: 400;
+        }
+
+        body.index-attende .as-grayline {
+            border-bottom: 2px solid #cfcfcf;
+            margin: 14px 0 18px 0;
+        }
+
+        body.index-attende .as-event-row-time {
+            display: grid;
+            grid-template-columns: 180px 220px 140px 1fr; /* 左から：開催時刻ラベル｜時刻｜受付開始ラベル｜受付時刻 */
+            column-gap: 20px;
+            align-items: center;
+        }
+
+        /* インライン用（太字などは既存と揃える） */
+        body.index-attende .as-ev-label-inline {
+            font-weight: 800;
+            text-align: left;
+        }
+
+        body.index-attende .as-ev-value-inline {
+            font-weight: 400;
+            text-align: left;
         }
