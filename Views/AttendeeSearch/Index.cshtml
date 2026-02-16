@@ -2,19 +2,23 @@
 @using QRAttendMvc.Models
 
 @{
-    Layout = null; // ★① _Layout の影響を受けない
+    Layout = null; 
     ViewData["Title"] = "入退場照会";
 
     string currentKaisaiCd = ViewBag.CurrentKaisaiCd as string ?? "";
 
-    string companyKana = ViewBag.CompanyKana as string ?? "";
-    string companyName = ViewBag.CompanyName as string ?? "";
-    string workerKanaLast = ViewBag.WorkerKanaLast as string ?? "";
-    string workerKanaFirst = ViewBag.WorkerKanaFirst as string ?? "";
-    string workerId = ViewBag.WorkerId as string ?? "";
-    string birthDate = ViewBag.BirthDate as string ?? "";
+    string companyKana = Context.Request.Query["companyKana"].ToString();
+    string companyName = Context.Request.Query["companyName"].ToString();
+    string workerKanaLast = Context.Request.Query["workerKanaLast"].ToString();
+    string workerKanaFirst = Context.Request.Query["workerKanaFirst"].ToString();
+    string workerId = Context.Request.Query["workerId"].ToString();
+    string birthDate = Context.Request.Query["birthDate"].ToString();
    
     string login = ViewBag.LoginText as string ?? "";
+
+    bool hasSearched =
+    Context.Request.Query.ContainsKey("searched") &&
+    !string.IsNullOrWhiteSpace(Context.Request.Query["searched"]);
 }
 
 <!doctype html>
@@ -105,7 +109,11 @@
 
 
         <!-- ===== 検索条件 ===== -->
-        <form method="get" class="as-form">
+        <form method="get" class="as-form" id="searchForm">
+
+            <!-- 追加 2026.02.17 Takada ：検索ボタンを押したかどうか -->
+            <input type="hidden" name="searched" value="true" />
+
             <!-- 1段目：会社名（カナ）／会社名／2次店以下含む／検索 -->
             <div class="as-grid as-grid-1">
                 <div class="as-field">
@@ -121,6 +129,12 @@
                 <div class="as-field as-action">
                     <button type="submit" class="as-btn as-btn-search">検索</button>
                 </div>
+
+
+                <div class="as-field as-action">
+                    <a asp-action="Index" class="as-btn as-btn-search">クリア</a>
+                </div>
+
             </div>
 
             <!-- 2段目：作業員名（カナ）姓／名／作業員ID／生年月日 -->
@@ -148,6 +162,12 @@
             </div>
         </form>
 
+        @if (!Context.Request.Query.ContainsKey("searched"))
+        {
+            <div class="as-hint">
+                検索条件を入力して「検索」を押してください。（未入力のまま検索すると全件表示します）
+            </div>
+        }
         <!-- ===== 一覧 ===== -->
         <section class="as-tablewrap">
             <table class="as-table">
@@ -198,21 +218,28 @@
 
         <!-- ===== 操作ボタン ===== -->
         <section class="as-footer">
-            <a asp-action="Export"
-               asp-route-companyKana="@companyKana"
-               asp-route-companyName="@companyName"
-               asp-route-workerKanaLast="@workerKanaLast"
-               asp-route-workerKanaFirst="@workerKanaFirst"
-               asp-route-workerId="@workerId"
-               asp-route-birthDate="@birthDate"
-               class="as-btn as-btn-primary">
-                CSV出力<br>（タブ区切り）
-            </a>
+            @if (hasSearched)
+            {
+                <a asp-action="Export"
+                   asp-all-route-data="@(Context.Request.Query.ToDictionary(
+                k => k.Key,
+                v => v.Value.ToString()))"
+                   class="as-btn as-btn-primary">
+                    CSV出力<br>（タブ区切り）
+                </a>
+            }
+            else
+            {
+                <span class="as-btn as-btn-primary as-btn-disabled" aria-disabled="true">
+                    CSV出力<br>（タブ区切り）
+                </span>
+            }
 
             <a asp-controller="EventSelection" asp-action="Index" class="as-btn as-btn-secondary">
                 イベント選択<br>画面に戻る
             </a>
         </section>
+
     </main>
 
     <!-- ★② 指定スクリプト（そのまま） -->
@@ -240,6 +267,37 @@
 
             document.getElementById("eventDate").textContent = dateText;
             document.getElementById("eventTime").textContent = timeText;
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // （既存：日付・時刻の表示 …）
+
+            // Enterで検索（textareaは除外）
+            const form = document.getElementById("searchForm");
+            form?.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+                    if (tag === "textarea") return;
+
+                    e.preventDefault();   // 変な改行や二重送信防止
+                    form.requestSubmit(); // submitボタン経由で送信（hiddenも送られる）
+                }
+            });
+        });
+
+        // Enterキーで検索（Shift+Enterは無視）
+        document.addEventListener("keydown", function (e) {
+
+            if (e.key === "Enter" && !e.shiftKey) {
+
+                const active = document.activeElement;
+
+                // テキスト入力欄のみ対象
+                if (active && active.tagName === "INPUT") {
+                    e.preventDefault();
+                    document.querySelector(".as-form").submit();
+                }
+            }
         });
     </script>
 </body>

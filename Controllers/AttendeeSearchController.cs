@@ -24,7 +24,8 @@ namespace QRAttendMvc.Controllers
             string? workerKanaLast,
             string? workerKanaFirst,
             string? workerId,
-            DateTime? birthDate)
+            DateTime? birthDate,
+            bool? searched)
         {
             // 現行仕様：イベントは GT01_KAISAI_EVENT を選択してセッションに保持する。
             // 名簿検索画面では「現在選択中のイベント」は必須ではないため、ここでは参照のみ。
@@ -47,6 +48,26 @@ namespace QRAttendMvc.Controllers
             ViewBag.EndTime = HttpContext.Session.GetString("SelectedEndTime") ?? "";
             ViewBag.Uketsuke = HttpContext.Session.GetString("SelectedUketsuke") ?? "";
 
+            /* 追加 2026.02.17 Takada*/
+            var hasSearched = searched.GetValueOrDefault();
+
+            // 検索条件の保持
+            ViewBag.CompanyKana = companyKana ?? "";
+            ViewBag.CompanyName = companyName ?? "";
+            ViewBag.WorkerKanaLast = workerKanaLast ?? "";
+            ViewBag.WorkerKanaFirst = workerKanaFirst ?? "";
+            ViewBag.WorkerId = workerId ?? "";
+            ViewBag.BirthDate = birthDate?.ToString("yyyy-MM-dd") ?? "";
+
+            // 初回表示は空リストで返す
+            if (!hasSearched)
+            {
+                return View(Enumerable.Empty<AttendeeSearchRow>());
+            }
+            // 空csv出力防止
+            if (searched != true)
+                return BadRequest("検索実行後にCSV出力してください。");
+
             /* 修正 2025.02.16 Takada */
             var q = BuildAttendeeQuery(companyKana, companyName, workerKanaLast, workerKanaFirst, workerId, birthDate);
 
@@ -56,23 +77,26 @@ namespace QRAttendMvc.Controllers
 
             var rows = new List<AttendeeSearchRow>();
 
+            /* 追加 2025.02.17 Takada */
+            var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd) ?? "";
+
+            // 一括でログを取る（N+1解消）
+            var employeeCds = list.Select(x => x.Emp.EmployeeCd).Distinct().ToList();
+            var logMap = await LoadEntryExitMapAsync(kaisaiCd, employeeCds);
 
             /* 修正 2025.02.16 Takada */
             foreach (var x in list)
             {
-                    var p = x.Emp;
+                var p = x.Emp;
 
-                    DateTime? lastIn = null;
+                DateTime? lastIn = null;
                 DateTime? lastOut = null;
 
-                var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
-                if (!string.IsNullOrEmpty(kaisaiCd))
+                /* 修正 2025.02.17 Takada */
+                if (!string.IsNullOrEmpty(kaisaiCd) && logMap.TryGetValue(p.EmployeeCd, out var row))
                 {
-                    var row = await _db.EntryExitLogs
-                        .FirstOrDefaultAsync(e => e.EmployeeCd == p.EmployeeCd && e.KaisaiCd == kaisaiCd);
-
-                    lastIn = ParseTodayHm(row?.EntryTime);
-                    lastOut = ParseTodayHm(row?.ExitTime);
+                    lastIn = ParseTodayHm(row.EntryTime);
+                    lastOut = ParseTodayHm(row.ExitTime);
                 }
 
                 rows.Add(new AttendeeSearchRow
@@ -174,8 +198,18 @@ namespace QRAttendMvc.Controllers
             string? workerKanaLast,
             string? workerKanaFirst,
             string? workerId,
-            DateTime? birthDate)
+            DateTime? birthDate,
+            bool? searched)
         {
+
+            if (searched != true)
+            {
+                var readmeBytes = Encoding.UTF8.GetPreamble()
+                    .Concat(Encoding.UTF8.GetBytes("検索実行後にCSV出力してください。"))
+                    .ToArray();
+
+                return File(readmeBytes, "text/plain", "readme.txt");
+            }
 
             /* 変更 2026.02.16 Takada*/
             var q = BuildAttendeeQuery(companyKana, companyName, workerKanaLast, workerKanaFirst, workerId, birthDate);
@@ -189,6 +223,13 @@ namespace QRAttendMvc.Controllers
 
             string Esc(string? v) => (v ?? "").Replace("	", " ");
 
+            /* 追加 2026.02.17 Takada */
+            var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd) ?? "";
+
+            // 一括でログを取る（N+1解消）
+            var employeeCds = list.Select(x => x.Emp.EmployeeCd).Distinct().ToList();
+            var logMap = await LoadEntryExitMapAsync(kaisaiCd, employeeCds);
+
             /* 変更 2026.02.16 Takada */
             foreach (var x in list)
             {
@@ -197,14 +238,11 @@ namespace QRAttendMvc.Controllers
                 DateTime? lastIn = null;
                 DateTime? lastOut = null;
 
-                var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
-                if (!string.IsNullOrEmpty(kaisaiCd))
+                /* 変更 2026.02.17 Takada */
+                if (!string.IsNullOrEmpty(kaisaiCd) && logMap.TryGetValue(p.EmployeeCd, out var row))
                 {
-                    var row = await _db.EntryExitLogs
-                        .FirstOrDefaultAsync(e => e.EmployeeCd == p.EmployeeCd && e.KaisaiCd == kaisaiCd);
-
-                    lastIn = ParseTodayHm(row?.EntryTime);
-                    lastOut = ParseTodayHm(row?.ExitTime);
+                    lastIn = ParseTodayHm(row.EntryTime);
+                    lastOut = ParseTodayHm(row.ExitTime);
                 }
 
                 sb.AppendLine(string.Join("\t", new[]
@@ -274,6 +312,36 @@ namespace QRAttendMvc.Controllers
             s = s.Normalize(NormalizationForm.FormKC);
 
             return s;
+        }
+
+        private async Task<Dictionary<string, Tt02EntryExit>> LoadEntryExitMapAsync(
+            string kaisaiCd,
+            List<string> employeeCds)
+        {
+            var map = new Dictionary<string, Tt02EntryExit>();
+
+            if (string.IsNullOrWhiteSpace(kaisaiCd) || employeeCds.Count == 0)
+                return map;
+
+            // SQL Server の IN パラメータ上限対策（大人数でも落ちないように）
+            const int batchSize = 1000;
+
+            for (int i = 0; i < employeeCds.Count; i += batchSize)
+            {
+                var batch = employeeCds.Skip(i).Take(batchSize).ToList();
+
+                var rows = await _db.EntryExitLogs.AsNoTracking()
+                    .Where(l => l.KaisaiCd == kaisaiCd && batch.Contains(l.EmployeeCd))
+                    .ToListAsync();
+
+                foreach (var r in rows)
+                {
+                    // 同一 EmployeeCd が複数あっても最後に入ったものを優先（基本は一意のはず）
+                    map[r.EmployeeCd] = r;
+                }
+            }
+
+            return map;
         }
 
 

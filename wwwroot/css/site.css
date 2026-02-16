@@ -580,6 +580,7 @@ body {
 
     /* フッターボタン */
     body.index-attende .as-footer {
+        position: sticky;
         margin-top: 16px;
         display: flex;
         justify-content: flex-end;
@@ -646,4 +647,69 @@ body {
     body.index-attende .as-ev-value-inline {
         font-weight: 400;
         text-align: left;
+    }
+
+    /* 一覧の枠を固定してスクロール */
+    body.index-attende .as-tablewrap {
+        margin-top: 6px;
+        max-height: 520px; /* ←ここは好みで調整（例：20〜25行分） */
+        min-height: 520px; /* ←件数が少なくても枠の高さを固定 */
+        overflow-y: auto;
+        border: 1px solid #d7d7d7; /* 任意：枠線 */
+    }
+
+    /* ヘッダー固定（スクロールしても見出しが残る） */
+    body.index-attende .as-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    /* テーブルのレイアウトを安定させる */
+        body.index-attende .as-table {
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    /* 文字が長い列は省略表示（横に広がりすぎ防止） */
+        body.index-attende .as-table th,
+        body.index-attende .as-table td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* 会社名などは少し余裕を持たせたい場合：列ごとに幅を指定 */
+    body.index-attende .as-table th:nth-child(1),
+    body.index-attende .as-table td:nth-child(1) {
+        width: 220px;
+    }
+
+    body.index-attende .as-table th:nth-child(2),
+    body.index-attende .as-table td:nth-child(2) {
+        width: 120px;
+    }
+
+    body.index-attende .as-footer {
+        position: sticky;
+        bottom: 0;
+        background: #fff;
+        padding: 10px 0;
+        z-index: 3;
+        border-top: 1px solid #d7d7d7;
+    }
+
+    body.index-attende .as-hint {
+        margin: 8px 0 10px;
+        padding: 10px 12px;
+        background: #f6f6f6;
+        border: 1px solid #d7d7d7;
+        font-weight: 700;
+    }
+
+    body.index-attende .as-btn-disabled {
+        opacity: 0.45;
+        pointer-events: none; /* クリック無効 */
+        cursor: not-allowed;
+        text-decoration: none;
     }
