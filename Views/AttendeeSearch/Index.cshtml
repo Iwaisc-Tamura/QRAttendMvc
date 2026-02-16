@@ -13,8 +13,7 @@
     string workerKanaFirst = ViewBag.WorkerKanaFirst as string ?? "";
     string workerId = ViewBag.WorkerId as string ?? "";
     string birthDate = ViewBag.BirthDate as string ?? "";
-    bool includeLower = ViewBag.IncludeLower is bool b && b;   
-    
+   
     string login = ViewBag.LoginText as string ?? "";
 }
 
@@ -36,28 +35,28 @@
         <div class="as-title">入退場照会</div>
     </header>
 
-    <main class="as-container">
-
-        <!-- ★② 日付・時刻：指定の ev-loginbox を使用 -->
-        <div class="ev-loginbox" aria-label="ログイン情報">
-            <div class="ev-login-row">
-                <span class="ev-login-label">ログイン</span>
-                <span class="ev-login-value">@login</span>
-            </div>
-            <div class="ev-login-row">
-                <div class="ev-login-label">日付</div>
-                <div class="ev-login-value">
-                    <span id="eventDate"></span>
-                </div>
-            </div>
-
-            <div class="ev-login-row">
-                <div class="ev-login-label">時刻</div>
-                <div class="ev-login-value">
-                    <span id="eventTime"></span>
-                </div>
+    <!-- ★② 日付・時刻：指定の ev-loginbox を使用 -->
+    <div class="ev-loginbox" aria-label="ログイン情報">
+        <div class="ev-login-row">
+            <span class="ev-login-label">ログイン</span>
+            <span class="ev-login-value">@login</span>
+        </div>
+        <div class="ev-login-row">
+            <div class="ev-login-label">日付</div>
+            <div class="ev-login-value">
+                <span id="eventDate"></span>
             </div>
         </div>
+
+        <div class="ev-login-row">
+            <div class="ev-login-label">時刻</div>
+            <div class="ev-login-value">
+                <span id="eventTime"></span>
+            </div>
+        </div>
+    </div>
+
+    <main class="as-container">
 
         <div class="as-event-header">
             <!-- 開催コード（既存項目名は変更しない③） -->
@@ -117,13 +116,6 @@
                 <div class="as-field">
                     <label class="as-label">会社名</label>
                     <input name="companyName" value="@companyName" class="as-input" />
-                </div>
-
-                <div class="as-field as-check">
-                    <label class="as-checkline">
-                        <input type="checkbox" name="includeLower" value="true" @(includeLower ? "checked" : "") />
-                        <span>2次店以下含む</span>
-                    </label>
                 </div>
 
                 <div class="as-field as-action">
@@ -213,13 +205,12 @@
                asp-route-workerKanaFirst="@workerKanaFirst"
                asp-route-workerId="@workerId"
                asp-route-birthDate="@birthDate"
-               asp-route-includeLower="@includeLower"
                class="as-btn as-btn-primary">
-                CSV出力（タブ区切り）
+                CSV出力<br>（タブ区切り）
             </a>
 
-            <a asp-controller="Home" asp-action="Index" class="as-btn as-btn-secondary">
-                メインメニューに<br>戻る
+            <a asp-controller="EventSelection" asp-action="Index" class="as-btn as-btn-secondary">
+                イベント選択<br>画面に戻る
             </a>
         </section>
     </main>

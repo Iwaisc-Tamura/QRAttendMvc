@@ -361,282 +361,289 @@ body {
     }
 
     /* =====================================================
-   Index_attendeeSearch : body.index-attende
-   （_Layout無し単独表示前提）
-   ===================================================== */
+    index（AttendeeSearch） : body.index-attende
+    ===================================================== */
 
     body.index-attende {
         font-size: 11pt;
         overflow-x: hidden;
     }
 
-        /* ヘッダー（masterのピンクタブ＋緑帯） */
-        body.index-attende .as-header {
-            display: flex;
-            width: 100%;
-            height: 90px;
-        }
+    /* ヘッダー */
+    body.index-attende .as-header {
+        display: flex;
+        width: 100%;
+        height: 90px;
+    }
 
-        body.index-attende .as-tab {
-            width: 140px;
-            background: #3cb371; /* ミディアムグリーン */
-            color: #fff;
-            font-weight: 800;
-            font-size: 18pt;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    body.index-attende .as-tab {
+        width: 140px;
+        background: #3cb371; 
+        color: #fff;
+        font-weight: 800;
+        font-size: 18pt;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-        body.index-attende .as-title {
-            flex: 1;
-            background: #129a3e;
-            color: #fff;
-            font-weight: 800;
-            font-size: 18pt;
-            display: flex;
-            align-items: center;
-            padding-left: 36px; /* master寄せ */
-        }
+    body.index-attende .as-title {
+        flex: 1;
+        background: #129a3e;
+        color: #fff;
+        font-weight: 800;
+        font-size: 18pt;
+        display: flex;
+        align-items: center;
+        padding-left: 36px; 
+    }
 
-        /* コンテンツ領域 */
-        body.index-attende .as-container {
-            position: relative;
-            width: 1000pt;
-            margin: 0 auto;
-            padding: 18px 0 20px 0;
-            box-sizing: border-box;
-        }
+    /* ログイン情報 */
+    body.index-attende .ev-loginbox {
+        position: absolute;
+        top: 100px;
+        right: 10pt;
+        justify-self: auto !important;
+        text-align: left !important;
+        min-width: 310px;
+        font-size: 12pt;
+        line-height: 1.6;
+    }
 
-        /* ★② 指定クラス ev-loginbox の見た目（event-page の流用を index-attende 向けに） */
-        body.index-attende .ev-loginbox {
-            position: absolute;
-            top: 18px;
-            right: 10pt; /* 30px → 10pt */
-            min-width: 0; /* 固定幅を外す */
-            font-size: 12pt;
-            line-height: 1.6;
-            width: fit-content; /* 中身幅に合わせる */
-            text-align: right;
-        }
+    body.index-attende .ev-login-row {
+        display: grid !important;
+            grid-template-columns: 70px 180px !important;
+        column-gap: 10px !important;
+        justify-content: start !important;
+        align-items: center !important;
+    }
 
-        body.index-attende .ev-login-row {
-            display: grid;
-            grid-template-columns: 70px 180px;
-            column-gap: 10px;
-            align-items: center;
-        }
+    body.index-attende .ev-login-label {
+        grid-template-columns: 300px 90px !important;
+        text-align: left !important;
+        font-weight: 700 !important;
+    }
 
-        body.index-attende .ev-login-label {
-            font-weight: 700;
-            text-align: left;
-        }
+    body.index-attende .ev-login-value {
+        width: 220px;
+        text-align: right !important;
+        font-size: 12pt;
+        line-height: 1.6;
+    }
 
-        body.index-attende .ev-login-value {
-            text-align: right;
-        }
+    /* コンテンツ領域 */
+    body.index-attende .as-container {
+        position: relative;
+        width: 1000pt;
+        min-width: 600pt;
+        margin: 0 auto;
+        padding: 18px 0 20px 0;
+        box-sizing: border-box;
+    }
 
-        /* 開催コードなど上部情報 */
-            body .index-attende .as-eventinfo {
-            padding-top: 4px;
-            padding-right: 0; /* ログインボックス分の逃げ */
-            margin-bottom: 12px;
-        }
+    /* 開催コードなど上部情報 */
+    body .index-attende .as-eventinfo {
+        padding-top: 4px;
+        padding-right: 0;
+        margin-bottom: 12px;
+    }
 
-        body.index-attende .as-info-row {
-            display: grid;
-            grid-template-columns: 180px 1fr;
-            column-gap: 20px;
-            padding: 6px 0;
-        }
+    body.index-attende .as-info-row {
+        display: grid;
+        grid-template-columns: 170px 1fr;
+        column-gap: 20px;
+        padding: 6px 0;
+    }
 
-        body.index-attende .as-info-label {
-            width: 100pt;
-            font-weight: 800;
-        }
+    body.index-attende .as-info-label {
+        width: 100pt;
+        font-weight: 800;
+    }
 
-        body.index-attende .as-info-value {
-            width: 100pt;
-            border-bottom: 2px solid #1d1d1d; /* masterの太線寄せ */
-        }
+    body.index-attende .as-info-value {
+        width: 60pt;
+        padding:0 6px;
+        border-bottom: 2px solid #1d1d1d;
+    }
 
-        body.index-attende .as-dashline {
-            border-bottom: 2px dashed #1d1d1d;
-            margin: 12px 0 14px 0;
-        }
+    body.index-attende .as-dashline {
+        border-bottom: 2px dashed #1d1d1d;
+        margin: 12px 0 14px 0;
+    }
 
-        /* フォーム */
-        body.index-attende .as-form {
-            padding-top: 10px;
-            border-bottom: none;
-            padding-bottom: 12px;
-            margin-bottom: 10px;
-            padding-right: 0; /* ログインボックス分の逃げ */
-        }
+    /* フォーム */
+    body.index-attende .as-form {
+        padding-top: 10px;
+        border-bottom: none;
+        padding-bottom: 12px;
+        margin-bottom: 10px;
+        padding-right: 0; 
+    }
 
-        body.index-attende .as-grid {
-            display: grid;
-            column-gap: 16px;
-            align-items: end;
-            margin-bottom: 10px;
-        }
+    body.index-attende .as-grid {
+        display: grid;
+        column-gap: 16px;
+        align-items: end;
+        margin-bottom: 10px;
+    }
 
-        body.index-attende .as-grid-1 {
-            grid-template-columns: 260px 520px 160px 140px;
-        }
+    body.index-attende .as-grid-1 {
+        grid-template-columns: 260px 520px 160px 140px;
+    }
 
-        body.index-attende .as-grid-2 {
-            grid-template-columns: 260px 260px 260px 260px;
-        }
+    body.index-attende .as-grid-2 {
+        grid-template-columns: 260px 260px 260px 260px;
+    }
 
-        body.index-attende .as-label {
-            display: block;
-            font-weight: 800;
-            margin: 0 0 6px 0;
-        }
+    body.index-attende .as-label {
+        display: block;
+        font-weight: 800;
+        margin: 0 0 6px 0;
+    }
 
-        body.index-attende .as-input {
-            width: 100%;
-            height: 34px;
-            border: 2px solid #1d1d1d;
-            padding: 4px 10px;
-            box-sizing: border-box;
-            background: #fff;
-            color: #000;
-        }
+    body.index-attende .as-input {
+        width: 100%;
+        height: 34px;
+        border: 2px solid #1d1d1d;
+        padding: 4px 10px;
+        box-sizing: border-box;
+        background: #fff;
+        color: #000;
+    }
 
-        body.index-attende .as-check {
-            display: flex;
-            align-items: center;
-            padding-top: 24px; /* ラベル行に合わせる */
-        }
+    body.index-attende .as-check {
+        display: flex;
+        align-items: center;
+        padding-top: 24px; 
+    }
 
-        body.index-attende .as-checkline {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            font-weight: 700;
-        }
+    body.index-attende .as-checkline {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        font-weight: 700;
+    }
 
-        body.index-attende .as-action {
-            padding-top: 18px;
-        }
+    body.index-attende .as-action {
+        padding-top: 18px;
+    }
 
-        /* 検索ボタン */
-        body.index-attende .as-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: none;
-            text-decoration: none;
-            cursor: pointer;
-            font-weight: 800;
-            height: 48px;
-            padding: 0 18px;
-            box-sizing: border-box;
-        }
+    /* 検索ボタン */
+    body.index-attende .as-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        text-decoration: none;
+        cursor: pointer;
+        font-weight: 800;
+        height: 74px;
+        padding: 0 18px;
+        box-sizing: border-box;
+    }
 
-        body.index-attende .as-btn-search {
-            width: 150px;
-            background: #3cb371; /* ミディアムグリーン */
-            color: #fff;
-        }
+    body.index-attende .as-btn-search {
+        width: 150px;
+        background: #3cb371; 
+        color: #fff;
+    }
 
-        /* 一覧テーブル */
-        body.index-attende .as-tablewrap {
-            margin-top: 6px;
-        }
+    /* 一覧テーブル */
+    body.index-attende .as-tablewrap {
+        margin-top: 6px;
+    }
 
-        body.index-attende .as-table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-            font-size: 11pt;
-        }
+    body.index-attende .as-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        font-size: 11pt;
+    }
 
-            body.index-attende .as-table thead th {
-                background: #e9e9e9;
-                border-bottom: 2px solid #bdbdbd;
-                padding: 6px 8px;
-                text-align: left;
-                font-weight: 800;
-            }
+    body.index-attende .as-table thead th {
+        background: #e9e9e9;
+        border-bottom: 2px solid #bdbdbd;
+        padding: 6px 8px;
+        text-align: left;
+        font-weight: 800;
+    }
 
-            body.index-attende .as-table td {
-                border-bottom: 1px solid #d7d7d7;
-                padding: 6px 8px;
-                vertical-align: middle;
-            }
+    body.index-attende .as-table td {
+        border-bottom: 1px solid #d7d7d7;
+        padding: 6px 8px;
+        vertical-align: middle;
+    }
 
-        body.index-attende .as-center {
-            text-align: center;
-        }
+    body.index-attende .as-center {
+        text-align: center;
+    }
 
-        /* フッターボタン（masterの大きめボタン寄せ） */
-        body.index-attende .as-footer {
-            margin-top: 16px;
-            display: flex;
-            justify-content: flex-end;
-            gap: 16px;
-        }
+    /* フッターボタン */
+    body.index-attende .as-footer {
+        margin-top: 16px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 16px;
+    }
 
-        body.index-attende .as-btn-primary {
-            width: 150pt;
-            min-width: 150px;
-            height: 64px;
-            background: #3cb371; /* ミディアムグリーン */
-            color: #fff;
-        }
+    body.index-attende .as-btn-primary {
+        width: 100pt;
+        min-width: 100px;
+        height: 74px;
+        background: #3cb371; 
+        color: #fff;
+        text-align: center;
+    }
 
-        body.index-attende .as-btn-secondary {
-            width: 150pt;
-            min-width: 150px;
-            height: 64px;
-            background: #2a78c5; /* 青 */
-            color: #fff;
-            text-decoration: underline; /* 下線 */
-            line-height: 1.1; /* 改行表示を詰める */
-        }
+    body.index-attende .as-btn-secondary {
+        width: 100pt;
+        min-width: 100px;
+        height: 74px;
+        background: #2a78c5; 
+        color: #fff;
+        text-decoration: underline;
+        line-height: 1.1;
+    }
 
-        body.index-attende .as-event-header {
-            margin-top: 20px;
-            margin-bottom: 10px;
-        }
+    body.index-attende .as-event-header {
+        margin-top: 20px;
+        margin-bottom: 10px;
+    }
 
-        body.index-attende .as-event-row {
-            display: grid;
-            grid-template-columns: 180px 1fr;
-            column-gap: 20px;
-            padding: 6px 0;
-        }
+    body.index-attende .as-event-row {
+        display: grid;
+        grid-template-columns: 180px 1fr;
+        column-gap: 20px;
+        padding: 6px 0;
+    }
 
-        body.index-attende .as-ev-label {
-            font-weight: 800;
-        }
+    body.index-attende .as-ev-label {
+        font-weight: 800;
+    }
 
-        body.index-attende .as-ev-value {
-            font-weight: 400;
-        }
+    body.index-attende .as-ev-value {
+        font-weight: 400;
+    }
 
-        body.index-attende .as-grayline {
-            border-bottom: 2px solid #cfcfcf;
-            margin: 14px 0 18px 0;
-        }
+    body.index-attende .as-grayline {
+        border-bottom: 2px solid #cfcfcf;
+        margin: 14px 0 18px 0;
+    }
 
-        body.index-attende .as-event-row-time {
-            display: grid;
-            grid-template-columns: 180px 220px 140px 1fr; /* 左から：開催時刻ラベル｜時刻｜受付開始ラベル｜受付時刻 */
-            column-gap: 20px;
-            align-items: center;
-        }
+    body.index-attende .as-event-row-time {
+        display: grid;
+        grid-template-columns: 180px 220px 140px 1fr; /* 左から：開催時刻ラベル｜時刻｜受付開始ラベル｜受付時刻 */
+        column-gap: 20px;
+        align-items: center;
+    }
 
-        /* インライン用（太字などは既存と揃える） */
-        body.index-attende .as-ev-label-inline {
-            font-weight: 800;
-            text-align: left;
-        }
+    /* インライン用（太字などは既存と揃える） */
+    body.index-attende .as-ev-label-inline {
+        font-weight: 800;
+        text-align: left;
+    }
 
-        body.index-attende .as-ev-value-inline {
-            font-weight: 400;
-            text-align: left;
-        }
+    body.index-attende .as-ev-value-inline {
+        font-weight: 400;
+        text-align: left;
+    }

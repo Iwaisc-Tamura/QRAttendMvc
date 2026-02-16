@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QRAttendMvc.Models;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace QRAttendMvc.Controllers
 {
@@ -23,8 +24,7 @@ namespace QRAttendMvc.Controllers
             string? workerKanaLast,
             string? workerKanaFirst,
             string? workerId,
-            DateTime? birthDate,
-            bool includeLower)
+            DateTime? birthDate)
         {
             // 現行仕様：イベントは GT01_KAISAI_EVENT を選択してセッションに保持する。
             // 名簿検索画面では「現在選択中のイベント」は必須ではないため、ここでは参照のみ。
@@ -47,31 +47,22 @@ namespace QRAttendMvc.Controllers
             ViewBag.EndTime = HttpContext.Session.GetString("SelectedEndTime") ?? "";
             ViewBag.Uketsuke = HttpContext.Session.GetString("SelectedUketsuke") ?? "";
 
-            var q = _db.Employees.AsQueryable();
+            /* 修正 2025.02.16 Takada */
+            var q = BuildAttendeeQuery(companyKana, companyName, workerKanaLast, workerKanaFirst, workerId, birthDate);
 
-            if (!string.IsNullOrWhiteSpace(workerId))
-                q = q.Where(p => p.EmployeeCd.Contains(workerId));
-
-            if (!string.IsNullOrWhiteSpace(companyName))
-                // 会社名での検索はマスタ未使用のため未対応（必要なら協力会社マスタと連携）
-
-            ViewBag.CompanyKana = companyKana;
-            ViewBag.CompanyName = companyName;
-            ViewBag.WorkerKanaLast = workerKanaLast;
-            ViewBag.WorkerKanaFirst = workerKanaFirst;
-            ViewBag.WorkerId = workerId;
-            ViewBag.BirthDate = birthDate?.ToString("yyyy-MM-dd");
-            ViewBag.IncludeLower = includeLower;
-
-            var employees = await q
-                .OrderBy(p => p.EmployeeCd)
+            var list = await q
+                .OrderBy(x => x.Emp.EmployeeCd)
                 .ToListAsync();
 
             var rows = new List<AttendeeSearchRow>();
 
-            foreach (var p in employees)
+
+            /* 修正 2025.02.16 Takada */
+            foreach (var x in list)
             {
-                DateTime? lastIn = null;
+                    var p = x.Emp;
+
+                    DateTime? lastIn = null;
                 DateTime? lastOut = null;
 
                 var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
@@ -86,7 +77,7 @@ namespace QRAttendMvc.Controllers
 
                 rows.Add(new AttendeeSearchRow
                 {
-                    CompanyName = "",
+                    CompanyName = x.CompanyName,
                     WorkerId = p.EmployeeCd,
                     WorkerName = p.DisplayName,
 
@@ -103,27 +94,94 @@ namespace QRAttendMvc.Controllers
             return View(rows);
         }
 
-        [HttpGet]
+        private IQueryable<AttendeeJoined> BuildAttendeeQuery(
+            string? companyKana,
+            string? companyName,
+            string? workerKanaLast,
+            string? workerKanaFirst,
+            string? workerId,
+            DateTime? birthDate)
+        {
+            // ★ JOIN（LEFT JOIN）
+            var q =
+                from e in _db.Employees.AsNoTracking()
+                join c in _db.Cooperates.AsNoTracking()
+                    on e.CooperateCd equals c.CooperateCd into gj
+                from c in gj.DefaultIfEmpty()
+                select new AttendeeJoined
+                {
+                    Emp = e,
+                    CompanyName = c != null ? (c.CompanyName ?? "") : "",
+                    CompanyKana = c != null ? (c.CompanyNameKana ?? "") : ""
+                };
+
+
+            if (!string.IsNullOrWhiteSpace(workerKanaFirst))
+            {
+                var key = NormalizeKanaToWide(workerKanaFirst);
+                q = q.Where(x => (x.Emp.FirstNameKana ?? "").Contains(key));
+            }
+
+            /* 追加 2026.02.16 Takada*/
+            if (!string.IsNullOrWhiteSpace(workerKanaLast))
+            {
+                var key = NormalizeKanaToWide(workerKanaLast);
+                q = q.Where(x => (x.Emp.FamilyNameKana ?? "").Contains(key));
+            }
+
+            // ★ WHERE（共通）
+            if (!string.IsNullOrWhiteSpace(workerId))
+            {
+                var key = workerId.Trim();
+                q = q.Where(x => x.Emp.EmployeeCd.Contains(key));
+            }
+
+            if (!string.IsNullOrWhiteSpace(companyName))
+            {
+                var key = companyName.Trim();
+                q = q.Where(x => x.CompanyName.Contains(key));
+            }
+
+            if (!string.IsNullOrWhiteSpace(companyKana))
+            {
+                 var key = NormalizeKanaToWide(companyKana);// 全角寄せ
+
+                q = q.Where(x =>
+                    (x.CompanyKana ?? "").Contains(key));
+            }
+
+            /* 追加 2026.02.16 Takada */
+            if (birthDate.HasValue)
+            {
+                var ymd = birthDate.Value.ToString("yyyyMMdd");
+                q = q.Where(x => x.Emp.BirthYmd == ymd);
+            }
+
+            return q;
+        }
+
+        // BuildAttendeeQuery 用のDTO（Controller内でOK）
+        private class AttendeeJoined
+        {
+            public Gm01Employee Emp { get; set; } = default!;
+            public string CompanyName { get; set; } = "";
+            public string CompanyKana { get; set; } = "";
+        }
+
         public async Task<FileResult> Export(
             string? companyKana,
             string? companyName,
             string? workerKanaLast,
             string? workerKanaFirst,
             string? workerId,
-            DateTime? birthDate,
-            bool includeLower)
+            DateTime? birthDate)
         {
-            var q = _db.Employees.AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(workerId))
-                q = q.Where(p => p.EmployeeCd.Contains(workerId));
+            /* 変更 2026.02.16 Takada*/
+            var q = BuildAttendeeQuery(companyKana, companyName, workerKanaLast, workerKanaFirst, workerId, birthDate);
 
-            if (!string.IsNullOrWhiteSpace(companyName))
-                q = q.Where(p => p.EmployeeCd.Contains(companyName));
-
-
-            var employees = await q
-                .OrderBy(p => p.EmployeeCd)
+            var list = await q
+                .OrderBy(x => x.Emp.EmployeeCd)
                 .ToListAsync();
 
             var sb = new StringBuilder();
@@ -131,8 +189,11 @@ namespace QRAttendMvc.Controllers
 
             string Esc(string? v) => (v ?? "").Replace("	", " ");
 
-            foreach (var p in employees)
+            /* 変更 2026.02.16 Takada */
+            foreach (var x in list)
             {
+                var p = x.Emp;
+
                 DateTime? lastIn = null;
                 DateTime? lastOut = null;
 
@@ -148,7 +209,7 @@ namespace QRAttendMvc.Controllers
 
                 sb.AppendLine(string.Join("\t", new[]
                 {
-                    "",
+                    Esc(x.CompanyName),
                     Esc(p.EmployeeCd),
                     Esc(p.DisplayName),
 
@@ -180,6 +241,7 @@ namespace QRAttendMvc.Controllers
             if (h < 0 || h > 23 || m < 0 || m > 59) return null;
             return DateTime.Today.AddHours(h).AddMinutes(m);
         }
+ 
         /* 追加 2026.02.14　Takada */
         private static DateTime? ParseYyyyMMdd(string? yyyymmdd)
         {
@@ -194,5 +256,26 @@ namespace QRAttendMvc.Controllers
             try { return new DateTime(y, m, d); }
             catch { return null; }
         }
+
+        private static string NormalizeKanaToWide(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s)) return "";
+
+            // 前後空白除去
+            s = s.Trim();
+
+            // 全角スペース → 半角スペース
+            s = s.Replace('\u3000', ' ');
+
+            // 連続スペースを1つに
+            s = Regex.Replace(s, @"\s+", " ");
+
+            // Unicode正規化（濁点分離対策）
+            s = s.Normalize(NormalizationForm.FormKC);
+
+            return s;
+        }
+
+
     }
 }

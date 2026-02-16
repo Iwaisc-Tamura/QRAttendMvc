@@ -23,6 +23,12 @@ namespace QRAttendMvc.Models
         /// <summary>名</summary>
         public string? FirstName { get; set; }
 
+        /* 追加 2026.02.14 Takada 生年月日（FamilyNameKana）*/
+        public string? FamilyNameKana { get; set; }
+
+        /* 追加 2026.02.14 Takada 生年月日（FirstNameKana）*/
+        public string? FirstNameKana { get; set; }
+
         /* 追加 2026.02.14 Takada 生年月日（yyyyMMdd）*/
         [Column("BIRTH_YMD")]
         public string? BirthYmd { get; set; }

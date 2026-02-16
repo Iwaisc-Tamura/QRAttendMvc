@@ -12,6 +12,9 @@ namespace QRAttendMvc.Models
         // 従業員（旧 Participants）
         public DbSet<Gm01Employee> Employees => Set<Gm01Employee>();
 
+        // 協力会社 （追加 2026.0216 takada）
+        public DbSet<Gm02Cooperate> Cooperates => Set<Gm02Cooperate>();
+
         // 入退場ログ（旧 EventLogs）
         public DbSet<Tt02EntryExit> EntryExitLogs => Set<Tt02EntryExit>();
 
@@ -58,6 +61,23 @@ namespace QRAttendMvc.Models
                 e.Property(x => x.EmployeeCd).HasColumnName("EMPLOYEE_CD");
                 e.Property(x => x.FamilyName).HasColumnName("FAMILY_NAME");
                 e.Property(x => x.FirstName).HasColumnName("FIRST_NAME");
+                /* 追加 2026.02.16 Takada */
+                e.Property(x => x.FamilyNameKana).HasColumnName("FAMILY_NAME_KANA");
+                e.Property(x => x.FirstNameKana).HasColumnName("FIRST_NAME_KANA");
+                e.Property(x => x.BirthYmd).HasColumnName("BIRTH_YMD");
+                e.Property(x => x.RetireYmd).HasColumnName("RETIRE_YMD");
+            });
+
+            modelBuilder.Entity<Gm02Cooperate>(e =>
+            {
+                e.ToTable("GM02_COOPERATE");
+                e.HasKey(x => x.CooperateCd);
+
+                e.Property(x => x.CooperateCd).HasColumnName("COOPERATE_CD");
+                e.Property(x => x.CompanyName).HasColumnName("COMPANY_NAME");
+                e.Property(x => x.CompanyNameKana).HasColumnName("COMPANY_NAME_KANA");
+                e.Property(x => x.ApplySYmd).HasColumnName("APPLY_S_YMD");
+                e.Property(x => x.ApplyEYmd).HasColumnName("APPLY_E_YMD");
             });
 
             modelBuilder.Entity<Tt02EntryExit>(e =>
