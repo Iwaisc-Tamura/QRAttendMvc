@@ -19,6 +19,14 @@ namespace QRAttendMvc.Controllers
     {
         private readonly AppDbContext _db;
         private const string SessionKeyCurrentKaisaiCd = "CurrentKaisaiCd";
+        /* 追加 2026.02.16 Takada */
+        private const string SessionKeyEventDate = "SelectedEventDate";
+        private const string SessionKeyKubun = "SelectedKubun";
+        private const string SessionKeyKyoten = "SelectedKyoten";
+        private const string SessionKeyPlace = "SelectedPlace";
+        private const string SessionKeyStartTime = "SelectedStartTime";
+        private const string SessionKeyEndTime = "SelectedEndTime";
+        private const string SessionKeyUketsuke = "SelectedUketsuke";
 
         public EventSelectionController(AppDbContext db)
         {
@@ -177,6 +185,18 @@ namespace QRAttendMvc.Controllers
         {
             HttpContext.Session.SetString(SessionKeyCurrentKaisaiCd, ev.KaisaiCd ?? "");
 
+            // 追加2026.02.16 Takada 表示用イベント情報を Session に保存
+            HttpContext.Session.SetString(SessionKeyEventDate,
+                (TryParseKaisaiDate(ev.KaisaiYmd ?? "", out var d) ? d.ToString("yyyy/MM/dd") : ""));
+
+            HttpContext.Session.SetString(SessionKeyKubun, $"{ev.EventCd} {ev.EventName}".Trim());
+            HttpContext.Session.SetString(SessionKeyKyoten, $"{ev.BranchCd} {ev.BranchName}".Trim());
+            HttpContext.Session.SetString(SessionKeyPlace, ev.Location ?? "");
+
+            HttpContext.Session.SetString(SessionKeyStartTime, FormatHm(ev.StartTime));
+            HttpContext.Session.SetString(SessionKeyEndTime, FormatHm(ev.EndTime));
+            HttpContext.Session.SetString(SessionKeyUketsuke, FormatHm(ev.ReceptTime));
+
             // TT01_TARGET_EVENT 更新（支店＋開催コード）
             var te = await _db.TargetEvents
                 .FirstOrDefaultAsync(x => x.BranchCd == ev.BranchCd && x.KaisaiCd == ev.KaisaiCd);
@@ -185,8 +205,8 @@ namespace QRAttendMvc.Controllers
             {
                 te = new TargetEvent
                 {
-                    BranchCd = ev.BranchCd,
-                    KaisaiCd = ev.KaisaiCd,
+                    BranchCd = ev.BranchCd ?? "",
+                    KaisaiCd = ev.KaisaiCd ?? "",
                     SelectYmdTime = DateTime.Now.ToString("yyyyMMdd-HHmmss")
                 };
                 _db.TargetEvents.Add(te);

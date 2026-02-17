@@ -1,0 +1,316 @@
+﻿@model IEnumerable<QRAttendMvc.Controllers.EmployeeSearchController.EmployeeSearchRow>
+@using QRAttendMvc.Models
+
+@{
+    Layout = null;
+    ViewData["Title"] = "作業員検索";
+
+    string employeeCd = Context.Request.Query["employeeCd"].ToString();
+    string companyKana = Context.Request.Query["companyKana"].ToString();
+    string workerKanaLast = Context.Request.Query["workerKanaLast"].ToString();
+    string workerKanaFirst = Context.Request.Query["workerKanaFirst"].ToString();
+    string birthDate = Context.Request.Query["birthDate"].ToString();
+
+    bool includeExpired =
+        Context.Request.Query.ContainsKey("includeExpired") &&
+        (Context.Request.Query["includeExpired"].ToString() == "true" || Context.Request.Query["includeExpired"].ToString() == "on");
+
+    string returnUrl = Context.Request.Query["returnUrl"].ToString();
+
+    string login = ViewBag.LoginText as string ?? "";
+
+    bool hasSearched =
+        Context.Request.Query.ContainsKey("searched") &&
+        !string.IsNullOrWhiteSpace(Context.Request.Query["searched"]);
+
+    var currentSort = Context.Request.Query["sort"].ToString();
+    var currentDir = Context.Request.Query["dir"].ToString(); // "asc" or "desc"
+}
+
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+
+    <!-- 単独表示なので自前でCSSを読む -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+
+<body class="index-employee">
+
+    <!-- ヘッダー（master風） -->
+    <header class="es-header">
+        <div class="es-tab">検索</div>
+        <div class="es-title">作業員検索</div>
+    </header>
+
+    <!-- 日付・時刻：Attendee と同じ ev-loginbox を使用 -->
+    <div class="ev-loginbox" aria-label="ログイン情報">
+        <div class="ev-login-row">
+            <span class="ev-login-label">ログイン</span>
+            <span class="ev-login-value">@login</span>
+        </div>
+        <div class="ev-login-row">
+            <div class="ev-login-label">日付</div>
+            <div class="ev-login-value">
+                <span id="eventDate"></span>
+            </div>
+        </div>
+
+        <div class="ev-login-row">
+            <div class="ev-login-label">時刻</div>
+            <div class="ev-login-value">
+                <span id="eventTime"></span>
+            </div>
+        </div>
+    </div>
+
+    <main class="es-container">
+
+        <!-- 検索条件 -->
+        <form method="get" class="es-form" id="searchForm">
+            <!-- 検索ボタン押下フラグ -->
+            <input type="hidden" name="searched" value="true" />
+
+            <!-- ソート保持 -->
+            <input type="hidden" name="sort" value="@currentSort" />
+            <input type="hidden" name="dir" value="@currentDir" />
+
+            <!-- 戻り先保持（必須） -->
+            <input type="hidden" name="returnUrl" value="@returnUrl" />
+
+            <!-- 1段目：作業員ID／会社名（カナ）／検索／クリア -->
+            <div class="es-grid es-grid-1">
+                <div class="es-field">
+                    <label class="es-label">作業員ＩＤ</label>
+                    <input name="employeeCd" value="@employeeCd" class="es-input" />
+                </div>
+
+                <div class="es-field">
+                    <label class="es-label">会社名（カナ）</label>
+                    <input name="companyKana" value="@companyKana" class="es-input" />
+                </div>
+
+                <div class="es-field es-action">
+                    <button type="submit" class="es-btn es-btn-search">検索</button>
+                </div>
+
+                <div class="es-field es-action">
+                    <a asp-action="Index" class="es-btn es-btn-search">クリア</a>
+                </div>
+            </div>
+
+            <!-- 2段目：作業員名（カナ）姓／名／生年月日／適用終了含む -->
+            <div class="es-grid es-grid-2">
+                <div class="es-field">
+                    <label class="es-label">作業員名（カナ） 姓</label>
+                    <input name="workerKanaLast" value="@workerKanaLast" class="es-input" />
+                </div>
+
+                <div class="es-field">
+                    <label class="es-label">名</label>
+                    <input name="workerKanaFirst" value="@workerKanaFirst" class="es-input" />
+                </div>
+
+                <div class="es-field">
+                    <label class="es-label">生年月日</label>
+                    <input name="birthDate" type="date" value="@birthDate" class="es-input" />
+                </div>
+
+                <div class="es-field">
+                    <label class="es-label">&nbsp;</label>
+                    <div class="es-checkline">
+                        <span>適用終了を含む</span>
+                        <input type="checkbox" name="includeExpired" @(includeExpired ? "checked" : "") />
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        @if (!Context.Request.Query.ContainsKey("searched"))
+        {
+            <div class="es-hint">
+                検索条件を入力して「検索」を押してください。（未入力のまま検索すると全件表示します）
+            </div>
+        }
+
+        <!-- 一覧 -->
+        <section class="es-tablewrap">
+            <table class="es-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <a asp-action="Index" asp-all-route-data="@(RouteFor("employeecd"))">
+                                作業員ＩＤ@(Arrow("employeecd"))
+                            </a>
+                        </th>
+                        <th>
+                            <a asp-action="Index" asp-all-route-data="@(RouteFor("companyname"))">
+                                会社名@(Arrow("companyname"))
+                            </a>
+                        </th>
+                        <th>
+                            <a asp-action="Index" asp-all-route-data="@(RouteFor("companykana"))">
+                                会社名カナ@(Arrow("companykana"))
+                            </a>
+                        </th>
+                        <th>
+                            <a asp-action="Index" asp-all-route-data="@(RouteFor("workername"))">
+                                作業員名@(Arrow("workername"))
+                            </a>
+                        </th>
+                        <th>
+                            <a asp-action="Index" asp-all-route-data="@(RouteFor("workernamekana"))">
+                                作業員名 カナ@(Arrow("workernamekana"))
+                            </a>
+                        </th>
+                        <th>
+                            <a asp-action="Index" asp-all-route-data="@(RouteFor("birth"))">
+                                生年月日@(Arrow("birth"))
+                            </a>
+                        </th>
+                        <th>
+                            <a asp-action="Index" asp-all-route-data="@(RouteFor("exclude"))">
+                                名簿適用除外日@(Arrow("exclude"))
+                            </a>
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var r in Model)
+                    {
+                        <tr class="es-row" onclick="selectEmployee('@r.EmployeeCd')">
+                            <td>@r.EmployeeCd</td>
+                            <td>@r.CompanyName</td>
+                            <td>@r.CompanyKana</td>
+                            <td>@r.WorkerName</td>
+                            <td>@r.WorkerNameKana</td>
+                            <td>@(r.BirthDate?.ToString("yyyy/M/d") ?? "")</td>
+                            <td>@(r.ExcludeDate?.ToString("yyyy/M/d") ?? "")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 操作ボタン -->
+        <section class="es-footer">
+            <button type="button" class="es-btn es-btn-back" onclick="goBack()">入退場登録に戻る</button>
+        </section>
+
+    </main>
+
+    <script>
+        // ★ Attendee と同じ：sessionStorage fixedLayoutTime を使って日付・時刻を表示
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const stored = sessionStorage.getItem("fixedLayoutTime");
+            if (!stored) return;
+
+            const fixedDate = new Date(stored);
+            const week = ["(日)", "(月)", "(火)", "(水)", "(木)", "(金)", "(土)"];
+            const w = week[fixedDate.getDay()];
+
+            const dateText =
+                fixedDate.getFullYear() + "/" +
+                (fixedDate.getMonth() + 1) + "/" +
+                fixedDate.getDate() + "/" + " " + w;
+
+            const timeText =
+                fixedDate.getHours().toString().padStart(2, '0') + "：" +
+                fixedDate.getMinutes().toString().padStart(2, '0') + "：" +
+                fixedDate.getSeconds().toString().padStart(2, '0');
+
+            document.getElementById("eventDate").textContent = dateText;
+            document.getElementById("eventTime").textContent = timeText;
+        });
+
+        // Enterで検索（textareaは除外）
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("searchForm");
+            form?.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+                    if (tag === "textarea") return;
+
+                    e.preventDefault();
+                    form.requestSubmit();
+                }
+            });
+        });
+
+        // 方式②：通常遷移で戻る（returnUrl に EMPLOYEE_CD を付与）
+        function selectEmployee(empCd) {
+            const ru = "@returnUrl";
+            if (!ru) {
+                alert("returnUrl が指定されていません。EMPLOYEE_CD=" + empCd);
+                return;
+            }
+
+            const u = new URL(ru, window.location.origin);
+            u.searchParams.set("EMPLOYEE_CD", empCd);
+            window.location.href = u.toString();
+        }
+
+        function goBack() {
+            const ru = "@returnUrl";
+            if (ru) {
+                window.location.href = ru;
+                return;
+            }
+            history.back();
+        }
+    </script>
+
+    @functions {
+
+        public string NextDir(string key)
+        {
+            var currentSort = Context.Request.Query["sort"].ToString();
+            var currentDir = Context.Request.Query["dir"].ToString();
+
+            if (string.Equals(currentSort, key, StringComparison.OrdinalIgnoreCase))
+                return string.Equals(currentDir, "desc", StringComparison.OrdinalIgnoreCase)
+                ? "asc"
+                : "desc";
+
+            return "asc";
+        }
+
+        public string Arrow(string key)
+        {
+            var currentSort = Context.Request.Query["sort"].ToString();
+            var currentDir = Context.Request.Query["dir"].ToString();
+
+            if (!string.Equals(currentSort, key, StringComparison.OrdinalIgnoreCase))
+                return "";
+
+            return string.Equals(currentDir, "desc", StringComparison.OrdinalIgnoreCase)
+            ? " ▼"
+            : " ▲";
+        }
+
+        public Dictionary<string, string> RouteFor(string key)
+        {
+            var dict = Context.Request.Query.ToDictionary(
+            k => k.Key,
+            v => v.Value.ToString()
+            );
+
+            dict["sort"] = key;
+            dict["dir"] = NextDir(key);
+            dict["searched"] = "true";
+
+            // returnUrl は絶対に維持（ソートクリックで消える事故防止）
+            if (!dict.ContainsKey("returnUrl"))
+                dict["returnUrl"] = "@returnUrl";
+
+            return dict;
+        }
+    }
+
+</body>
+</html>

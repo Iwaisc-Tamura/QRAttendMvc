@@ -7,7 +7,11 @@
     string title = "入退場登録（臨時対応）";
     string kaisaiCd = ViewBag.CurrentKaisaiCd as string ?? "";
     string login = ViewBag.LoginDisplay as string ?? "XXXXXX";
-    var ev = ViewBag.Event as Gt01KaisaiEvent;
+    var ev = ViewBag.Event as Gt01KaisaiEvent ?? new Gt01KaisaiEvent();
+
+// テスト用  start 2026.02.18 Takada
+    var selected = Context.Request.Query["COOPERATE_CD"].ToString();
+// テスト用  end   2026.02.18 Takada
 
     ViewData["Title"] = title;
 
