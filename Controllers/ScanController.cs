@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
@@ -149,7 +148,7 @@ public class RecordRequest
         }
 
 
-        // QR または手入力で入退場記録（連続登録）
+        // QR または手入力で入退場記録（連続登録） 
 
 [HttpPost]
 public async Task<IActionResult> Record([FromBody] RecordRequest req)
@@ -192,6 +191,70 @@ public async Task<IActionResult> Record([FromBody] RecordRequest req)
         time = hhmm
     });
 }
+
+        /// <summary>
+        /// QRで読み取った作業員IDから名簿／マスタ情報を取得して返す（TempInput 用）
+        /// 必要項目が欠けている場合はエラーを返します。
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> Lookup([FromBody] RecordRequest req)
+        {
+            if (req == null || string.IsNullOrWhiteSpace(req.Code))
+                return Json(new { ok = false, message = "パラメータ不正" });
+
+            var workerCd = req.Code.Trim();
+
+            if (!IsEmployeeCode(workerCd))
+            {
+                return Json(new { ok = false, message = "作業員ID形式が不正です" });
+            }
+
+            var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
+            if (string.IsNullOrEmpty(kaisaiCd))
+            {
+                return Json(new { ok = false, message = "イベントが確定していません" });
+            }
+
+            // 作業員マスタ
+            var emp = await _db.Employees.FirstOrDefaultAsync(x => x.EmployeeCd == workerCd);
+            if (emp == null)
+            {
+                return Json(new { ok = false, message = "作業員マスタに登録がありません" });
+            }
+
+            // 当該開催の名簿情報（会社名・かな・生年月日 等はここに保持される想定）
+            var entry = await _db.EntryExitLogs
+                .FirstOrDefaultAsync(e => e.EmployeeCd == workerCd && e.KaisaiCd == kaisaiCd);
+
+            if (entry == null)
+            {
+                return Json(new { ok = false, message = "名簿情報が存在しません（当該開催）" });
+            }
+
+            // 必須項目チェック（不足していればエラーで返す）
+            if (string.IsNullOrWhiteSpace(emp.CooperateCd)
+                || string.IsNullOrWhiteSpace(entry.CompanyName)
+                || string.IsNullOrWhiteSpace(entry.FamilyNameKana)
+                || string.IsNullOrWhiteSpace(entry.FirstNameKana)
+                || string.IsNullOrWhiteSpace(entry.BirthYmd))
+            {
+                return Json(new { ok = false, message = "名簿に必要な項目が不足しています" });
+            }
+
+            // 返却
+            return Json(new
+            {
+                ok = true,
+                code = workerCd,
+                cooperateCd = emp.CooperateCd,
+                companyKana = "", // DBに会社カナ列が見当たらないため空文字。必要ならマスタ追加してください。
+                companyName = entry.CompanyName,
+                workerKana = $"{entry.FamilyNameKana} {entry.FirstNameKana}",
+                workerName = emp.DisplayName,
+                birthYmd = entry.BirthYmd
+            });
+        }
+
         public class TempRecordRequest
         {
             public string? CompanyCd { get; set; }
@@ -219,6 +282,8 @@ public async Task<IActionResult> Record([FromBody] RecordRequest req)
 
             ViewBag.Event = ev;
 
+            // --- ここでセッションの開催コードを ViewBag にセットする ---
+            ViewBag.CurrentKaisaiCd = kaisaiCd;
 
             ViewBag.LoginDisplay =
                 $"{HttpContext.Session.GetString("BRANCH_CD")}-{HttpContext.Session.GetString("EMPLOYEE_CD")}";
