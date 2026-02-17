@@ -57,18 +57,18 @@
         {
             <div class="ev-alert ev-alert-danger">@TempData["Error"]</div>
         }
-        @if (ViewData["BusinessMessage"] != null)
+        @if (ViewData["BusinessMessage"] is string message)
         {
-            <div class="ev-alert ev-alert-warn">@Html.Raw(ViewData["BusinessMessage"].ToString()!.Replace("\n", "<br />"))</div>
+            <div class="ev-alert ev-alert-warn">
+                @Html.Raw(message.Replace("\n", "<br />"))
+            </div>
         }
 
         <div class="ev-form">
 
-            <!-- 区分 + 右側にログイン/日付/時刻（※2重表示になる loginOnlyArea は削除） -->
             <div class="ev-row ev-row-3" id="divisionArea">
                 <div class="ev-label">区分</div>
 
-                <!-- ★ 枠は select だけに統一（上段の "-" 枠を廃止） -->
                 <div class="ev-field ev-field-mid">
                     <select id="divisionSelect" class="ev-select">
                         <option value="">選択してください</option>
@@ -83,14 +83,14 @@
                     <div class="ev-login-row">
                         <div class="ev-login-label">日付</div>
                         <div class="ev-login-value">
-                            <span id="layoutDate"></span>
+                            <span id="eventDate"></span>
                         </div>
                     </div>
 
                     <div class="ev-login-row">
                         <div class="ev-login-label">時刻</div>
                         <div class="ev-login-value">
-                            <span id="layoutTime"></span>
+                            <span id="eventTime"></span>
                         </div>
                     </div>
                 </div>
@@ -117,7 +117,7 @@
                 <div class="ev-split-left">
                     <div class="ev-label">イベント開催日</div>
                     <div class="ev-field">
-                        <div class="ev-underline" id="dateDisplay">@DateTime.Today.ToString("yyyy/MM/dd")</div>
+                        <div class="ev-underline" id="dateDisplay">@DateTime.Today.ToString("yyyy/MM/dd (ddd)")</div>
                     </div>
                 </div>
 
@@ -125,7 +125,7 @@
                     <div class="ev-inline">
                         <span class="ev-label-inline">年度</span>
                         <span class="ev-yearbox" id="evYear"></span>
-                        <span class="ev-label-inline">年度</span>
+                        <span class="ev-yearbox-label-inline">年度</span>
                     </div>
                 </div>
             </div>
@@ -134,7 +134,6 @@
             <div class="ev-row" id="startArea">
                 <div class="ev-label">開始時刻</div>
 
-                <!-- ★ 枠は select だけに統一（上段の "-" 枠を廃止） -->
                 <div class="ev-field ev-field-short">
                     <select id="startSelect" class="ev-select">
                         <option value="">選択してください</option>
@@ -161,7 +160,7 @@
             <!-- イベント情報 -->
             <div class="ev-info">
                 <div class="ev-info-title">イベント情報</div>
-                <div class="ev-info-row">EventCode：<span id="evCode"></span></div>
+                <div class="ev-info-row">イベントコード：<span id="evCode"></span></div>
                 <div class="ev-info-row">イベント名：<span id="evName"></span></div>
                 <div class="ev-info-row">開始時刻：<span id="evStart"></span></div>
             </div>
@@ -172,34 +171,34 @@
             <form asp-action="GoToBatch" method="post">
                 <input type="hidden" name="mode" value="IN" />
                 <button type="submit" id="btnBatchIn" class="ev-btn ev-btn-blue" disabled>
-                    入退場登録<br />（一括入場）
+                    入場登録<br />（一括）
                 </button>
             </form>
 
             <form asp-action="GoToTemp" method="post">
                 <input type="hidden" name="kind" value="IN" />
                 <button type="submit" id="btnTempIn" class="ev-btn ev-btn-blue2" disabled>
-                    入退場登録<br />（入場）
+                    入場登録<br />（臨時）
                 </button>
             </form>
 
             <form asp-action="GoToBatch" method="post">
                 <input type="hidden" name="mode" value="OUT" />
                 <button type="submit" id="btnBatchOut" class="ev-btn ev-btn-orange" disabled>
-                    入退場登録<br />（一括退場）
+                    退場登録<br />（一括）
                 </button>
             </form>
 
             <form asp-action="GoToTemp" method="post">
                 <input type="hidden" name="kind" value="OUT" />
                 <button type="submit" id="btnTempOut" class="ev-btn ev-btn-orange2" disabled>
-                    入退場登録<br />（退場）
+                    退場登録<br />（臨時）
                 </button>
             </form>
 
             <form asp-controller="AttendeeSearch" asp-action="Index" method="get">
                 <button type="submit" id="btnAttendeeSearch" class="ev-btn ev-btn-green">
-                    受講者<br />検索
+                    入退場<br />照会
                 </button>
             </form>
 
@@ -210,7 +209,7 @@
     </div>
 
     <script>
-        // ★ 時刻は「時間：分」
+        // ★ データ時刻は「時間：分」
         setInterval(function () {
             const d = new Date();
             const pad = n => n.toString().padStart(2, '0');
@@ -405,29 +404,54 @@
             }
         });
 
+        // ログイン情報　Home画面を表示した日時を取得し固定表示　日付はyyyy/mm/dd(ddd)　時刻はhh：mm：ss
+        document.addEventListener("DOMContentLoaded", function () {
 
-            function updateLayoutClock() {
-                const d = new Date();
-                const pad = n => String(n).padStart(2, '0');
+            const stored = sessionStorage.getItem("fixedLayoutTime");
+            if (!stored) return;
 
-                const week = ["(日)", "(月)", "(火)", "(水)", "(木)", "(金)", "(土)"];
-                const w = week[d.getDay()];
+            const fixedDate = new Date(stored);
+            const week = ["(日)", "(月)", "(火)", "(水)", "(木)", "(金)", "(土)"];
+            const w = week[fixedDate.getDay()];
 
-                const date =
-                    d.getFullYear() + "/" +
-                    pad(d.getMonth() + 1) + "/" +
-                    pad(d.getDate()) + " " + w;
+            // layoutClock と同じフォーマット
+            const dateText =
+                fixedDate.getFullYear() + "/" +
+                (fixedDate.getMonth() + 1) + "/" +
+                fixedDate.getDate() + "/" + " " + w;
 
-                const time =
-                    pad(d.getHours()) + "：" +
-                    pad(d.getMinutes());
+            // layoutTime　と同じフォーマット
+            const timeText =
+                fixedDate.getHours().toString().padStart(2, '0') + "：" +
+                fixedDate.getMinutes().toString().padStart(2, '0') + "：" +
+                fixedDate.getSeconds().toString().padStart(2, '0');
 
-                const elDate = document.getElementById("layoutDate");
-                if (elDate) elDate.textContent = date;
+            document.getElementById("eventDate").textContent = dateText;
+            document.getElementById("eventTime").textContent = timeText;
+        });
 
-                const elTime = document.getElementById("layoutTime");
-                if (elTime) elTime.textContent = time;
-            }
+        function updateLayoutClock() {
+            const d = new Date();
+            const pad = n => String(n).padStart(2, '0');
+
+            const week = ["(日)", "(月)", "(火)", "(水)", "(木)", "(金)", "(土)"];
+            const w = week[d.getDay()];
+
+            const date =
+                d.getFullYear() + "/" +
+                pad(d.getMonth() + 1) + "/" +
+                pad(d.getDate()) + " " + w;
+
+            const time =
+                pad(d.getHours()) + "：" +
+                pad(d.getMinutes());
+
+            const elDate = document.getElementById("layoutDate");
+            if (elDate) elDate.textContent = date;
+
+            const elTime = document.getElementById("layoutTime");
+            if (elTime) elTime.textContent = time;
+        }
 
         updateLayoutClock();
         setInterval(updateLayoutClock, 1000);
