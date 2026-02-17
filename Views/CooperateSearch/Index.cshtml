@@ -1,0 +1,238 @@
+﻿@model IEnumerable<QRAttendMvc.Controllers.CooperateSearchController.CooperateSearchRow>
+
+@{
+    Layout = null;
+    ViewData["Title"] = "会社検索";
+
+    string companyKana = Context.Request.Query["companyKana"].ToString();
+    string returnUrl = Context.Request.Query["returnUrl"].ToString();
+
+    string login = ViewBag.LoginText as string ?? "";
+
+    var currentSort = Context.Request.Query["sort"].ToString();
+    var currentDir = Context.Request.Query["dir"].ToString(); // "asc" or "desc"
+}
+
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+
+<body class="index-cooprete">
+
+    <header class="es-header">
+        <div class="es-tab">検索</div>
+        <div class="es-title">会社検索</div>
+    </header>
+
+    <div class="ev-loginbox" aria-label="ログイン情報">
+        <div class="ev-login-row">
+            <span class="ev-login-label">ログイン</span>
+            <span class="ev-login-value">@login</span>
+        </div>
+        <div class="ev-login-row">
+            <div class="ev-login-label">日付</div>
+            <div class="ev-login-value"><span id="eventDate"></span></div>
+        </div>
+        <div class="ev-login-row">
+            <div class="ev-login-label">時刻</div>
+            <div class="ev-login-value"><span id="eventTime"></span></div>
+        </div>
+    </div>
+
+    <main class="es-container">
+
+        <form method="get" class="es-form" id="searchForm">
+            <input type="hidden" name="searched" value="true" />
+            <input type="hidden" name="sort" value="@currentSort" />
+            <input type="hidden" name="dir" value="@currentDir" />
+            <input type="hidden" name="returnUrl" value="@returnUrl" />
+
+            <div class="es-grid es-grid-1">
+                <div class="es-field es-span2">
+                    <label class="es-label">会社名（カナ）</label>
+                    <input name="companyKana" value="@companyKana" class="es-input" />
+                </div>
+
+                <div class="es-field es-action">
+                    <button type="submit" class="es-btn es-btn-search">検索</button>
+                </div>
+
+                <div class="es-field es-action">
+                    <a asp-action="Index"
+                       asp-route-returnUrl="@returnUrl"
+                       class="es-btn es-btn-search">クリア</a>
+                </div>
+            </div>
+        </form>
+
+        <div class="es-hint">
+            検索条件を入力して「検索」を押してください。（未入力のまま検索すると全件表示します）
+        </div>
+
+        <section class="es-tablewrap">
+            <table class="es-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <a asp-action="Index" asp-all-route-data="@(RouteFor("cooperatecd"))">
+                                協力会社コード@(Arrow("cooperatecd"))
+                            </a>
+                        </th>
+                        <th>
+                            <a asp-action="Index" asp-all-route-data="@(RouteFor("companyname"))">
+                                会社名@(Arrow("companyname"))
+                            </a>
+                        </th>
+                        <th>
+                            <a asp-action="Index" asp-all-route-data="@(RouteFor("companykana"))">
+                                会社名カナ@(Arrow("companykana"))
+                            </a>
+                        </th>
+                        <th>
+                            <a asp-action="Index" asp-all-route-data="@(RouteFor("address"))">
+                                住所@(Arrow("address"))
+                            </a>
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var r in Model)
+                    {
+                        <tr class="es-row"
+                            data-cd="@r.CooperateCd"
+                            onclick="selectCooperate('@r.CooperateCd', this)">
+                            <td>@r.CooperateCd</td>
+                            <td>@r.CompanyName</td>
+                            <td>@r.CompanyNameKana</td>
+                            <td>@r.Address</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+
+        <section class="es-footer">
+            <form method="post" asp-action="Back" id="backForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="returnUrl" value="@returnUrl" />
+                <input type="hidden" name="selectedCooperateCd" id="selectedCooperateCd" value="" />
+                <button type="button" class="es-btn es-btn-back" onclick="submitBack()">入退場登録に戻る</button>
+            </form>
+        </section>
+
+    </main>
+
+    <script>
+        // sessionStorage fixedLayoutTime を日付・時刻に表示
+        document.addEventListener("DOMContentLoaded", function () {
+            const stored = sessionStorage.getItem("fixedLayoutTime");
+            if (!stored) return;
+
+            const fixedDate = new Date(stored);
+            const week = ["(日)", "(月)", "(火)", "(水)", "(木)", "(金)", "(土)"];
+            const w = week[fixedDate.getDay()];
+
+            const dateText =
+                fixedDate.getFullYear() + "/" +
+                (fixedDate.getMonth() + 1) + "/" +
+                fixedDate.getDate() + "/" + " " + w;
+
+            const timeText =
+                fixedDate.getHours().toString().padStart(2, '0') + ":" +
+                fixedDate.getMinutes().toString().padStart(2, '0') + ":" +
+                fixedDate.getSeconds().toString().padStart(2, '0');
+
+            document.getElementById("eventDate").textContent = dateText;
+            document.getElementById("eventTime").textContent = timeText;
+        });
+
+        // Enterで検索
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("searchForm");
+            form?.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+                    if (tag === "textarea") return;
+
+                    e.preventDefault();
+                    form.requestSubmit();
+                }
+            });
+        });
+
+        function selectCooperate(cd, tr) {
+            document.getElementById("selectedCooperateCd").value = cd;
+
+            document.querySelectorAll("tr.es-row").forEach(x => x.classList.remove("es-selected"));
+            if (tr) tr.classList.add("es-selected");
+        }
+
+        function submitBack() {
+            const cd = document.getElementById("selectedCooperateCd").value;
+            if (!cd) {
+                alert("一覧から会社を選択してください。");
+                return;
+            }
+            document.getElementById("backForm").submit();
+        }
+    </script>
+
+    @functions {
+
+        public string NextDir(string key)
+        {
+            var currentSort = Context.Request.Query["sort"].ToString();
+            var currentDir = Context.Request.Query["dir"].ToString();
+
+            if (string.Equals(currentSort, key, StringComparison.OrdinalIgnoreCase))
+                return string.Equals(currentDir, "desc", StringComparison.OrdinalIgnoreCase)
+                ? "asc"
+                : "desc";
+
+            return "asc";
+        }
+
+        public string Arrow(string key)
+        {
+            var currentSort = Context.Request.Query["sort"].ToString();
+            var currentDir = Context.Request.Query["dir"].ToString();
+
+            if (!string.Equals(currentSort, key, StringComparison.OrdinalIgnoreCase))
+                return "";
+
+            return string.Equals(currentDir, "desc", StringComparison.OrdinalIgnoreCase)
+            ? " ▲"
+            : " ▼";
+        }
+
+        public Dictionary<string, string> RouteFor(string key)
+        {
+            var dict = Context.Request.Query.ToDictionary(
+            k => k.Key,
+            v => v.Value.ToString()
+            );
+
+            dict["sort"] = key;
+            dict["dir"] = NextDir(key);
+            dict["searched"] = "true";
+
+            // ★ ここを直接取得に変更
+            var ru = Context.Request.Query["returnUrl"].ToString();
+            var kana = Context.Request.Query["companyKana"].ToString();
+
+            dict["returnUrl"] = ru ?? "";
+            dict["companyKana"] = kana ?? "";
+
+            return dict;
+        }
+    }
+
+</body>
+</html>

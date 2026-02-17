@@ -5,7 +5,11 @@
     string title = "入退場登録（臨時対応）";
     string kaisaiCd = ViewBag.CurrentKaisaiCd as string ?? "";
     string login = ViewBag.LoginDisplay as string ?? "XXXXXX";
-    var ev = ViewBag.Event as Gt01KaisaiEvent;
+    var ev = ViewBag.Event as Gt01KaisaiEvent ?? new Gt01KaisaiEvent();
+
+// テスト用  start 2026.02.18 Takada
+    var selected = Context.Request.Query["COOPERATE_CD"].ToString();
+// テスト用  end   2026.02.18 Takada
 
     string FmtYmd(string? ymd)
     {
@@ -81,6 +85,18 @@
                 <label class="form-label">協力会社コード</label>
                 <input id="companyCd" class="form-control" />
             </div>
+
+<!-- テスト用  start 2026.02.18 Takada  -->
+    <div class="mt-2">
+        <a class="btn btn-secondary"
+           asp-controller="CooperateSearch"
+           asp-action="Index"
+           asp-route-returnUrl="@Url.Action("Index", "TempInput")">
+            会社選択
+        </a>
+    </div>
+<!-- テスト用  end   2026.02.18 Takada  -->
+
             <div class="col-md-4">
                 <label class="form-label">会社名カナ</label>
                 <input class="form-control" />
@@ -114,7 +130,6 @@
             <div class="col-md-8">
                     <label class="form-label">事由</label>
                     <input class="form-control" />
-                </div>
             </div>
 
         <button id="btnTempRegister" class="btn btn-primary mb-3">

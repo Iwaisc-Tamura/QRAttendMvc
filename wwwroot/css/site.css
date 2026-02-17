@@ -992,3 +992,214 @@ body {
         margin-top: 0 !important;
         z-index: 10;
     }
+
+    /* =====================================================
+   index(Company/Cooperate Search) : body.index-cooprete
+   Esearch_now.png（body.index-employee）へ寄せたデザイン
+   ===================================================== */
+
+    body.index-cooprete {
+        font-size: 11pt;
+        overflow-x: hidden;
+    }
+
+    body.index-cooprete * {
+        font-size: inherit;
+    }
+
+    /* header */
+    body.index-cooprete .es-header {
+        display: flex;
+        width: 100%;
+        height: 90px;
+    }
+
+    body.index-cooprete .es-tab {
+        width: 140px;
+        background: #e8b1e6;
+        color: #fff;
+        font-weight: 800;
+        font-size: 18pt;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    body.index-cooprete .es-title {
+        flex: 1;
+        background: #129a3e;
+        color: #fff;
+        font-weight: 800;
+        font-size: 18pt;
+        display: flex;
+        align-items: center;
+        padding-left: 36px;
+    }
+
+    /* main container */
+    body.index-cooprete .es-container {
+        position: relative;
+        width: 1000pt;
+        min-width: 600pt;
+        margin: 0 auto;
+        padding: 18px 0 20px 0;
+        box-sizing: border-box;
+    }
+
+    body.index-cooprete .es-form {
+        padding-top: 10px;
+        padding-bottom: 12px;
+        margin-bottom: 10px;
+    }
+
+    body.index-cooprete .es-grid {
+        display: grid;
+        column-gap: 16px;
+        align-items: end;
+        margin-bottom: 10px;
+    }
+
+    /* 会社検索：会社名(カナ) + 検索 + クリア（EmployeeSearchの1段目と同じ配列に合わせる） */
+    body.index-cooprete .es-grid-1 {
+        grid-template-columns: 220px 520px 160px 160px;
+    }
+
+    /* 会社名（カナ）入力を 1-2列に跨らせる（Index.cshtml側は es-span2 を付与） */
+    body.index-cooprete .es-span2 {
+        grid-column: 1 / span 2;
+    }
+
+    body.index-cooprete .es-label {
+        display: block;
+        font-weight: 800;
+        margin: 0 0 6px 0;
+    }
+
+    body.index-cooprete .es-input {
+        width: 100%;
+        height: 34px;
+        border: 2px solid #1d1d1d;
+        padding: 4px 10px;
+        box-sizing: border-box;
+        background: #fff;
+        color: #000;
+    }
+
+    body.index-cooprete .es-hint {
+        margin: 10px 0 14px 0;
+    }
+
+    body.index-cooprete .es-action {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        padding-top: 18px;
+    }
+
+    body.index-cooprete .es-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        text-decoration: none;
+        cursor: pointer;
+        font-weight: 800;
+        height: 44px;
+        padding: 0 18px;
+        box-sizing: border-box;
+    }
+
+    /* 検索・クリア（Esearch_now.png同等） */
+    body.index-cooprete .es-btn-search {
+        background: #3cb371;
+        color: #fff;
+        width: 150px;
+    }
+    /* ===== リスト外枠 ===== */
+    body.index-cooprete .es-tablewrap {
+        margin-top: 6px;
+        border: 1px solid #dcdcdc; /* 薄い灰色 */
+        height: 520px;
+        overflow-y: auto;
+    }
+
+    body.index-cooprete .es-table tbody tr:nth-child(even) {
+        background-color: #f5f5f5;
+    }
+
+    body.index-cooprete .es-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    /* ===== ヘッダー（項目名行） ===== */
+    body.index-cooprete .es-table thead th {
+        background: #e5e5e5; 
+        border-bottom: 1px solid #dcdcdc;
+        padding: 8px 6px;
+        text-align: left;
+    }
+
+    /* ===== データ行 ===== */
+    body.index-cooprete .es-table tbody td {
+        border-bottom: 1px solid #eeeeee; 
+        padding: 6px 6px;
+    }
+
+    /* 行背景（全体を薄いグレーにする場合） */
+    body.index-cooprete .es-table tbody tr {
+        background-color: #fafafa; 
+    }
+
+    body.index-cooprete .es-row {
+        cursor: pointer;
+    }
+
+    body.index-cooprete .es-row:hover {
+        outline: 2px solid #129a3e;
+        outline-offset: -2px;
+    }
+
+    /* 選択状態（クリックで付くクラス） */
+    body.index-cooprete tr.es-row.es-selected {
+        outline: 3px solid #4b86c5;
+        outline-offset: -3px;
+    }
+
+    /* footer */
+    body.index-cooprete .es-footer {
+        margin-top: 16px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    body.index-cooprete .es-btn-back {
+        background: #4b86c5;
+        color: #fff;
+        width: 220px;
+        height: 56px;
+    }
+
+    /* 右上ログイン枠（index-employee と同等） */
+    body.index-cooprete .ev-loginbox {
+        position: absolute;
+        top: 100px; /* ヘッダー90px + 余白相当 */
+        right: 10pt;
+        left: auto;
+        min-width: 260px;
+    }
+
+    body.index-cooprete .ev-login-row {
+        display: grid;
+        grid-template-columns: 70px 1fr;
+        column-gap: 8px;
+        align-items: center;
+    }
+
+    body.index-cooprete .ev-login-label {
+        text-align: left;
+    }
+
+    body.index-cooprete .ev-login-value {
+        text-align: right;
+    }
