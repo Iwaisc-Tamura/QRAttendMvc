@@ -19,6 +19,10 @@
     bool hasSearched =
     Context.Request.Query.ContainsKey("searched") &&
     !string.IsNullOrWhiteSpace(Context.Request.Query["searched"]);
+
+    var currentSort = Context.Request.Query["sort"].ToString();
+    var currentDir = Context.Request.Query["dir"].ToString(); // "asc" or "desc"
+
 }
 
 <!doctype html>
@@ -114,6 +118,10 @@
             <!-- 追加 2026.02.17 Takada ：検索ボタンを押したかどうか -->
             <input type="hidden" name="searched" value="true" />
 
+            <!-- 追加 2026.02.17 Takada ：ソート結果を残す -->
+            <input type="hidden" name="sort" value="@currentSort" />
+            <input type="hidden" name="dir" value="@currentDir" />
+
             <!-- 1段目：会社名（カナ）／会社名／2次店以下含む／検索 -->
             <div class="as-grid as-grid-1">
                 <div class="as-field">
@@ -173,16 +181,54 @@
             <table class="as-table">
                 <thead>
                     <tr>
-                        <th>会社名</th>
-                        <th>作業員ID</th>
-                        <th>作業員名</th>
-                        <th>生年月日</th>
-                        <th>名簿対象除外日</th>
-                        <th>入場記録</th>
-                        <th>退場記録</th>
-                        <th>名簿</th>
-                        <th>作業員</th>
-                        <th>代表他</th>
+                        <th>
+                            <a asp-action="Index"
+                            asp-all-route-data="@(RouteFor("company"))">
+                                会社名@(Arrow("company"))
+                            </a>
+                        </th>
+
+                        <th>
+                            <a asp-action="Index"
+                            asp-all-route-data="@(RouteFor("workerid"))">
+                                作業員ID@(Arrow("workerid"))
+                            </a>
+                        </th>
+
+                        <th>
+                            <a asp-action="Index"
+                            asp-all-route-data="@(RouteFor("workername"))">
+                                作業員名@(Arrow("workername"))
+                            </a>
+                        </th>
+
+                        <th>
+                            <a asp-action="Index"
+                            asp-all-route-data="@(RouteFor("birth"))">
+                                生年月日@(Arrow("birth"))
+                            </a>
+                        </th>
+
+                        <th>
+                            <a asp-action="Index"
+                            asp-all-route-data="@(RouteFor("exclude"))">
+                                名簿対象除外日@(Arrow("exclude"))
+                            </a>
+                        </th>
+
+                        <th>
+                            <a asp-action="Index" asp-all-route-data="@(RouteFor("lastin"))">
+                                入場記録@(Arrow("lastin"))
+                            </a>
+                        </th>
+                        <th>
+                            <a asp-action="Index" asp-all-route-data="@(RouteFor("lastout"))">
+                                退場記録@(Arrow("lastout"))
+                            </a>
+                        </th>
+                        <th class="as-center">名簿</th>
+                        <th class="as-center">作業員</th>
+                        <th class="as-center">代表他</th>
                     </tr>
                 </thead>
 
@@ -300,5 +346,49 @@
             }
         });
     </script>
+
+    @functions {
+
+        public string NextDir(string key)
+        {
+            var currentSort = Context.Request.Query["sort"].ToString();
+            var currentDir = Context.Request.Query["dir"].ToString();
+
+            if (string.Equals(currentSort, key, StringComparison.OrdinalIgnoreCase))
+                return string.Equals(currentDir, "desc", StringComparison.OrdinalIgnoreCase)
+                    ? "asc"
+                    : "desc";
+
+            return "asc";
+        }
+
+        public string Arrow(string key)
+        {
+            var currentSort = Context.Request.Query["sort"].ToString();
+            var currentDir = Context.Request.Query["dir"].ToString();
+
+            if (!string.Equals(currentSort, key, StringComparison.OrdinalIgnoreCase))
+                return "";
+
+            return string.Equals(currentDir, "desc", StringComparison.OrdinalIgnoreCase)
+                ? " ▼"
+                : " ▲";
+        }
+
+        public Dictionary<string, string> RouteFor(string key)
+        {
+            var dict = Context.Request.Query.ToDictionary(
+                k => k.Key,
+                v => v.Value.ToString()
+            );
+
+            dict["sort"] = key;
+            dict["dir"] = NextDir(key);
+            dict["searched"] = "true";
+
+            return dict;
+        }
+    }
+
 </body>
 </html>

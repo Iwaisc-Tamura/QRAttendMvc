@@ -25,7 +25,9 @@ namespace QRAttendMvc.Controllers
             string? workerKanaFirst,
             string? workerId,
             DateTime? birthDate,
-            bool? searched)
+            bool? searched,
+            string? sort,
+            string? dir)
         {
             // 現行仕様：イベントは GT01_KAISAI_EVENT を選択してセッションに保持する。
             // 名簿検索画面では「現在選択中のイベント」は必須ではないため、ここでは参照のみ。
@@ -71,9 +73,10 @@ namespace QRAttendMvc.Controllers
             /* 修正 2025.02.16 Takada */
             var q = BuildAttendeeQuery(companyKana, companyName, workerKanaLast, workerKanaFirst, workerId, birthDate);
 
-            var list = await q
-                .OrderBy(x => x.Emp.EmployeeCd)
-                .ToListAsync();
+            // ★追加：ソート適用
+            q = ApplySort(q, sort, dir);
+
+            var list = await q.ToListAsync();
 
             var rows = new List<AttendeeSearchRow>();
 
@@ -114,6 +117,8 @@ namespace QRAttendMvc.Controllers
                     RoleType = "名簿"
                 });
             }
+
+            rows = ApplyRowSort(rows, sort, dir);
 
             return View(rows);
         }
@@ -199,7 +204,9 @@ namespace QRAttendMvc.Controllers
             string? workerKanaFirst,
             string? workerId,
             DateTime? birthDate,
-            bool? searched)
+            bool? searched,
+            string? sort,
+            string? dir) 
         {
 
             if (searched != true)
@@ -214,14 +221,14 @@ namespace QRAttendMvc.Controllers
             /* 変更 2026.02.16 Takada*/
             var q = BuildAttendeeQuery(companyKana, companyName, workerKanaLast, workerKanaFirst, workerId, birthDate);
 
-            var list = await q
-                .OrderBy(x => x.Emp.EmployeeCd)
-                .ToListAsync();
+            q = ApplySort(q, sort, dir);
+
+            var list = await q.ToListAsync();
 
             var sb = new StringBuilder();
-            sb.AppendLine("会社名	作業員ID	作業員名	生年月日	名簿対象除外日	入場記録	退場記録	区分");
+            sb.AppendLine("会社名\t作業員ID\t作業員名\t生年月日\t名簿対象除外日\t入場記録\t退場記録\t区分");
 
-            string Esc(string? v) => (v ?? "").Replace("	", " ");
+            string Esc(string? v) => (v ?? "").Replace("\t", " ");
 
             /* 追加 2026.02.17 Takada */
             var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd) ?? "";
@@ -230,7 +237,9 @@ namespace QRAttendMvc.Controllers
             var employeeCds = list.Select(x => x.Emp.EmployeeCd).Distinct().ToList();
             var logMap = await LoadEntryExitMapAsync(kaisaiCd, employeeCds);
 
-            /* 変更 2026.02.16 Takada */
+            // ★ここから：Indexと同じ rows を作る
+            var rows = new List<AttendeeSearchRow>();
+
             foreach (var x in list)
             {
                 var p = x.Emp;
@@ -238,26 +247,41 @@ namespace QRAttendMvc.Controllers
                 DateTime? lastIn = null;
                 DateTime? lastOut = null;
 
-                /* 変更 2026.02.17 Takada */
                 if (!string.IsNullOrEmpty(kaisaiCd) && logMap.TryGetValue(p.EmployeeCd, out var row))
                 {
                     lastIn = ParseTodayHm(row.EntryTime);
                     lastOut = ParseTodayHm(row.ExitTime);
                 }
 
+                rows.Add(new AttendeeSearchRow
+                {
+                    CompanyName = x.CompanyName,
+                    WorkerId = p.EmployeeCd,
+                    WorkerName = p.DisplayName,
+                    BirthDate = ParseYyyyMMdd(p.BirthYmd),
+                    ExcludeDate = ParseYyyyMMdd(p.RetireYmd),
+                    LastInTime = lastIn,
+                    LastOutTime = lastOut,
+                    RoleType = "名簿"
+                });
+            }
+
+            // ★ここがポイント：入退場ソートなどメモリ側のソートをCSVにも反映
+            rows = ApplyRowSort(rows, sort, dir);
+
+            // ★CSVは rows の順で出す（これで画面と一致）
+            foreach (var r in rows)
+            {
                 sb.AppendLine(string.Join("\t", new[]
                 {
-                    Esc(x.CompanyName),
-                    Esc(p.EmployeeCd),
-                    Esc(p.DisplayName),
-
-                    /* 追加 2026.02.14 Takada　*/
-                    ParseYyyyMMdd(p.BirthYmd)?.ToString("yyyy/MM/dd") ?? "",
-                    ParseYyyyMMdd(p.RetireYmd)?.ToString("yyyy/MM/dd") ?? "",
-
-                    lastIn?.ToString("HH:mm") ?? "",
-                    lastOut?.ToString("HH:mm") ?? "",
-                    "名簿"
+                    Esc(r.CompanyName),
+                    Esc(r.WorkerId),
+                    Esc(r.WorkerName),
+                    r.BirthDate?.ToString("yyyy/MM/dd") ?? "",
+                    r.ExcludeDate?.ToString("yyyy/MM/dd") ?? "",
+                    r.LastInTime?.ToString("HH:mm") ?? "",
+                    r.LastOutTime?.ToString("HH:mm") ?? "",
+                    r.RoleType ?? "名簿"
                 }));
             }
 
@@ -344,6 +368,52 @@ namespace QRAttendMvc.Controllers
             return map;
         }
 
+        private static IQueryable<AttendeeJoined> ApplySort(IQueryable<AttendeeJoined> q, string? sort, string? dir)
+        {
+            var key = (sort ?? "").Trim().ToLowerInvariant();
+            var desc = string.Equals(dir, "desc", StringComparison.OrdinalIgnoreCase);
+
+            // デフォルト
+            if (string.IsNullOrEmpty(key)) key = "workerid";
+
+            return key switch
+            {
+                "company" => desc ? q.OrderByDescending(x => x.CompanyName).ThenByDescending(x => x.Emp.EmployeeCd)
+                                    : q.OrderBy(x => x.CompanyName).ThenBy(x => x.Emp.EmployeeCd),
+
+                "workerid" => desc ? q.OrderByDescending(x => x.Emp.EmployeeCd)
+                                    : q.OrderBy(x => x.Emp.EmployeeCd),
+
+                "workername" => desc
+                    ? q.OrderByDescending(x => x.Emp.FamilyNameKana).ThenByDescending(x => x.Emp.FirstNameKana).ThenByDescending(x => x.Emp.EmployeeCd)
+                    : q.OrderBy(x => x.Emp.FamilyNameKana).ThenBy(x => x.Emp.FirstNameKana).ThenBy(x => x.Emp.EmployeeCd),
+
+                "birth" => desc ? q.OrderByDescending(x => x.Emp.BirthYmd).ThenByDescending(x => x.Emp.EmployeeCd)
+                                    : q.OrderBy(x => x.Emp.BirthYmd).ThenBy(x => x.Emp.EmployeeCd),
+
+                "exclude" => desc ? q.OrderByDescending(x => x.Emp.RetireYmd).ThenByDescending(x => x.Emp.EmployeeCd)
+                                    : q.OrderBy(x => x.Emp.RetireYmd).ThenBy(x => x.Emp.EmployeeCd),
+
+                _ => q.OrderBy(x => x.Emp.EmployeeCd)
+            };
+        }
+
+        private static List<AttendeeSearchRow> ApplyRowSort(List<AttendeeSearchRow> rows, string? sort, string? dir)
+        {
+            var key = (sort ?? "").Trim().ToLowerInvariant();
+            var desc = string.Equals(dir, "desc", StringComparison.OrdinalIgnoreCase);
+
+            return key switch
+            {
+                "lastin" => desc ? rows.OrderByDescending(r => r.LastInTime).ThenByDescending(r => r.WorkerId).ToList()
+                                  : rows.OrderBy(r => r.LastInTime).ThenBy(r => r.WorkerId).ToList(),
+
+                "lastout" => desc ? rows.OrderByDescending(r => r.LastOutTime).ThenByDescending(r => r.WorkerId).ToList()
+                                  : rows.OrderBy(r => r.LastOutTime).ThenBy(r => r.WorkerId).ToList(),
+
+                _ => rows
+            };
+        }
 
     }
 }
