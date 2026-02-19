@@ -8,11 +8,274 @@
 
 /* pop animation tuned */
 @keyframes popFade {
-  0%   { opacity: 0; transform: scale(0.85); }
-  60%  { opacity: 1; transform: scale(1.06); }
-  100% { opacity: 1; transform: scale(1.00); }
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.0);
+  }
 }
 
 .pop-animate {
   animation: popFade 160ms ease-out;
+}
+
+/* --- TempInput が site.css に依存しないように上書きするスタイル（末尾に追加） --- */
+
+/* 基本フォームコントロール（event-page 内に限定） */
+.event-page .form-control {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #111;
+  background-color: #fff;
+  border: 1px solid #cfcfcf;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+/* 大きめ入力（QR入力など） */
+.event-page .form-control-lg {
+  padding: 12px 14px;
+  font-size: 16px;
+}
+
+/* ボタン（ページ内限定） */
+.event-page .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  box-sizing: border-box;
+  border: none;
+}
+
+.event-page .btn-primary {
+  background-color: #1e88e5;
+  color: #fff;
+}
+
+/* 結果領域用クラス（TempInput 用） */
+.event-page .ee-result-wrap {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.event-page .ee-result-left {
+  flex: 0 0 140px;
+}
+
+.event-page .ee-result-label {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.event-page .ee-result-box {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+}
+
+.event-page .ee-result-box img.result-icon {
+  width: 94px;
+  height: 94px;
+  visibility: hidden;
+}
+
+/* 結果コメント（ログ） */
+.event-page .ee-result-comment {
+  flex: 1;
+}
+
+.event-page .ee-result-comment .ee-log-box {
+  height: 120px; /* 画像例と同じ高さに */
+  border: 3px solid #111;
+  padding: 8px;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+.event-page .ee-result-comment .ee-log {
+  width: 100%;
+  height: 100%;
+  border: none;
+  padding: 0;
+  background: transparent;
+  resize: vertical;
+  white-space: pre;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* readonly な下線入力（既存スタイルと併用） */
+.event-page .ev-selectlike.ev-readonly.ev-underline {
+  /* 既存の inline width をリセットしたい場合等はここに追記 */
+}
+
+/* 必要ならレスポンシブ調整（例） */
+@media (max-width: 1100px) {
+  .event-page .ee-result-wrap {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .event-page .ee-result-left {
+    flex: 0 0 auto;
+  }
+}
+
+/* --- Compact / TempInput specific overrides ---
+   These rules target the temporary input (TempInput) layout only and
+   keep site.css unchanged. They make rows and inputs more compact so the
+   form fits in smaller viewports when displayed full-screen.
+*/
+
+/* Scope to the TempInput area (uses .ee-temp-form present in TempInput.cshtml) */
+body.event-page .ee-temp-form .ev-row:not(.ev-row-split) {
+  /* narrower label column, flexible value column */
+  grid-template-columns: 120px 1fr;
+  column-gap: 16px;
+  padding: 4px 0;
+  align-items: center;
+}
+
+/* Slightly smaller labels / values for compact mode */
+body.event-page .ee-temp-form .ev-label {
+  font-size: 13px;
+  font-weight: 700;
+}
+body.event-page .ee-temp-form .ev-field {
+  font-size: 13px;
+}
+
+/* Reduce result box and log sizes inside TempInput */
+body.event-page .ee-temp-form .ee-result-left {
+  flex: 0 0 120px;
+}
+body.event-page .ee-temp-form .ee-result-box {
+  width: 100px;
+  height: 100px;
+}
+body.event-page .ee-temp-form .ee-result-comment .ee-log-box {
+  height: 100px;
+  padding: 6px;
+}
+
+/* Compact input sizing for TempInput: utility classes and direct targets */
+body.event-page .ee-temp-form .form-control,
+body.event-page .ee-temp-form input[type="date"],
+body.event-page .ee-temp-form select {
+  padding: 6px 8px;
+  font-size: 13px;
+  line-height: 1.3;
+  height: 24px; /* explicit to make vertical space consistent */
+}
+
+/* Smaller variant available to apply individually */
+.event-page .form-control-sm {
+  padding: 6px 8px;
+  font-size: 13px;
+  height: 34px;
+}
+
+.event-page .form-control-xs {
+  padding: 4px 8px;
+  font-size: 12px;
+  height: 30px;
+}
+
+.event-page .form-control-lg-compact {
+  padding: 10px 12px;
+  font-size: 14px;
+  height: 40px;
+}
+
+/* Make the split name inputs share available width and inherit compact sizing */
+body.event-page .ee-temp-form .name-split .name-split-input {
+  height: 24px;
+  padding: 6px 8px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+/* Reduce margins around the temp form so whole card is shorter */
+body.event-page .ee-card .ee-temp-form {
+  margin-bottom: 8px;
+}
+
+/* Slightly reduce top/bottom padding inside the card for overall compactness */
+body.event-page .ee-card {
+  padding-top: 12px;
+  padding-bottom: 8px;
+}
+
+/* Responsive fallback: if very narrow, stack label/value like before but keep compact spacing */
+@media (max-width: 520px) {
+  body.event-page .ee-temp-form .ev-row:not(.ev-row-split) {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+    padding: 6px 0;
+  }
+
+  body.event-page .ee-temp-form .name-split {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+/* End of TempInput compact overrides */
+
+/* Allow scan-result to control select-like elements used in event pages */
+body.event-page .ev-select,
+body.event-page .ev-selectlike {
+  /* default appearance can be overridden here for TempInput */
+  display: inline-block;
+  padding: 6px 8px;
+  font-size: 13px;
+  line-height: 1.3;
+  border: 1px solid #cfcfcf;
+  border-radius: 4px;
+  background: #fff;
+  height: 24px;
+  box-sizing: border-box;
+}
+
+/* Compact variant for select-like controls */
+body.event-page .ev-select-sm,
+body.event-page .ev-selectlike-sm {
+  padding: 4px 8px;
+  font-size: 12px;
+  height: 30px;
+}
+
+/* If element has ev-readonly flag keep background transparent but keep height */
+body.event-page .ev-selectlike.ev-readonly {
+    background: transparent;
+    border-bottom: 2px solid #1d1d1d;
+    box-shadow: none;
+}
+
+/* Ensure select elements visually match inputs in compact TempInput */
+body.event-page .ee-temp-form select.ev-select,
+body.event-page .ee-temp-form select.ev-selectlike,
+body.event-page .ee-temp-form select {
+  height: 34px;
+  padding: 6px 8px;
+  font-size: 13px;
 }

@@ -9,9 +9,9 @@
     string login = ViewBag.LoginDisplay as string ?? "XXXXXX";
     var ev = ViewBag.Event as Gt01KaisaiEvent ?? new Gt01KaisaiEvent();
 
-// テスト用  start 2026.02.18 Takada
+    // テスト用  start 2026.02.18 Takada
     var selected = Context.Request.Query["COOPERATE_CD"].ToString();
-// テスト用  end   2026.02.18 Takada
+    // テスト用  end   2026.02.18 Takada
 
     ViewData["Title"] = title;
 
@@ -39,6 +39,82 @@
     <link rel="stylesheet" href="~/css/site.css" />
     <link rel="stylesheet" href="~/css/scan-result.css" />
     <link rel="stylesheet" href="~/css/entryexit-batch.css" />
+
+    <style>
+        /* 下線のみ表示する readonly 用スタイル（枠を取り除き下線のみ） */
+        .ev-selectlike.ev-readonly.ev-underline {
+            border: none;
+            border-bottom: 2px solid #1d1d1d;
+            background: transparent;
+            box-shadow: none;
+            padding: .375rem .0rem;
+            padding-left: .25rem;
+            padding-right: .25rem;
+            line-height: 1.5;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 208px;
+        }
+
+        .ev-selectlike.ev-readonly.ev-underline:focus {
+            outline: none;
+            border-bottom-color: #0d6efd; /* フォーカス時に色を付ける */
+            box-shadow: none;
+        }
+
+        /* readonly なのでカーソルはデフォルトにする */
+        .ev-selectlike.ev-readonly.ev-underline[readonly] {
+            cursor: default;
+        }
+
+        /* 小さめの検索ボタン（色は既存の btn-primary を継承） */
+        .ee-btn-small,
+        .btn-search {
+            padding: .25rem .5rem;
+            font-size: 12px;
+            line-height: 1;
+            height: 24px;
+            min-height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        /* 親の .ev-field 内で余白を調整（レイアウト崩れを抑える） */
+        .ev-row .ev-field {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        /* ボタンがテキスト入力と揃うように高さ微調整 */
+        .ev-row .ev-field .form-control + .btn,
+        .ev-row .ev-field input + .btn {
+            margin-left: 0;
+        }
+
+        /* 姓・名を横並びにするスタイル */
+        .name-split {
+            display: flex;
+            gap: .5rem;
+        }
+        .name-split .name-split-input {
+            width: 50%;
+            min-width: 6rem;
+        }
+
+        /* モバイルで狭い場合は縦並びに落とす */
+        @@media (max-width: 520px) {
+            .name-split {
+                flex-direction: column;
+            }
+            .name-split .name-split-input {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 
 <body class="event-page">
@@ -67,6 +143,8 @@
                         <div class="ee-v">@($"{FmtHm(ev.StartTime)} ～ {FmtHm(ev.EndTime)}")</div>
                         <div class="ee-k ee-k-small">受付開始時刻</div>
                         <div class="ee-v ee-v-small">@FmtHm(ev.ReceptTime)</div>
+                        <div class="ee-now-label">現在時刻</div>
+                        <div id="layoutTime" class="ee-now-time"></div>
                     </div>
                 </div>
 
@@ -88,113 +166,176 @@
                 </div>
             </div>
 
-            <!-- QRスキャナ入力（Batch と同様の領域） -->
-            <div class="ee-input">
-                <div class="ee-section-title">QRスキャナからの入力</div>
-                <input id="qrScanInput" class="form-control form-control-lg"
-                       placeholder="ここにカーソルを置いたままQRを読み取ります" />
-            </div>
-
-            <div class="ee-section-title">臨時入力</div>
+            <!-- 臨時入力を EventSelection と同様に縦並びに変更 -->
             <div class="ee-temp-form">
-                <div class="ee-temp-grid">
-                    <div class="ee-temp-field">
-                        <label class="form-label" for="scanInput">作業員ID</label>
-                        <input id="scanInput" class="form-control" />
+                <div class="ev-form">
+                    <div class="ev-row">
+                        <div class="ev-label">作業員ID</div>
+                        <div class="ev-field">
+                            <!-- 非入力（下線表示）、フォーカス不可 -->
+                            <input id="scanInput" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" />
+                        </div>
+                        <div class="ev-field">
+                            <button id="btnWorkerSearch" class="btn btn-primary ee-btn ee-btn-back ee-btn-small btn-search" type="button" aria-label="作業員検索">作業員検索</button>
+                        </div>
+
                     </div>
-                    <div class="ee-temp-field">
-                        <label class="form-label" for="companyCd">協力会社コード</label>
-                        <input id="companyCd" class="form-control" />
+
+                    <div class="ev-row">
+                        <div class="ev-label">協力会社コード</div>
+                        <div class="ev-field">
+                            <!-- 非入力（下線表示） -->
+                            <input id="companyCd" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" />
+                        </div>
+                        <div class="ev-field">
+                            <button id="btnCompanySearch" class="btn btn-primary ee-btn ee-btn-back ee-btn-small btn-search" type="button" aria-label="会社検索">会社検索</button>
+                        </div>
                     </div>
-                    <div class="ee-temp-field">
-                        <label class="form-label" for="companyKana">会社名カナ</label>
-                        <input id="companyKana" class="form-control" />
+
+                    <div class="ev-row">
+                        <div class="ev-label">会社名カナ</div>
+                        <div class="ev-field">
+                            <input id="companyKana" class="form-control" />
+                        </div>
                     </div>
-                    <div class="ee-temp-field">
-                        <label class="form-label" for="companyName">会社名</label>
-                        <input id="companyName" class="form-control" />
+
+                    <div class="ev-row">
+                        <div class="ev-label">会社名</div>
+                        <div class="ev-field">
+                            <input id="companyName" class="form-control" />
+                        </div>
                     </div>
-                    <div class="ee-temp-field">
-                        <label class="form-label" for="workerKana">作業員名カナ</label>
-                        <input id="workerKana" class="form-control" />
+
+                    <div class="ev-row">
+                        <div class="ev-label">作業員名カナ</div>
+                        <div class="ev-field name-split">
+                            <input id="workerFamilyKana" class="form-control name-split-input" placeholder="姓（カナ）" />
+                            <input id="workerFirstKana" class="form-control name-split-input" placeholder="名（カナ）" />
+                        </div>
                     </div>
-                    <div class="ee-temp-field">
-                        <label class="form-label" for="workerName">作業員名</label>
-                        <input id="workerName" class="form-control" />
+
+                    <div class="ev-row">
+                        <div class="ev-label">作業員名</div>
+                        <div class="ev-field name-split">
+                            <input id="workerFamilyName" class="form-control name-split-input" placeholder="姓" />
+                            <input id="workerFirstName" class="form-control name-split-input" placeholder="名" />
+                        </div>
                     </div>
-                    <div class="ee-temp-field">
-                        <label class="form-label" for="birthDate">生年月日</label>
-                        <input id="birthDate" type="date" class="form-control" />
+
+                    <div class="ev-row">
+                        <div class="ev-label">生年月日</div>
+                        <div class="ev-field">
+                            <input id="birthDate" type="date" class="form-control" />
+                        </div>
                     </div>
-                    <div class="ee-temp-field">
-                        <label class="form-label" for="excludeDate">名簿対象除外日</label>
-                        <input id="excludeDate" type="date" class="form-control" />
+
+                    <div class="ev-row">
+                        <div class="ev-label">名簿対象除外日</div>
+                        <div class="ev-field">
+                            <input id="excludeDate" type="date" class="form-control" />
+                        </div>
                     </div>
-                    <div class="ee-temp-field">
-                        <label class="form-label" for="entryRecord">入場記録</label>
-                        <input id="entryRecord" class="form-control" />
+
+                    <div class="ev-row">
+                        <div class="ev-label">入場記録</div>
+                        <div class="ev-field">
+                            <!-- 時刻（時:分）入力。step=60で分単位 -->
+                            <input id="entryRecord" type="time" step="60" class="form-control form-control-sm" />
+                        </div>
                     </div>
-                    <div class="ee-temp-field ee-temp-field-wide">
-                        <label class="form-label" for="reason">事由</label>
-                        <input id="reason" class="form-control" />
+
+                    @* 入場時は退場欄を非表示にする *@
+                    @if (kind != "IN")
+                    {
+                        <div class="ev-row">
+                            <div class="ev-label">退場記録</div>
+                            <div class="ev-field">
+                                <input id="exitRecord" type="time" step="60" class="form-control form-control-sm" />
+                            </div>
+                        </div>
+                    }
+
+                    <div class="ev-row">
+                        <div class="ev-label">事由</div>
+                        <div class="ev-field">
+                            <select id="reason" class="form-control" style="height: 34px;">
+                                <option value="">(選択してください)</option>
+                                <option value="E1">従事者証忘れ</option>
+                                <option value="E2">従事者証未発行</option>
+                                <option value="E3">会社代表または、営業担当者</option>
+                                <option value="E4">QRコード読み取り不可</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-                <div class="ee-temp-actions">
-                    <button id="btnTempRegister" class="btn btn-primary ee-btn ee-btn-back" type="button">登録</button>
+
+                <!-- 結果エリア：左に緑のアイコン、右に結果コメント（大きめのテキストエリア） -->
+                <div class="ev-row" style="margin-top:0.5rem;grid-template-columns: 140px 1fr !important;align-items: self-start;">
+                    <div class="ee-result-wrap">
+                        <div class="ee-result-left">
+                            <div class="ev-label ee-result-label">結果</div>
+                            <div class="ee-result-box">
+                                <img id="resultIcon" class="result-icon" src="/images/Circle.png" alt="結果" />
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="ee-result-comment">
+                            <div class="ee-section-title" style="margin-bottom:6px;">結果コメント</div>
+                            <div class="ee-log-box">
+                                <textarea id="logArea" class="form-control ee-log" rows="6" readonly></textarea>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
             </div>
 
-            <div class="ee-section-title">読み取り結果</div>
-            <div class="ee-read">
-                <div class="ee-icon-wrap">
-                    <img id="resultIcon" class="result-icon" src="/images/Circle.png" alt="結果" style="visibility:hidden;" />
-                </div>
-
-                <div class="ee-read-text">
-                    <div class="ee-code" id="lastCode">－</div>
-                    <div class="ee-name-row">
-                        <span id="lastName">－</span>
-                        <span id="lastTime" class="ee-read-time"></span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="ee-section-title">記録結果</div>
-            <div class="ee-log-box">
-                <textarea id="logArea" class="form-control ee-log" rows="6" readonly></textarea>
-            </div>
         }
         <div class="ee-footer">
-            <button id="btnRelease" class="btn btn-warning ee-btn ee-btn-release" disabled>解除</button>
+            <button id="btnTempRegister" class="btn btn-primary ee-btn ee-btn-back" type="button">登録</button>
             <a asp-controller="EventSelection" asp-action="Index" class="btn ee-btn btn-primary ee-btn-back">
                 イベント選択画面に戻る
             </a>
         </div>
+
+        <!-- QRスキャナ入力 -->
+        <div class="ee-input">
+            <input id="qrScanInput" class="form-control form-control visually-hidden-input"
+                    placeholder="ここにカーソルを置いたままQRを読み取ります" autocomplete="off" autocorrect="off" spellcheck="false" />
+        </div>
+
+
+
     </div>
 
 <script>
     const qrInput = document.getElementById("qrScanInput");
-    const input = document.getElementById("scanInput"); // 作業員ID表示欄
+    const input = document.getElementById("scanInput"); // 作業員ID表示欄 (readonly)
     const companyCdEl = document.getElementById("companyCd");
     const companyKanaEl = document.getElementById("companyKana");
     const companyNameEl = document.getElementById("companyName");
-    const workerKanaEl = document.getElementById("workerKana");
-    const workerNameEl = document.getElementById("workerName");
+    const workerFamilyKanaEl = document.getElementById("workerFamilyKana");
+    const workerFirstKanaEl = document.getElementById("workerFirstKana");
+    const workerFamilyNameEl = document.getElementById("workerFamilyName");
+    const workerFirstNameEl = document.getElementById("workerFirstName");
     const birthDateEl = document.getElementById("birthDate");
+    const excludeDateEl = document.getElementById("excludeDate");
+    const entryRecordEl = document.getElementById("entryRecord");
+    const exitRecordEl = document.getElementById("exitRecord");
+    const reasonEl = document.getElementById("reason");
 
     const logArea = document.getElementById("logArea");
     const lastCode = document.getElementById("lastCode");
     const lastName = document.getElementById("lastName");
     const lastTime = document.getElementById("lastTime");
     const resultIcon = document.getElementById("resultIcon");
-    const btnRelease = document.getElementById("btnRelease");
 
     const kind = "@kind";
     const kaisaiCd = "@kaisaiCd";
-    let locked = false;
-    let buzzerCtx = null;
-    let buzzerOsc = null;
-    let buzzerGain = null;
+    const evEventCd = "@(ev?.EventCd ?? "")";
+    let editingTemp = false;
+    let currentQrPrefix = null; // '1' or '2' when set by QR scan
 
     function appendLog(line) {
         if (!logArea) return;
@@ -206,9 +347,9 @@
         if (!resultIcon) return;
         let src = "";
         let alt = "";
-        if (result === "OK") { src = "/images/Circle.png"; alt = "正常"; }
-        else if (result === "WARN") { src = "/images/Triangle.png"; alt = "警告"; }
-        else if (result === "NG") { src = "/images/Cross.png"; alt = "エラー"; }
+        if (result === "OK") { src = "@Url.Content("~/images/Circle.png")"; alt = "正常"; }
+        else if (result === "WARN") { src = "@Url.Content("~/images/Triangle.png")"; alt = "警告"; }
+        else if (result === "NG") { src = "@Url.Content("~/images/Cross.png")"; alt = "エラー"; }
 
         resultIcon.src = src;
         resultIcon.alt = alt;
@@ -252,109 +393,136 @@
         } catch (e) {}
     }
 
-    // ブザー（解除まで鳴り続け）
-    function startBuzzer() {
-        try {
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (!AudioCtx) return;
-            if (!buzzerCtx) buzzerCtx = new AudioCtx();
-            if (buzzerCtx.state === "suspended") buzzerCtx.resume();
-            if (buzzerOsc) return;
-
-            buzzerOsc = buzzerCtx.createOscillator();
-            buzzerGain = buzzerCtx.createGain();
-
-            buzzerOsc.type = "square";
-            buzzerOsc.frequency.value = 880;
-            buzzerGain.gain.value = 0.08;
-
-            buzzerOsc.connect(buzzerGain);
-            buzzerGain.connect(buzzerCtx.destination);
-            buzzerOsc.start();
-        } catch (e) {}
-    }
-
-    function stopBuzzer() {
-        try {
-            if (buzzerOsc) {
-                buzzerOsc.stop();
-                buzzerOsc.disconnect();
-                buzzerOsc = null;
-            }
-            if (buzzerGain) {
-                buzzerGain.disconnect();
-                buzzerGain = null;
-            }
-        } catch (e) {}
-    }
-
-    function lockReading() {
-        locked = true;
-        if (qrInput) qrInput.disabled = true;
-        if (input) input.disabled = true;
-        if (btnRelease) btnRelease.disabled = false;
-        startBuzzer();
-    }
-
-    function unlockReading() {
-        stopBuzzer();
-        locked = false;
-        if (qrInput) {
-            qrInput.disabled = false;
-            qrInput.value = "";
-            qrInput.focus();
+    (function initFocusBehavior() {
+        const tempForm = document.querySelector('.ee-temp-form');
+        if (tempForm) {
+            tempForm.addEventListener('focusin', () => { editingTemp = true; });
+            tempForm.addEventListener('focusout', () => {
+                setTimeout(() => {
+                    const active = document.activeElement;
+                    editingTemp = tempForm.contains(active);
+                }, 0);
+            });
         }
-        if (input) input.disabled = false;
-        if (btnRelease) btnRelease.disabled = true;
+
+        function onPointerForFocus(e) {
+            try {
+                if (editingTemp) return;
+
+                const target = e.target;
+                if (!target) return;
+
+                const tag = (target.tagName || '').toLowerCase();
+                const isInteractive = (
+                    tag === 'input' ||
+                    tag === 'select' ||
+                    tag === 'textarea' ||
+                    tag === 'button' ||
+                    tag === 'a' ||
+                    (target.isContentEditable === true)
+                );
+                if (isInteractive || (target.closest && target.closest('input,select,textarea,button,a,[contenteditable="true"]'))) {
+                    return;
+                }
+
+                if (qrInput && typeof qrInput.focus === 'function') {
+                    try { qrInput.focus(); } catch (e) {}
+                }
+            } catch (ex) {}
+        }
+
+        document.addEventListener('click', onPointerForFocus, true);
+        document.addEventListener('touchstart', onPointerForFocus, { passive: true, capture: true });
+    })();
+
+    function parseQrString(raw) {
+        if (!raw) return { ok: false, reason: "empty" };
+        if (!raw.includes(",")) return { ok: false, reason: "no-comma", original: raw };
+
+        const s = raw.trim();
+        const parts = s.split(",").map(p => p.trim());
+        if (parts.length < 2) return { ok: false, reason: "invalid-parts", original: s };
+
+        const prefix = parts[0];
+        if (prefix !== "1" && prefix !== "2") return { ok: false, reason: "invalid-prefix", original: s };
+
+        if (prefix === "1") {
+            if (parts.length !== 2) return { ok: false, reason: "invalid-parts-1", original: s };
+            return { ok: true, type: "1", worker: parts[1], overrideKaisai: null, original: s };
+        }
+
+        if (parts.length < 3) return { ok: false, reason: "invalid-parts-2", original: s };
+        return { ok: true, type: "2", worker: parts[1], overrideKaisai: parts[2], original: s };
     }
 
-    // リリースボタン
-    if (btnRelease) btnRelease.addEventListener("click", unlockReading);
-
-    // 初期フォーカスは QR 入力欄
-    window.addEventListener("load", () => {
-        if (qrInput) qrInput.focus();
-    });
-
-    // QR入力: Enterで Lookup を呼び、成功したらフォームに反映（その後は手動で登録）
     if (qrInput) {
         qrInput.addEventListener("keydown", async (e) => {
             if (e.key !== "Enter") return;
 
-            const code = (qrInput.value || "").trim();
+            const raw = (qrInput.value || "").trim();
+            if (!raw) return;
 
-            if (!code) return;
-            if (locked) return;
+            const parsed = parseQrString(raw);
 
-            // まず Lookup API を呼ぶ
+            if (!parsed.ok) {
+                setIcon("NG");
+                playBeep("NG");
+                const msg = parsed.reason === "no-comma" ? "QR形式不正（, が必要です）" :
+                            parsed.reason === "invalid-prefix" ? "QR種別不正" :
+                            parsed.reason === "invalid-parts-2" ? "仮QRは '2,作業員ID,イベントCD' の形式が必要です" :
+                            "QR形式不正";
+                appendLog(`${raw} ${msg}`);
+                showReadResult(raw, msg, "");
+                if (qrInput) { qrInput.value = ""; }
+                return;
+            }
+
+            if (parsed.type === "2") {
+                const qrKaisai = parsed.overrideKaisai || "";
+                if (qrKaisai !== evEventCd) {
+                    setIcon("NG");
+                    playBeep("NG");
+                    appendLog(`${parsed.original} 仮QRのイベントが表示中のイベントと一致しません（QR:${qrKaisai} != ${evEventCd}）`);
+                    showReadResult(parsed.worker || parsed.original, "イベント不一致", "");
+                    if (qrInput) { qrInput.value = ""; }
+                    return;
+                }
+            }
+
+            const workerForLookup = parsed.worker || parsed.original;
+            // remember prefix for later (TempRecord)
+            currentQrPrefix = parsed.type;
+
             try {
                 const res = await fetch('@Url.Action("Lookup", "Scan")', {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ code: code })
+                    body: JSON.stringify({ code: workerForLookup, prefix: parsed.type })
                 });
 
                 const data = await res.json();
 
                 if (!data || data.ok !== true) {
-                    // Lookup失敗
                     setIcon("NG");
                     playBeep("NG");
-                    appendLog(`${code} ${data?.message ?? "Lookup failed"}`);
-                    showReadResult(code, data?.message ?? "取得失敗", "");
-                    lockReading();
+                    appendLog(`${workerForLookup} ${data?.message ?? "Lookup failed"}`);
+                    showReadResult(workerForLookup, data?.message ?? "取得失敗", "");
+                    if (qrInput) { qrInput.value = ""; }
                     return;
                 }
 
-                // 成功：フォームへ反映
-                if (input) input.value = data.code ?? code;
+                if (input) input.value = data.code ?? workerForLookup;
                 if (companyCdEl) companyCdEl.value = data.cooperateCd ?? "";
                 if (companyKanaEl) companyKanaEl.value = data.companyKana ?? "";
                 if (companyNameEl) companyNameEl.value = data.companyName ?? "";
-                if (workerKanaEl) workerKanaEl.value = data.workerKana ?? "";
-                if (workerNameEl) workerNameEl.value = data.workerName ?? "";
+
+                // 新しい分割フィールドにセット（存在しない場合は従来フィールド workerKana/workerName を分割） 
+                if (workerFamilyKanaEl) workerFamilyKanaEl.value = data.workerFamilyKana ?? (data.workerKana ? (data.workerKana.split(" ")[0] || "") : "");
+                if (workerFirstKanaEl) workerFirstKanaEl.value = data.workerFirstKana ?? (data.workerKana ? (data.workerKana.split(" ")[1] || "") : "");
+                if (workerFamilyNameEl) workerFamilyNameEl.value = data.workerFamilyName ?? "";
+                if (workerFirstNameEl) workerFirstNameEl.value = data.workerFirstName ?? "";
+
                 if (birthDateEl && data.birthYmd) {
-                    // birthYmd expected "YYYYMMDD"
                     const by = String(data.birthYmd || "");
                     if (by.length === 8) {
                         birthDateEl.value = `${by.substring(0,4)}-${by.substring(4,6)}-${by.substring(6,8)}`;
@@ -363,54 +531,124 @@
                     }
                 }
 
-                const displayName = data.workerName ?? (data.workerKana ?? "");
-                showReadResult(data.code ?? code, displayName, "");
+                const displayName = (data.workerFamilyName || "") + (data.workerFirstName ? (" " + data.workerFirstName) : "") || (data.workerName ?? (data.workerKana ?? ""));
+                showReadResult(data.code ?? workerForLookup, displayName, "");
                 setIcon("OK");
                 playBeep("OK");
-                appendLog(`${data.code ?? code} ${displayName} 取得OK`);
+                appendLog(`${data.code ?? workerForLookup} ${displayName} 取得OK`);
 
-                // フォーカスは QR欄に戻して連続読取に備える
-                if (qrInput) { qrInput.value = ""; qrInput.focus(); }
+                if (qrInput) { qrInput.value = ""; }
             } catch (ex) {
                 setIcon("NG");
                 playBeep("NG");
                 appendLog(`ERR ${ex}`);
-                showReadResult(code, "エラー", "");
-                lockReading();
+                showReadResult(raw, "エラー", "");
+                if (qrInput) { qrInput.value = ""; }
             }
         });
     }
 
-    // Temp 登録ボタンの既存処理は維持
     const registerButton = document.getElementById("btnTempRegister");
     if (registerButton) {
         registerButton.addEventListener("click", async () => {
-            const companyCd = (document.getElementById("companyCd")?.value || "").trim();
-            const workerName = (document.getElementById("workerName")?.value || "").trim();
+            const companyCd = (companyCdEl?.value || "").trim();
+            const companyKana = (companyKanaEl?.value || "").trim();
+            const companyName = (companyNameEl?.value || "").trim();
+            const familyName = (workerFamilyNameEl?.value || "").trim();
+            const firstName = (workerFirstNameEl?.value || "").trim();
+            const familyKana = (workerFamilyKanaEl?.value || "").trim();
+            const firstKana = (workerFirstKanaEl?.value || "").trim();
+            const workerName = [familyName, firstName].filter(Boolean).join(" ").trim();
+            const workerKana = [familyKana, firstKana].filter(Boolean).join(" ").trim();
+            const birthDate = (birthDateEl?.value || "").trim();
+            const excludeDate = (excludeDateEl?.value || "").trim();
+            const entryRecordRaw = (entryRecordEl?.value || "").trim();
+            const entryRecord = entryRecordRaw.includes(":") ? entryRecordRaw.replace(":", "") : entryRecordRaw;
+            const exitRecordRaw = (exitRecordEl?.value || "").trim();
+            const exitRecord = exitRecordRaw.includes(":") ? exitRecordRaw.replace(":", "") : exitRecordRaw;
+            const reason = (reasonEl?.value || "").trim();
+            const workerCd = (input?.value || "").trim();
 
-            if (!companyCd || !workerName) {
-                alert("協力会社コード・作業員名は必須です");
+            if (!companyCd || !workerName || !reason || !workerCd) {
+                alert("協力会社コード・作業員名・事由・作業員IDは必須です（QRで取得してください）");
                 return;
             }
 
-            const res = await fetch('@Url.Action("TempRecord", "Scan")', {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
+            registerButton.disabled = true;
+
+            try {
+                const payload = {
                     companyCd: companyCd,
+                    companyKana: companyKana,
+                    companyName: companyName,
                     workerName: workerName,
-                    kind: "@kind"
-                })
-            });
+                    workerKana: workerKana,
+                    workerCd: workerCd,
+                    qrPrefix: currentQrPrefix,
+                    birthDate: birthDate,
+                    excludeDate: excludeDate,
+                    entryRecord: entryRecord,
+                    exitRecord: exitRecord,
+                    kind: "@kind",
+                    reason: reason,
+                    kaisaiCd: "@kaisaiCd"
+                };
 
-            const data = await res.json();
-            const time = data.time ? `${data.time.slice(0, 2)}:${data.time.slice(2, 4)}` : "";
+                const res = await fetch('@Url.Action("TempRecord", "Scan")', {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
 
-            showReadResult(data.code || "TEMP", workerName, time);
-            setIcon(data.ok ? "OK" : "WARN");
-            appendLog(`${data.time ?? ""} ${data.message ?? ""}`);
+                const data = await res.json();
+                const time = data.time ? `${data.time.slice(0, 2)}:${data.time.slice(2, 4)}` : "";
+
+                showReadResult(data.code || "TEMP", workerName, time);
+                setIcon(data.ok ? "OK" : "WARN");
+                playBeep(data.ok ? "OK" : "WARN");
+                appendLog(`${data.time ?? ""} ${data.message ?? ""}`);
+
+                if (data.ok) {
+                    try {
+                        companyCdEl.value = "";
+                        companyKanaEl.value = "";
+                        companyNameEl.value = "";
+                        workerFamilyKanaEl.value = "";
+                        workerFirstKanaEl.value = "";
+                        workerFamilyNameEl.value = "";
+                        workerFirstNameEl.value = "";
+                        birthDateEl.value = "";
+                        excludeDateEl.value = "";
+                        entryRecordEl.value = "";
+                        if (exitRecordEl) exitRecordEl.value = "";
+                        reasonEl.value = "";
+                        if (input) input.value = "";
+                        currentQrPrefix = null;
+                    } catch (e) {}
+                } else {
+                    // WARN/NGでも画面ロックしない
+                }
+            } catch (ex) {
+                setIcon("NG");
+                playBeep("NG");
+                appendLog(`ERR ${ex}`);
+            } finally {
+                registerButton.disabled = false;
+            }
         });
     }
+
+    // 受付開始時間の右に現在時刻を表示（Batch と同等の更新）
+    function updateLayoutClock() {
+        const d = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const time = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+
+        const el = document.getElementById("layoutTime");
+        if (el) el.textContent = time;
+    }
+    updateLayoutClock();
+    setInterval(updateLayoutClock, 1000);
 </script>
 </body>
 </html>
