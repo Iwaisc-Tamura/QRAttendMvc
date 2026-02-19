@@ -1,16 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QRAttendMvc.Models;
+using QRAttendMvc.Services;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace QRAttendMvc.Controllers
 {
-    public class EmployeeSearchController : Controller
+    public class EmployeeSearchController : BaseController
     {
         private readonly AppDbContext _db;
 
-        public EmployeeSearchController(AppDbContext db)
+        public EmployeeSearchController(IActionLogService logService, AppDbContext db)
+            : base(logService)
         {
             _db = db;
         }

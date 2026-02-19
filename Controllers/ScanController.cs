@@ -7,7 +7,10 @@ using System.Text.RegularExpressions;
 
 namespace QRAttendMvc.Controllers
 {
-    public class ScanController : Controller
+//変更 2026.02.19 Takada 画面入場ログ
+    //public class ScanController : Controller
+    //{
+    public class ScanController : BaseController
     {
         private readonly AppDbContext _db;
         private readonly IActionLogService _logService;
