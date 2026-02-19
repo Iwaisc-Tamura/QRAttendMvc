@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QRAttendMvc.Models;
+using QRAttendMvc.Services;
 using System.Globalization;
 
 namespace QRAttendMvc.Controllers
@@ -15,7 +16,7 @@ namespace QRAttendMvc.Controllers
     ///   ※区分が1件の場合は区分は表示のみで開始時刻を選択
     ///   ※区分選択後、開始時刻が1件の場合は開始時刻は表示のみ（自動確定）
     /// </summary>
-    public class EventSelectionController : Controller
+    public class EventSelectionController : BaseController
     {
         private readonly AppDbContext _db;
         private const string SessionKeyCurrentKaisaiCd = "CurrentKaisaiCd";
@@ -28,7 +29,8 @@ namespace QRAttendMvc.Controllers
         private const string SessionKeyEndTime = "SelectedEndTime";
         private const string SessionKeyUketsuke = "SelectedUketsuke";
 
-        public EventSelectionController(AppDbContext db)
+        public EventSelectionController(IActionLogService logService, AppDbContext db)
+                : base(logService)
         {
             _db = db;
         }

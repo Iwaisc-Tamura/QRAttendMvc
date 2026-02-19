@@ -4,14 +4,17 @@ using QRAttendMvc.Models;
 using System.Data;
 using System.Text;
 using System.Text.RegularExpressions;
+using QRAttendMvc.Services;
+
 
 namespace QRAttendMvc.Controllers
 {
-    public class CooperateSearchController : Controller
+    public class CooperateSearchController : BaseController
     {
         private readonly AppDbContext _db;
 
-        public CooperateSearchController(AppDbContext db)
+        public CooperateSearchController(IActionLogService logService, AppDbContext db)
+            : base(logService)
         {
             _db = db;
         }
