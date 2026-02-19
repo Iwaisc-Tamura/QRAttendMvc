@@ -18,13 +18,6 @@ namespace QRAttendMvc.Controllers
         private readonly IActionLogService _logService = logService;
         // EventSelectionで確定した開催コード（KAISAI_CD）
         private const string SessionKeyCurrentKaisaiCd = "CurrentKaisaiCd";
-
-        public ScanController(AppDbContext db, IActionLogService logService) : base(logService)
-        {
-            _db = db;
-            _logService = logService;
-        }
-
         // 作業員ID（GM01_EMPLOYEE.EMPLOYEE_CD）は 10桁固定（数字のみ）
         private static bool IsEmployeeCode(string code)
             => Regex.IsMatch(code ?? "", @"^\d{10}$");
