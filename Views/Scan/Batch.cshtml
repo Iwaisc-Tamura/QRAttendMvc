@@ -32,6 +32,20 @@
 
     <link rel="stylesheet" href="~/css/scan-result.css" />
     <link rel="stylesheet" href="~/css/entryexit-batch.css" />
+
+    <style>
+        /* スキャナ入力を画面から隠すがフォーカス可能にする */
+        .visually-hidden-input {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+
+        /* （案内要素を削除したため追加スタイルは不要） */
+    </style>
 </head>
 
 <body class="event-page">
@@ -99,9 +113,9 @@
         </div>
 
         <div class="ee-input">
-            <div class="ee-section-title">QRスキャナからの入力</div>
-            <input id="scanInput" class="form-control form-control-lg"
-                   placeholder="ここにカーソルを置いたままQRを読み取ります" />
+            <!-- 実際の入力は画面外に置きフォーカスを常に維持する -->
+            <input id="scanInput" class="visually-hidden-input"
+                   autocomplete="off" autocorrect="off" spellcheck="false" inputmode="numeric" />
         </div>
 
         <hr />
@@ -143,13 +157,13 @@
         let alt = "";
 
         if (result === "OK") {
-            src = "/images/Circle.png";
+            src = "@Url.Content("~/images/Circle.png")";
             alt = "正常";
         } else if (result === "WARN") {
-            src = "/images/Triangle.png";
+            src = "@Url.Content("~/images/Triangle.png")";
             alt = "警告";
         } else if (result === "NG") {
-            src = "/images/Cross.png";
+            src = "@Url.Content("~/images/Cross.png")";
             alt = "エラー";
         }
 
@@ -247,50 +261,124 @@
         input.disabled = false;
         btnRelease.disabled = true;
         input.value = "";
-        input.focus();
+        try { input.focus(); } catch (e) {}
     }
 
     btnRelease.addEventListener("click", unlockReading);
-    window.addEventListener("load", () => input.focus());
+
+    // 常にスキャナ入力にフォーカスを当てる（ユーザ要望）
+    window.addEventListener("load", () => {
+        try { input.focus(); } catch (e) {}
+
+        // フォーカスが外れたら自動で戻す（ロック中は除外）
+        input.addEventListener("blur", () => {
+            if (!locked) {
+                setTimeout(() => {
+                    try { input.focus(); } catch (e) {}
+                }, 50);
+            }
+        });
+
+        // タブ切替やウィンドウ復帰時にフォーカスを戻す
+        document.addEventListener("visibilitychange", () => {
+            if (!document.hidden && !locked) {
+                try { input.focus(); } catch (e) {}
+            }
+        });
+        window.addEventListener("focus", () => {
+            if (!locked) {
+                try { input.focus(); } catch (e) {}
+            }
+        });
+
+        // 端末によってはフォーカスが奪われるため定期的にフォーカスを戻す（負荷低め）
+        const focusKeeper = setInterval(() => {
+            if (!locked && document.hasFocus()) {
+                try { input.focus(); } catch (e) {}
+            }
+        }, 2000);
+
+        window.addEventListener("beforeunload", () => clearInterval(focusKeeper));
+    });
+
+    function parseQrString(raw) {
+        // 期待フォーマット:
+        // 通常: "1,1234567890"
+        // 仮:   "2,1234567890,1234"
+        if (!raw) return { worker: "", overrideKaisai: null, original: raw };
+        const s = raw.trim();
+        const parts = s.split(",").map(p => p.trim());
+        if (parts.length >= 2 && (parts[0] === "1" || parts[0] === "2")) {
+            const worker = parts[1] || "";
+            const override = parts[0] === "2" && parts.length >= 3 ? parts[2] || null : null;
+            return { worker: worker, overrideKaisai: override, original: s, type: parts[0] };
+        }
+        // フォールバック: 10桁の生IDだけが渡される場合など
+        return { worker: s, overrideKaisai: null, original: s, type: null };
+    }
 
     input.addEventListener("keydown", async (e) => {
         if (e.key !== "Enter") return;
 
-        const code = (input.value || "").trim();
+        const raw = (input.value || "").trim();
         input.value = "";
 
-        if (!code || locked) return;
+        if (!raw || locked) return;
+
+        const parsed = parseQrString(raw);
+
+        // クライアント側で仮QRを入場で使用しようとした場合は即時NG表示（サーバ側でも必ず検証します）
+        if (parsed.type === "2" && (kind || "").toUpperCase() === "IN") {
+            setIcon("NG");
+            playBeep("NG");
+            appendLog(`${parsed.original} 仮QRは入場では使用できません`);
+            showReadResult(parsed.worker || parsed.original, "仮QRは入場不可", "");
+            lockReading();
+            return;
+        }
+
+        const workerCd = parsed.worker;
+        const overrideKaisai = parsed.overrideKaisai;
+
+        // 重要: プレフィックス (1/2) が付いている場合は元の文字列をそのまま送る（サーバ側で検証）
+        const payloadCode = (parsed.type === "1" || parsed.type === "2") ? parsed.original : workerCd;
+
+        const payload = {
+            code: payloadCode,
+            kind: kind,
+            kaisaiCd: overrideKaisai || "@kaisaiCd"
+        };
 
         const res = await fetch('@Url.Action("Record", "Scan")', {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ code: code, kind: kind, kaisaiCd: "@kaisaiCd" })
+            body: JSON.stringify(payload)
         });
 
         const data = await res.json();
         const t = data.time ? data.time.slice(0, 2) + ":" + data.time.slice(2, 4) : "";
 
-        showReadResult(data.code || code, data.name || (data.result === "NG" ? data.message : "－"), t);
+        showReadResult(data.code || workerCd || raw, data.name || (data.result === "NG" ? data.message : "－"), t);
 
         if (data.result === "OK") {
             setIcon("OK");
             playBeep("OK");
             appendLog(`${data.code} ${data.name ?? ""} ${t} ${data.message}`);
-            input.focus();
+            try { input.focus(); } catch (e) {}
             return;
         }
 
         if (data.result === "WARN") {
             setIcon("WARN");
             playBeep("WARN");
-            appendLog(`${data.code ?? code} ${data.name ?? ""} ${t} ${data.message}`);
+            appendLog(`${data.code ?? workerCd} ${data.name ?? ""} ${t} ${data.message}`);
             lockReading();
             return;
         }
 
         setIcon("NG");
         playBeep("NG");
-        appendLog(`${data.code ?? code} ${t} ${data.message}`);
+        appendLog(`${data.code ?? workerCd} ${t} ${data.message}`);
         lockReading();
     });
 
