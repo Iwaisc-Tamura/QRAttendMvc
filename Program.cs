@@ -1,6 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using QRAttendMvc.Models;
+using QRAttendMvc.Services;
 using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,10 @@ builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromHours(8);
 });
+
+/*　追加 2026.02.19 Takada strat*/
+builder.Services.AddScoped<IActionLogService, ActionLogService>();
+/*　追加 2026.02.19 Takada end  */
 
 var app = builder.Build();
 
