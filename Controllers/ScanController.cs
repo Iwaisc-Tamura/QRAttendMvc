@@ -2,16 +2,24 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 using QRAttendMvc.Models;
+using QRAttendMvc.Services;
 
 namespace QRAttendMvc.Controllers
 {
-    public class ScanController : Controller
+//変更 2026.02.19 Takada 画面入場ログ
+    //public class ScanController : Controller
+    //{
+    public class ScanController : BaseController
     {
         private readonly AppDbContext _db;
         // EventSelectionで確定した開催コード（KAISAI_CD）
         private const string SessionKeyCurrentKaisaiCd = "CurrentKaisaiCd";
 
-        public ScanController(AppDbContext db)
+//変更 2026.02.19 Takada 画面入場ログ
+        // public ScanController(AppDbContext db)
+        //{
+        public ScanController(IActionLogService logService, AppDbContext db)
+            : base(logService)
         {
             _db = db;
         }

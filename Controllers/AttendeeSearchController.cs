@@ -2,17 +2,19 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QRAttendMvc.Models;
+using QRAttendMvc.Services;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace QRAttendMvc.Controllers
 {
-    public class AttendeeSearchController : Controller
+    public class AttendeeSearchController : BaseController
     {
         private readonly AppDbContext _db;
         private const string SessionKeyCurrentKaisaiCd = "CurrentKaisaiCd";
 
-        public AttendeeSearchController(AppDbContext db)
+        public AttendeeSearchController(IActionLogService logService, AppDbContext db)
+            : base(logService)
         {
             _db = db;
         }
