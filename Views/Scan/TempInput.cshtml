@@ -185,7 +185,6 @@
                     <div class="ev-row">
                         <div class="ev-label">協力会社コード</div>
                         <div class="ev-field">
-                            <!-- 非入力（下線表示） -->
                             <input id="companyCd" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" />
                         </div>
                         <div class="ev-field">
@@ -196,14 +195,14 @@
                     <div class="ev-row">
                         <div class="ev-label">会社名カナ</div>
                         <div class="ev-field">
-                            <input id="companyKana" class="form-control" />
+                            <input id="companyKana" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" />
                         </div>
                     </div>
 
                     <div class="ev-row">
                         <div class="ev-label">会社名</div>
                         <div class="ev-field">
-                            <input id="companyName" class="form-control" />
+                            <input id="companyName" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" />
                         </div>
                     </div>
 
@@ -233,7 +232,7 @@
                     <div class="ev-row">
                         <div class="ev-label">名簿対象除外日</div>
                         <div class="ev-field">
-                            <input id="excludeDate" type="date" class="form-control" />
+                            <input id="excludeDate" type="date" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" />
                         </div>
                     </div>
 
@@ -260,7 +259,7 @@
                         <div class="ev-label">事由</div>
                         <div class="ev-field">
                             <select id="reason" class="form-control" style="height: 34px;">
-                                <option value="">(選択してください)</option>
+                                <option value="">(選択必須)</option>
                                 <option value="E1">従事者証忘れ</option>
                                 <option value="E2">従事者証未発行</option>
                                 <option value="E3">会社代表または、営業担当者</option>
