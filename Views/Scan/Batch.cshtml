@@ -126,9 +126,13 @@
 
         <div class="ee-footer">
             <button id="btnRelease" class="btn btn-warning ee-btn ee-btn-release" disabled>解除</button>
-            <a asp-controller="EventSelection" asp-action="Index" class="btn ee-btn btn-primary ee-btn-back">
-                イベント選択画面に戻る
-            </a>
+
+            <form asp-action="BackToEventSelection" method="post" style="display:inline;">
+                <input type="hidden" name="kind" value="@kind" />
+                <button type="submit" class="btn ee-btn btn-primary ee-btn-back">
+                    イベント選択画面に戻る
+                </button>
+            </form>
         </div>
     </div>
 
