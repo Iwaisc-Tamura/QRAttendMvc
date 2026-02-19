@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Text.RegularExpressions;
 using QRAttendMvc.Models;
 
@@ -16,78 +17,80 @@ namespace QRAttendMvc.Controllers
             _db = db;
         }
 
+        // 作業員ID（GM01_EMPLOYEE.EMPLOYEE_CD）は 10桁固定（数字のみ）
+        private static bool IsEmployeeCode(string code)
+            => Regex.IsMatch(code ?? "", @"^\d{10}$");
 
-// 作業員ID（GM01_EMPLOYEE.EMPLOYEE_CD）は 10桁固定（数字のみ）
-private static bool IsEmployeeCode(string code)
-    => Regex.IsMatch(code ?? "", @"^\d{10}$");
-
-private async Task WriteOperationLogAsync(string screenId, string actionCd, string? kaisaiCd, string? workerCd, Gm01Employee? emp, string? entryTime, string? exitTime, string tResart)
-{
-    try
-    {
-        var opCd = HttpContext.Session.GetString("EMPLOYEE_CD");
-        var log = new Tx01Log
+        private async Task WriteOperationLogAsync(string screenId, string actionCd, string? kaisaiCd, string? workerCd, Gm01Employee? emp, string? entryTime, string? exitTime, string tResart)
         {
-            ScreenId = screenId,
-            ActionCd = actionCd,
-            EventCd = kaisaiCd,
-            EmployeeCd = workerCd,
-            CooperateCd = emp?.CooperateCd,
-            FamilyName = emp?.FamilyName,
-            FirstName = emp?.FirstName,
-            EntryTime = entryTime,
-            ExitTime = exitTime,
-            TResart = tResart,
-            UTantoCd = opCd,
-            UTimeStamp = DateTime.Now
-        };
+            try
+            {
+                var opCd = HttpContext.Session.GetString("EMPLOYEE_CD");
+                var log = new Tx01Log
+                {
+                    ScreenId = screenId,
+                    ActionCd = actionCd,
+                    EventCd = kaisaiCd,
+                    EmployeeCd = workerCd,
+                    CooperateCd = emp?.CooperateCd,
+                    FamilyName = emp?.FamilyName,
+                    FirstName = emp?.FirstName,
+                    EntryTime = entryTime,
+                    ExitTime = exitTime,
+                    TResart = tResart,
+                    UTantoCd = opCd,
+                    UTimeStamp = DateTime.Now
+                };
 
-        _db.OperationLogs.Add(log);
-        await _db.SaveChangesAsync();
-    }
-    catch
+                _db.OperationLogs.Add(log);
+                await _db.SaveChangesAsync();
+            }
+            catch
             {
                 // ログ記録失敗でも業務処理は止めない
             }
-
         }
-
 
         // 一括入退場登録画面（連続登録）
         [HttpGet]
-public async Task<IActionResult> Batch(string kind = "IN")
-{
-    var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
-    ViewBag.CurrentKaisaiCd = kaisaiCd;
-    ViewBag.Kind = (kind ?? "IN").ToUpper();
+        public async Task<IActionResult> Batch(string kind = "IN")
+        {
+            var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
+            ViewBag.CurrentKaisaiCd = kaisaiCd;
+            ViewBag.Kind = (kind ?? "IN").ToUpper();
 
-    // イベント情報表示用
-    if (!string.IsNullOrEmpty(kaisaiCd))
-    {
-        var ev = await _db.KaisaiEvents.FirstOrDefaultAsync(x => x.KaisaiCd == kaisaiCd);
-        ViewBag.Event = ev; // null の場合もあり得る
-    }
+            // イベント情報表示用
+            if (!string.IsNullOrEmpty(kaisaiCd))
+            {
+                var ev = await _db.KaisaiEvents.FirstOrDefaultAsync(x => x.KaisaiCd == kaisaiCd);
+                ViewBag.Event = ev; // null の場合もあり得る
+            }
 
-    // ログイン表示用（支店-社員）
-    ViewBag.LoginDisplay = $"{HttpContext.Session.GetString("BRANCH_CD")}-{HttpContext.Session.GetString("EMPLOYEE_CD")}";
+            // ログイン表示用（支店-社員）
+            ViewBag.LoginDisplay = $"{HttpContext.Session.GetString("BRANCH_CD")}-{HttpContext.Session.GetString("EMPLOYEE_CD")}";
 
-    return View();
-}
+            return View();
+        }
 
-public class RecordRequest
+        public class RecordRequest
         {
             public string? Code { get; set; }
             public string? Kind { get; set; }
             // 画面から渡される開催コード（セッションが送れない環境の保険）
             public string? KaisaiCd { get; set; }
         }
+
         private async Task<(bool ok, string result, string mark, string message, string? name)>
-            ProcessEntryExitAsync(string workerCd, string kind)
+            ProcessEntryExitAsync(string workerCd, string kind, string? overrideKaisaiCd = null, string? qrPrefix = null)
         {
             var now = DateTime.Now;
             var hhmm = now.ToString("HHmm");
 
-            string? kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
+            // セッションの開催コードを優先。ただし画面から渡されたものがある場合はそれを使えるようにする。
+            string? kaisaiCd = !string.IsNullOrWhiteSpace(overrideKaisaiCd)
+                ? overrideKaisaiCd
+                : HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
+
             if (string.IsNullOrEmpty(kaisaiCd))
             {
                 return (false, "NG", "×", "イベントが確定していません。", null);
@@ -100,15 +103,35 @@ public class RecordRequest
                 return (false, "WARN", "△", "作業員情報マスタに登録がありません。", null);
             }
 
+            // 協力会社マスタ（会社名などを補完）
+            Gm02Cooperate? coop = null;
+            if (!string.IsNullOrWhiteSpace(emp.CooperateCd))
+            {
+                coop = await _db.Cooperates.FirstOrDefaultAsync(c => c.CooperateCd == emp.CooperateCd);
+            }
+
+            // QR種別から Type を決定（1:通常QR, 5:仮QR, 9:その他）
+            string newType;
+            if (qrPrefix == "1")
+                newType = "1";
+            else if (qrPrefix == "2")
+                newType = "5";
+            else if (!string.IsNullOrWhiteSpace(workerCd) && workerCd.StartsWith("T"))
+                newType = "9";
+            else
+                newType = "9";
+
+            // 当該開催の既存入退場レコード
             var row = await _db.EntryExitLogs
                 .FirstOrDefaultAsync(x => x.KaisaiCd == kaisaiCd && x.EmployeeCd == workerCd);
 
-            // 退場で入場なし
+            // 退場で入場なしは受け付けない（既存の仕様）
             if (kind == "OUT" && (row == null || string.IsNullOrWhiteSpace(row.EntryTime)))
             {
                 return (false, "WARN", "△", "入場記録がないため退場登録できません。", emp.DisplayName);
             }
 
+            // 新規レコード作成時は可能な限りマスタ情報で埋める（IN の場合のみ）
             if (row == null)
             {
                 row = new Tt02EntryExit
@@ -116,81 +139,195 @@ public class RecordRequest
                     KaisaiCd = kaisaiCd,
                     EmployeeCd = workerCd,
                     CooperateCd = emp.CooperateCd,
+                    CompanyName = coop?.CompanyName,
                     FamilyName = emp.FamilyName,
-                    FirstName = emp.FirstName
+                    FirstName = emp.FirstName,
+                    FamilyNameKana = emp.FamilyNameKana,
+                    FirstNameKana = emp.FirstNameKana,
+                    BirthYmd = emp.BirthYmd,
+                    // 必要に応じて Type を設定してください（現状は null）
+                    Type = newType,
+                    // 一括画面ではNULL
+                    ActionCd = null,
+                    // TENSO 関連は現時点では未転送としておく
+                    TensoFlg = null,
+                    TensoYmdTime = null
                 };
                 _db.EntryExitLogs.Add(row);
+            }
+            else
+            {
+                // 既存レコードについて不足カラムを補完（マスタにある場合のみ上書きしない方針）
+                if (string.IsNullOrWhiteSpace(row.CooperateCd) && !string.IsNullOrWhiteSpace(emp.CooperateCd))
+                    row.CooperateCd = emp.CooperateCd;
+                if (string.IsNullOrWhiteSpace(row.CompanyName) && !string.IsNullOrWhiteSpace(coop?.CompanyName))
+                    row.CompanyName = coop!.CompanyName;
+                if (string.IsNullOrWhiteSpace(row.FamilyName) && !string.IsNullOrWhiteSpace(emp.FamilyName))
+                    row.FamilyName = emp.FamilyName;
+                if (string.IsNullOrWhiteSpace(row.FirstName) && !string.IsNullOrWhiteSpace(emp.FirstName))
+                    row.FirstName = emp.FirstName;
+                if (string.IsNullOrWhiteSpace(row.FamilyNameKana) && !string.IsNullOrWhiteSpace(emp.FamilyNameKana))
+                    row.FamilyNameKana = emp.FamilyNameKana;
+                if (string.IsNullOrWhiteSpace(row.FirstNameKana) && !string.IsNullOrWhiteSpace(emp.FirstNameKana))
+                    row.FirstNameKana = emp.FirstNameKana;
+                if (string.IsNullOrWhiteSpace(row.BirthYmd) && !string.IsNullOrWhiteSpace(emp.BirthYmd))
+                    row.BirthYmd = emp.BirthYmd;
+
+                // Type が未設定なら補完（既存方針に合わせ上書きは行わない）
+                if (string.IsNullOrWhiteSpace(row.Type) && !string.IsNullOrWhiteSpace(newType))
+                    row.Type = newType;
             }
 
             if (kind == "IN")
             {
-                // 入場は何度でもOK（既存データは変更しない）
+                // 入場は何度でも OK（既存の EntryTime を保持する方針）
                 if (string.IsNullOrEmpty(row.EntryTime))
                 {
                     row.EntryTime = hhmm;
+                    // 明示的に変更フラグを立てる（安全策）
+                    _db.Entry(row).Property(r => r.EntryTime).IsModified = true;
                 }
             }
             else
             {
-                // 退場は入場がある場合のみ
-                if (string.IsNullOrEmpty(row.EntryTime))
-                {
-                    return (false, "WARN", "△", "入場記録がないため退場登録できません。", emp.DisplayName);
-                }
+                // 退場時は時間を毎回更新
                 row.ExitTime = hhmm;
+                // 明示的に変更フラグを立てる（更新が反映されない問題を回避）
+                _db.Entry(row).Property(r => r.ExitTime).IsModified = true;
             }
 
-            await _db.SaveChangesAsync();
+            // DB書き込み（例外を捕まえてエラーメッセージを返す）
+            try
+            {
+                await _db.SaveChangesAsync();
+
+                // 操作ログを保存（失敗しても業務処理は止めない）
+                try
+                {
+                    await WriteOperationLogAsync("G001", kind == "IN" ? "IN" : "OUT", kaisaiCd, workerCd, emp, row.EntryTime, row.ExitTime, "TOK");
+                }
+                catch
+                {
+                    // ログ失敗は無視
+                }
+            }
+            catch (Exception ex)
+            {
+                // 追跡ログとして簡潔に返す（詳細はサーバ側ログ参照）
+                return (false, "NG", "×", "DB書き込みエラーが発生しました。係員に問い合わせてください。", emp.DisplayName);
+            }
 
             return (true, "OK", "〇",
                 kind == "IN" ? "入場記録OK" : "退場記録OK",
                 emp.DisplayName);
         }
 
-
         // QR または手入力で入退場記録（連続登録） 
-
-[HttpPost]
-public async Task<IActionResult> Record([FromBody] RecordRequest req)
-{
-    var now = DateTime.Now;
-    var hhmm = now.ToString("HHmm");
-
-    if (req == null || string.IsNullOrWhiteSpace(req.Code) || string.IsNullOrWhiteSpace(req.Kind))
-    {
-        return Json(new { ok = false, message = "パラメータ不正", time = hhmm });
-    }
-
-    var workerCd = req.Code.Trim();
-    var kind = req.Kind.ToUpper().Trim();
-
-    // 10桁チェックは今まで通り
-    if (!IsEmployeeCode(workerCd))
-    {
-        return Json(new
+        [HttpPost]
+        public async Task<IActionResult> Record([FromBody] RecordRequest req)
         {
-            ok = false,
-            result = "NG",
-            mark = "×",
-            message = "QRコードが読めません（作業員ID形式不正）。",
-            code = workerCd,
-            time = hhmm
-        });
-    }
+            var now = DateTime.Now;
+            var hhmm = now.ToString("HHmm");
 
-    var result = await ProcessEntryExitAsync(workerCd, kind);
+            if (req == null || string.IsNullOrWhiteSpace(req.Code) || string.IsNullOrWhiteSpace(req.Kind))
+            {
+                return Json(new { ok = false, message = "パラメータ不正", time = hhmm });
+            }
 
-    return Json(new
-    {
-        ok = result.ok,
-        result = result.result,
-        mark = result.mark,
-        message = result.message,
-        code = workerCd,
-        name = result.name,
-        time = hhmm
-    });
-}
+            // 受信した Code を柔軟に処理:
+            // - カンマ区切りで先頭が '1' or '2' の場合はその仕様を使用
+            var raw = req.Code.Trim();
+            string? overrideKaisaiFromQr = null;
+            string workerCd;
+            string? qrPrefix = null;
+
+            if (raw.Contains(","))
+            {
+                var parts = raw.Split(',').Select(p => p.Trim()).ToArray();
+                // 先頭は必ず '1' または '2' を期待する。違う場合は 10桁メッセージで NG。
+                if (parts.Length >= 2 && (parts[0] == "1" || parts[0] == "2"))
+                {
+                    qrPrefix = parts[0];
+                    workerCd = parts[1];
+                    if (parts[0] == "2" && parts.Length >= 3)
+                    {
+                        overrideKaisaiFromQr = parts[2];
+                    }
+                }
+                else
+                {
+                    return Json(new
+                    {
+                        ok = false,
+                        result = "NG",
+                        mark = "×",
+                        message = "QRコードが読めません。係員に相談して下さい。（QR形式不正）",
+                        code = raw,
+                        time = hhmm
+                    });
+                }
+            }
+            else
+            {
+                // カンマ無し: 作業員ID形式不正
+                return Json(new
+                {
+                    ok = false,
+                    result = "NG",
+                    mark = "×",
+                    message = "QRコードが読めません。係員に相談して下さい。（QR形式不正）",
+                    code = raw,
+                    time = hhmm
+                });
+            }
+
+            var kind = req.Kind.ToUpper().Trim();
+
+            // 仮QR（overrideKaisaiFromQr がある）を入場で利用することは許可しない
+            if (!string.IsNullOrWhiteSpace(overrideKaisaiFromQr) && kind == "IN")
+            {
+                return Json(new
+                {
+                    ok = false,
+                    result = "NG",
+                    mark = "×",
+                    message = "仮QRは入場登録では使用できません。",
+                    code = workerCd,
+                    time = hhmm
+                });
+            }
+
+            // 10桁チェック（不正なら従来メッセージで NG）
+            if (!IsEmployeeCode(workerCd))
+            {
+                return Json(new
+                {
+                    ok = false,
+                    result = "NG",
+                    mark = "×",
+                    message = "QRコードが読めません。係員に相談して下さい。（QR形式不正）",
+                    code = workerCd,
+                    time = hhmm
+                });
+            }
+
+            // 画面から渡された KaisaiCd（あれば）を優先し、なければ QR の仮コードによる上書きを利用する
+            var effectiveKaisai = !string.IsNullOrWhiteSpace(req.KaisaiCd) ? req.KaisaiCd : overrideKaisaiFromQr;
+
+            // 画面から渡された KaisaiCd（あれば）と QR種別（qrPrefix）を処理へ渡す
+            var result = await ProcessEntryExitAsync(workerCd, kind, effectiveKaisai, qrPrefix);
+
+            return Json(new
+            {
+                ok = result.ok,
+                result = result.result,
+                mark = result.mark,
+                message = result.message,
+                code = workerCd,
+                name = result.name,
+                time = hhmm
+            });
+        }
 
         /// <summary>
         /// QRで読み取った作業員IDから名簿／マスタ情報を取得して返す（TempInput 用）
@@ -261,6 +398,7 @@ public async Task<IActionResult> Record([FromBody] RecordRequest req)
             public string? WorkerName { get; set; }
             public string? Kind { get; set; }
         }
+
         [HttpGet]
         public async Task<IActionResult> TempInput(string kind)
         {
@@ -285,9 +423,8 @@ public async Task<IActionResult> Record([FromBody] RecordRequest req)
             // --- ここでセッションの開催コードを ViewBag にセットする ---
             ViewBag.CurrentKaisaiCd = kaisaiCd;
 
-            ViewBag.LoginDisplay =
-                $"{HttpContext.Session.GetString("BRANCH_CD")}-{HttpContext.Session.GetString("EMPLOYEE_CD")}";
-
+            ViewBag.LoginDisplay = $"{HttpContext.Session.GetString("BRANCH_CD")}-{HttpContext.Session.GetString("EMPLOYEE_CD")}";
+            
             kind = (kind ?? "").ToUpper();
             if (kind != "IN" && kind != "OUT")
                 return RedirectToAction("Index", "EventSelection");
@@ -298,7 +435,6 @@ public async Task<IActionResult> Record([FromBody] RecordRequest req)
 
             return View();
         }
-
 
         public async Task<IActionResult> TempRecord([FromBody] TempRecordRequest req)
         {
@@ -317,7 +453,8 @@ public async Task<IActionResult> Record([FromBody] RecordRequest req)
             var kind = (req.Kind ?? "IN").ToUpper();
 
             // 既存ロジックを流用
-            var result = await ProcessEntryExitAsync(workerCd, kind);
+            // TempRecord は QR を使わないため qrPrefix は null にして Type を "9" 扱いにする
+            var result = await ProcessEntryExitAsync(workerCd, kind, null, null);
 
             return Json(new
             {
@@ -326,9 +463,6 @@ public async Task<IActionResult> Record([FromBody] RecordRequest req)
                 time = hhmm
             });
         }
-
     }
-
 }
-
 

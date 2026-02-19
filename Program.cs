@@ -34,8 +34,6 @@ app.UseSession();
 //    - 桁数/数字が不正な場合はセッションを設定しない（ガード）
 app.Use(async (context, next) =>
 {
-    if (context.Request.Host.Host == "localhost")
-    {
         static bool Is5Digits(string s) => s.Length == 5 && s.All(char.IsDigit);
 
         var p1 = context.Request.Query["p1"].ToString();
@@ -44,6 +42,7 @@ app.Use(async (context, next) =>
         // URL パラメータ優先
         if (!string.IsNullOrEmpty(p1) || !string.IsNullOrEmpty(p2))
         {
+
             if (Is5Digits(p1) && Is5Digits(p2))
             {
                 context.Session.SetString("BRANCH_CD", p1);
@@ -58,7 +57,7 @@ app.Use(async (context, next) =>
                 context.Session.SetString("DEBUG_LOGIN_ERROR", "URLパラメータ(p1/p2)が不正です。支店コード・社員コードは各5桁数字で指定してください。");
             }
         }
-        else if (app.Environment.IsDevelopment())
+        else if (context.Request.Host.Host == "localhost")
         {
             // 開発時の初期値（appsettings.Development.json）
             var dbgBranch = app.Configuration["DebugLogin:BranchCd"] ?? "";
@@ -69,7 +68,6 @@ app.Use(async (context, next) =>
                 context.Session.SetString("EMPLOYEE_CD", dbgEmp);
             }
         }
-    }
     await next();
 });
 

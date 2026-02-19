@@ -136,7 +136,13 @@
                     </div>
                     <div class="ee-temp-field ee-temp-field-wide">
                         <label class="form-label" for="reason">事由</label>
-                        <input id="reason" class="form-control" />
+                        <select id="reason" class="form-control">
+                            <option value="">(選択してください)</option>
+                            <option value="E1">従事者証忘れ</option>
+                            <option value="E2">従事者証未発行</option>
+                            <option value="E3">会社代表または、営業担当者</option>
+                            <option value="E4">QRコード読み取り不可</option>
+                        </select>
                     </div>
                 </div>
                 <div class="ee-temp-actions">
@@ -181,6 +187,7 @@
     const workerKanaEl = document.getElementById("workerKana");
     const workerNameEl = document.getElementById("workerName");
     const birthDateEl = document.getElementById("birthDate");
+    const reasonEl = document.getElementById("reason");
 
     const logArea = document.getElementById("logArea");
     const lastCode = document.getElementById("lastCode");
@@ -387,9 +394,10 @@
         registerButton.addEventListener("click", async () => {
             const companyCd = (document.getElementById("companyCd")?.value || "").trim();
             const workerName = (document.getElementById("workerName")?.value || "").trim();
+            const reason = (document.getElementById("reason")?.value || "").trim();
 
-            if (!companyCd || !workerName) {
-                alert("協力会社コード・作業員名は必須です");
+            if (!companyCd || !workerName || !reason) {
+                alert("協力会社コード・作業員名・事由は必須です");
                 return;
             }
 
@@ -399,7 +407,8 @@
                 body: JSON.stringify({
                     companyCd: companyCd,
                     workerName: workerName,
-                    kind: "@kind"
+                    kind: "@kind",
+                    reason: reason   // 画面には文字を表示するが、登録時は区分コード(E1..E4)を送信
                 })
             });
 
