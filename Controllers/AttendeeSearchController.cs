@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QRAttendMvc.Models;
 using QRAttendMvc.Services;
+using System;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -27,7 +28,8 @@ namespace QRAttendMvc.Controllers
             string? workerKanaFirst,
             string? workerId,
             DateTime? birthDate,
-            bool? searched,
+            string? filter,
+             bool? searched,
             string? sort,
             string? dir)
         {
@@ -116,10 +118,11 @@ namespace QRAttendMvc.Controllers
 
                     LastInTime = lastIn,
                     LastOutTime = lastOut,
-                    RoleType = "名簿"
                 });
             }
 
+            rows = ApplyRowSort(rows, sort, dir);
+            rows = ApplyFilter(rows, filter);
             rows = ApplyRowSort(rows, sort, dir);
 
             return View(rows);
@@ -228,7 +231,7 @@ namespace QRAttendMvc.Controllers
             var list = await q.ToListAsync();
 
             var sb = new StringBuilder();
-            sb.AppendLine("会社名\t作業員ID\t作業員名\t生年月日\t名簿対象除外日\t入場記録\t退場記録\t区分");
+            sb.AppendLine("会社名\t作業員ID\t作業員名\t生年月日\t名簿対象除外日\t入場記録\t退場記録");
 
             string Esc(string? v) => (v ?? "").Replace("\t", " ");
 
@@ -264,7 +267,6 @@ namespace QRAttendMvc.Controllers
                     ExcludeDate = ParseYyyyMMdd(p.RetireYmd),
                     LastInTime = lastIn,
                     LastOutTime = lastOut,
-                    RoleType = "名簿"
                 });
             }
 
@@ -282,8 +284,7 @@ namespace QRAttendMvc.Controllers
                     r.BirthDate?.ToString("yyyy/MM/dd") ?? "",
                     r.ExcludeDate?.ToString("yyyy/MM/dd") ?? "",
                     r.LastInTime?.ToString("HH:mm") ?? "",
-                    r.LastOutTime?.ToString("HH:mm") ?? "",
-                    r.RoleType ?? "名簿"
+                    r.LastOutTime?.ToString("HH:mm") ?? ""
                 }));
             }
 
@@ -338,6 +339,33 @@ namespace QRAttendMvc.Controllers
             s = s.Normalize(NormalizationForm.FormKC);
 
             return s;
+        }
+
+        private static List<AttendeeSearchRow> ApplyFilter(List<AttendeeSearchRow> rows, string? filter)
+        {
+            var key = (filter ?? "").Trim().ToLowerInvariant();
+            if (string.IsNullOrEmpty(key)) return rows;
+
+            return key switch
+            {
+                // 未受講者（入場、退場とも記録なし）
+                "no_log" => rows
+                    .Where(r => r.LastInTime == null && r.LastOutTime == null)
+                    .ToList(),
+
+                // 入場記録のみ、または退場記録のみあり
+                "partial_log" => rows
+                    .Where(r => (r.LastInTime == null) ^ (r.LastOutTime == null)) // XOR
+                    .ToList(),
+
+                // 未受講者（従業員情報マスタに登録あり）
+                // ※現状は全員マスタ由来なので差を出すため「退職日なし＆未受講」で実装
+                "no_log_active" => rows
+                    .Where(r => r.LastInTime == null && r.LastOutTime == null && r.ExcludeDate == null)
+                    .ToList(),
+
+                _ => rows
+            };
         }
 
         private async Task<Dictionary<string, Tt02EntryExit>> LoadEntryExitMapAsync(

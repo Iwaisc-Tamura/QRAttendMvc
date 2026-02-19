@@ -10,18 +10,14 @@ namespace QRAttendMvc.Controllers
 //変更 2026.02.19 Takada 画面入場ログ
     //public class ScanController : Controller
     //{
-    public class ScanController : BaseController
+    public class ScanController(AppDbContext db, IActionLogService logService)
+        //追加 2026.02.20 Takada　ビルドエラーが出た為
+        : BaseController(logService)
     {
-        private readonly AppDbContext _db;
-        private readonly IActionLogService _logService;
+        private readonly AppDbContext _db = db;
+        private readonly IActionLogService _logService = logService;
         // EventSelectionで確定した開催コード（KAISAI_CD）
         private const string SessionKeyCurrentKaisaiCd = "CurrentKaisaiCd";
-
-        public ScanController(AppDbContext db, IActionLogService logService)
-        {
-            _db = db;
-            _logService = logService;
-        }
 
         // 作業員ID（GM01_EMPLOYEE.EMPLOYEE_CD）は 10桁固定（数字のみ）
         private static bool IsEmployeeCode(string code)
@@ -374,7 +370,8 @@ namespace QRAttendMvc.Controllers
                     // ログ失敗は無視
                 }
             }
-            catch (Exception ex)
+            //修正 2026.02.20 Takada ；catch (Exception ex)からワーニング除外
+            catch (Exception)
             {
                 // 追跡ログとして簡潔に返す（詳細はサーバ側ログ参照）
                 var display = emp != null ? emp.DisplayName : workerCd;
@@ -1198,7 +1195,8 @@ namespace QRAttendMvc.Controllers
 
                 return Json(new { ok = true, message = kind == "IN" ? "入場登録しました" : "退場登録しました", time = kind == "IN" ? row.EntryTime ?? hhmm : row.ExitTime ?? hhmm, code = workerCd });
             }
-            catch (Exception ex)
+            //修正 2026.02.20 Takada ；catch (Exception ex)からワーニング除外
+            catch (Exception)
             {
                 return Json(new { ok = false, message = "DB書き込みエラーが発生しました。係員に問い合わせてください。", time = hhmm });
             }

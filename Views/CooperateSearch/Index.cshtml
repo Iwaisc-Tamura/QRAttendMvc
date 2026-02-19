@@ -107,7 +107,7 @@
                     {
                         <tr class="es-row"
                             data-cd="@r.CooperateCd"
-                            onclick="selectCooperate('@r.CooperateCd', this)">
+                            onclick="selectCooperate(this)">
                             <td>@r.CooperateCd</td>
                             <td>@r.CompanyName</td>
                             <td>@r.CompanyNameKana</td>
@@ -119,12 +119,18 @@
         </section>
 
         <section class="es-footer">
-            <form method="post" asp-action="Back" id="backForm">
+
+            <!-- 選択確定フォーム -->
+            <form method="post" asp-action="Back" id="selectForm">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="returnUrl" value="@returnUrl" />
                 <input type="hidden" name="selectedCooperateCd" id="selectedCooperateCd" value="" />
-                <button type="button" class="es-btn es-btn-back" onclick="submitBack()">入退場登録に戻る</button>
+                <button type="button" class="es-btn es-btn-search" onclick="commitSelect()">選択</button>
             </form>
+
+            <!-- 単純戻る -->
+            <button type="button" class="es-btn es-btn-back" onclick="goBack()">戻る</button>
+
         </section>
 
     </main>
@@ -167,20 +173,31 @@
             });
         });
 
-        function selectCooperate(cd, tr) {
+        function selectCooperate(tr) {
+            const cd = tr?.getAttribute("data-cd") || "";
+
             document.getElementById("selectedCooperateCd").value = cd;
 
             document.querySelectorAll("tr.es-row").forEach(x => x.classList.remove("es-selected"));
             if (tr) tr.classList.add("es-selected");
         }
 
-        function submitBack() {
+        function commitSelect() {
             const cd = document.getElementById("selectedCooperateCd").value;
             if (!cd) {
                 alert("一覧から会社を選択してください。");
                 return;
             }
-            document.getElementById("backForm").submit();
+            document.getElementById("selectForm").submit();
+        }
+
+        function goBack() {
+            const ru = "@returnUrl";
+            if (ru) {
+                window.location.href = ru;
+                return;
+            }
+            history.back();
         }
     </script>
 

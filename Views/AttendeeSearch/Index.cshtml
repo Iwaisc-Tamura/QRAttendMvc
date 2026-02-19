@@ -13,6 +13,7 @@
     string workerKanaFirst = Context.Request.Query["workerKanaFirst"].ToString();
     string workerId = Context.Request.Query["workerId"].ToString();
     string birthDate = Context.Request.Query["birthDate"].ToString();
+    string filter = Context.Request.Query["filter"].ToString();
    
     string login = ViewBag.LoginText as string ?? "";
 
@@ -40,7 +41,7 @@
     <!-- ===== ヘッダー（master風） ===== -->
     <header class="as-header">
         <div class="as-tab">検索</div>
-        <div class="as-title">入退場照会</div>
+        <div class="as-title">受講者名簿検索</div>
     </header>
 
     <!-- ★② 日付・時刻：指定の ev-loginbox を使用 -->
@@ -121,6 +122,7 @@
             <!-- 追加 2026.02.17 Takada ：ソート結果を残す -->
             <input type="hidden" name="sort" value="@currentSort" />
             <input type="hidden" name="dir" value="@currentDir" />
+            <input type="hidden" name="filter" value="@filter" />
 
             <!-- 1段目：会社名（カナ）／会社名／2次店以下含む／検索 -->
             <div class="as-grid as-grid-1">
@@ -166,6 +168,15 @@
                     <label class="as-label">生年月日</label>
                     <!-- type=dateはそのまま。masterに合わせて見た目はCSSで寄せる -->
                     <input name="birthDate" type="date" value="@birthDate" class="as-input" />
+                </div>
+                <div class="as-field">
+                    <label class="as-label">絞り込み条件</label>
+                    <select name="filter" class="as-input">
+                        <option value="" selected="@(string.IsNullOrEmpty(filter))">（空欄）</option>
+                        <option value="no_log" selected="@(filter=="no_log")">未受講者（入場、退場とも記録なし）</option>
+                        <option value="partial_log" selected="@(filter=="partial_log")">入場記録のみ、または退場記録のみあり</option>
+                        <option value="no_log_active" selected="@(filter=="no_log_active")">未受講者（従業員情報マスタに登録あり）</option>
+                    </select>
                 </div>
             </div>
         </form>
@@ -226,9 +237,6 @@
                                 退場記録@(Arrow("lastout"))
                             </a>
                         </th>
-                        <th class="as-center">名簿</th>
-                        <th class="as-center">作業員</th>
-                        <th class="as-center">代表他</th>
                     </tr>
                 </thead>
 
@@ -247,15 +255,6 @@
                             <td>@(r.LastInTime?.ToString("HH:mm"))</td>
                             <td>@(r.LastOutTime?.ToString("HH:mm"))</td>
 
-                            <td class="as-center">
-                                <input type="radio" name="role_@r.WorkerId" @(r.RoleType == "名簿" ? "checked" : "") />
-                            </td>
-                            <td class="as-center">
-                                <input type="radio" name="role_@r.WorkerId" @(r.RoleType == "作業員" ? "checked" : "") />
-                            </td>
-                            <td class="as-center">
-                                <input type="radio" name="role_@r.WorkerId" @(r.RoleType == "代表他" ? "checked" : "") />
-                            </td>
                         </tr>
                     }
                 </tbody>

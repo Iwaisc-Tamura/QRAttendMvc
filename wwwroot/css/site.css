@@ -437,8 +437,7 @@ body {
 
     /* コンテンツ領域 */
     body.index-attende .as-container {
-        position: relative;
-        width: 1000pt;
+        width: 1200pt; /* 1000pt → 1200pt など */
         min-width: 600pt;
         margin: 0 auto;
         padding: 18px 0 20px 0;
@@ -496,7 +495,7 @@ body {
     }
 
     body.index-attende .as-grid-2 {
-        grid-template-columns: 260px 260px 260px 260px;
+        grid-template-columns: 240px 240px 240px 240px 320px; /* 5列目を少し広め */
     }
 
     body.index-attende .as-label {
@@ -684,15 +683,22 @@ body {
         white-space: nowrap;
     }
 
-    /* 会社名などは少し余裕を持たせたい場合：列ごとに幅を指定 */
+    /* 会社名 */
     body.index-attende .as-table th:nth-child(1),
     body.index-attende .as-table td:nth-child(1) {
-        width: 220px;
+        width: 260px; /* 220→260など */
     }
 
+    /* 作業員ID */
     body.index-attende .as-table th:nth-child(2),
     body.index-attende .as-table td:nth-child(2) {
         width: 120px;
+    }
+
+    /* 作業員名（追加：広めに取る） */
+    body.index-attende .as-table th:nth-child(3),
+    body.index-attende .as-table td:nth-child(3) {
+        width: 260px; /* ここを大きく */
     }
 
     body.index-attende .as-footer {
@@ -890,11 +896,6 @@ body {
         cursor: pointer;
     }
 
-    body.index-employee .es-row:hover {
-        outline: 2px solid #129a3e;
-        outline-offset: -2px;
-    }
-
     body.index-employee .es-footer {
         margin-top: 16px;
         display: flex;
@@ -993,9 +994,27 @@ body {
         z-index: 10;
     }
 
+    /* 通常行 */
+    body.index-employee .es-table .es-row {
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+
+    /* マウスを乗せたとき */
+    body.index-employee .es-table .es-row:hover {
+        background-color: #f2f6fb; /* うっすらグレー */
+    }
+
+    /* クリックして選択された行（固定表示） */
+    body.index-employee .es-table .es-row.is-selected,
+    body.index-employee .es-table .es-row.is-selected:hover {
+        background-color: #e7f1ff; /* 薄い青 */
+        outline: 2px solid #0d6efd; /* 青枠 */
+        outline-offset: -2px; /* 内側に表示 */
+    }
+
     /* =====================================================
    index(Company/Cooperate Search) : body.index-cooprete
-   Esearch_now.png（body.index-employee）へ寄せたデザイン
    ===================================================== */
 
     body.index-cooprete {
@@ -1155,11 +1174,6 @@ body {
         cursor: pointer;
     }
 
-    body.index-cooprete .es-row:hover {
-        outline: 2px solid #129a3e;
-        outline-offset: -2px;
-    }
-
     /* 選択状態（クリックで付くクラス） */
     body.index-cooprete tr.es-row.es-selected {
         outline: 3px solid #4b86c5;
@@ -1202,4 +1216,35 @@ body {
 
     body.index-cooprete .ev-login-value {
         text-align: right;
+    }
+
+    /* 通常行 */
+    body.index-cooprete .es-table .es-row {
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+
+    /* 未選択行だけ hover（枠は出さない） */
+    body.index-cooprete .es-table .es-row:not(.es-selected):hover {
+        background-color: #f2f6fb; /* うっすら色 */
+        outline: none;
+    }
+
+    /* 選択状態（クリックで付くクラス） */
+    body.index-cooprete .es-table .es-row.es-selected,
+    body.index-cooprete .es-table .es-row.es-selected:hover {
+        background-color: #e7f1ff; /* 薄い青 */
+        outline: 2px solid #0d6efd; /* 青枠 */
+        outline-offset: -2px; /* 内側に表示 */
+    }
+
+    body.index-cooprete tr.es-row.es-selected:hover {
+        outline: 3px solid #4b86c5;
+        outline-offset: -3px;
+    }
+
+    body.index-cooprete .es-footer {
+        display: flex;
+        gap: 20px;
+        justify-content: flex-end;
     }

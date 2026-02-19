@@ -182,7 +182,7 @@
                 <tbody>
                     @foreach (var r in Model)
                     {
-                        <tr class="es-row" onclick="selectEmployee('@r.EmployeeCd')">
+                        <tr class="es-row" data-emp="@r.EmployeeCd" onclick="pickRow(this)">
                             <td>@r.EmployeeCd</td>
                             <td>@r.CompanyName</td>
                             <td>@r.CompanyKana</td>
@@ -198,6 +198,7 @@
 
         <!-- 操作ボタン -->
         <section class="es-footer">
+            <button type="button" class="es-btn es-btn-search" onclick="commitSelect()">選択</button>
             <button type="button" class="es-btn es-btn-back" onclick="goBack()">入退場登録に戻る</button>
         </section>
 
@@ -242,16 +243,30 @@
             });
         });
 
-        // 方式②：通常遷移で戻る（returnUrl に EMPLOYEE_CD を付与）
-        function selectEmployee(empCd) {
+        let selectedEmpCd = "";
+
+        function pickRow(tr) {
+            document.querySelectorAll(".es-row.is-selected")
+                .forEach(x => x.classList.remove("is-selected"));
+
+            tr.classList.add("is-selected");
+            selectedEmpCd = tr.getAttribute("data-emp") || "";
+        }
+
+        function commitSelect() {
+            if (!selectedEmpCd) {
+                alert("一覧から作業員を選択してください。");
+                return;
+            }
+
             const ru = "@returnUrl";
             if (!ru) {
-                alert("returnUrl が指定されていません。EMPLOYEE_CD=" + empCd);
+                alert("returnUrl が指定されていません。EMPLOYEE_CD=" + selectedEmpCd);
                 return;
             }
 
             const u = new URL(ru, window.location.origin);
-            u.searchParams.set("EMPLOYEE_CD", empCd);
+            u.searchParams.set("EMPLOYEE_CD", selectedEmpCd);
             window.location.href = u.toString();
         }
 
