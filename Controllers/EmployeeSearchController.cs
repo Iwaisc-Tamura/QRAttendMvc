@@ -90,6 +90,23 @@ namespace QRAttendMvc.Controllers
             return View(rows);
         }
 
+        [HttpPost]
+        public IActionResult Select(string employeeCd, string cooperateCd, string returnUrl)
+        {
+            // TempInput側で使うのでセッションに保存（必要なものだけでOK）
+            HttpContext.Session.SetString("TEMP_WORKER_CD", employeeCd ?? "");
+            HttpContext.Session.SetString("TEMP_COOPERATE_CD", cooperateCd ?? "");
+
+            // returnUrl があればそこへ戻る
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+
+            // 保険：returnUrlが無い/危険なURLなら既定に戻す
+            return RedirectToAction("TempInput", "Scan", new { kind = "IN" });
+        }
+
         private IQueryable<EmployeeJoined> BuildEmployeeQuery(
             string? employeeCd,
             string? companyKana,
