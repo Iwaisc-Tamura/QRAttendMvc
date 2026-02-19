@@ -9,9 +9,10 @@
     string login = ViewBag.LoginDisplay as string ?? "XXXXXX";
     var ev = ViewBag.Event as Gt01KaisaiEvent ?? new Gt01KaisaiEvent();
 
-    // テスト用  start 2026.02.18 Takada
+    // テスト用  start 2026.02.20 Takada
     var selected = Context.Request.Query["COOPERATE_CD"].ToString();
-    // テスト用  end   2026.02.18 Takada
+    var selectedEmployeeCd = Context.Request.Query["EMPLOYEE_CD"].ToString();
+    // テスト用  end   2026.02.20 Takada
 
     ViewData["Title"] = title;
 
@@ -187,7 +188,7 @@
                             <input id="companyCd" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" />
                         </div>
                         <div class="ev-field">
-                            <button id="btnCompanySearch" class="btn btn-primary ee-btn ee-btn-back ee-btn-small btn-search" type="button" aria-label="会社検索">会社検索</button>
+                            <button id="btnCompanySearch" class="btn btn-primary ee-btn ee-btn-back ee-btn-small btn-search" type="button" aria-label="会社検索" >会社検索</button>
                         </div>
                     </div>
 
@@ -333,7 +334,12 @@
     const kind = "@kind";
     const kaisaiCd = "@kaisaiCd";
     const evEventCd = "@(ev?.EventCd ?? "")";
-    let editingTemp = false;
+  
+    //追加 2026.02.20 Takada start:作業員検索からのデータ保持
+    const selectedEmployeeCd = "@selectedEmployeeCd";
+    //追加 2026.02.20 Takada end  ;作業員検索からのデータ保持
+ 
+        let editingTemp = false;
     let currentQrPrefix = null; // '1' or '2' when set by QR scan
 
     function appendLog(line) {
@@ -648,6 +654,98 @@
     }
     updateLayoutClock();
     setInterval(updateLayoutClock, 1000);
+
+        // 追加 2023.02.20 Takada ; 検索画面から戻ってEMPLOYEE_CD
+        // 検索画面から戻ってきた EMPLOYEE_CD があれば Lookup して反映
+        document.addEventListener("DOMContentLoaded", async () => {
+            if (!selectedEmployeeCd) return;
+
+            try {
+                currentQrPrefix = "1"; // 検索選択は通常扱いにする（必要なら調整）
+
+                const res = await fetch('@Url.Action("Lookup", "Scan")', {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ code: selectedEmployeeCd, prefix: "1" })
+                });
+
+                const data = await res.json();
+
+                if (!data || data.ok !== true) {
+                    setIcon("NG");
+                    playBeep("NG");
+                    appendLog(`${selectedEmployeeCd} ${data?.message ?? "Lookup failed"}`);
+                    return;
+                }
+
+                if (input) input.value = data.code ?? selectedEmployeeCd;
+                if (companyCdEl) companyCdEl.value = data.cooperateCd ?? "";
+                if (companyKanaEl) companyKanaEl.value = data.companyKana ?? "";
+                if (companyNameEl) companyNameEl.value = data.companyName ?? "";
+
+                if (workerFamilyKanaEl) workerFamilyKanaEl.value = data.workerFamilyKana ?? "";
+                if (workerFirstKanaEl) workerFirstKanaEl.value = data.workerFirstKana ?? "";
+                if (workerFamilyNameEl) workerFamilyNameEl.value = data.workerFamilyName ?? "";
+                if (workerFirstNameEl) workerFirstNameEl.value = data.workerFirstName ?? "";
+
+                if (birthDateEl && data.birthYmd) {
+                    const by = String(data.birthYmd || "");
+                    if (by.length === 8) birthDateEl.value = `${by.substring(0, 4)}-${by.substring(4, 6)}-${by.substring(6, 8)}`;
+                }
+
+                const displayName =
+                    (data.workerFamilyName || "") + (data.workerFirstName ? (" " + data.workerFirstName) : "") ||
+                    (data.workerName ?? (data.workerKana ?? ""));
+
+                showReadResult(data.code ?? selectedEmployeeCd, displayName, "");
+                setIcon("OK");
+                playBeep("OK");
+                appendLog(`${data.code ?? selectedEmployeeCd} ${displayName} 検索選択OK`);
+
+            } catch (ex) {
+                setIcon("NG");
+                playBeep("NG");
+                appendLog(`ERR ${ex}`);
+            }
+        });
+
+        // 追加 2023.02.20 Takada ; 作業員検索ボタン → EmployeeSearch へ遷移
+        const btnWorkerSearch = document.getElementById("btnWorkerSearch");
+
+        if (btnWorkerSearch) {
+            btnWorkerSearch.addEventListener("click", function () {
+                window.location.href =
+                    '@Url.Action("Index", "EmployeeSearch",
+            new { returnUrl = Url.Action("TempInput", "Scan", new { kind = kind }) })';
+            });
+        }
+
+        // 追加 2023.02.20 Takada ; 会社検索ボタン → CooperateSearch へ遷移
+        const btnCompanySearch = document.getElementById("btnCompanySearch");
+
+        if (btnCompanySearch) {
+            btnCompanySearch.addEventListener("click", function () {
+                window.location.href =
+                    '@Url.Action("Index", "CooperateSearch",
+            new { returnUrl = Url.Action("TempInput", "Scan", new { kind = kind }) })';
+            });
+        }
+
+        // 追加 2023.02.20 Takada ; 検索したCOOPERATE_CDを書き込み
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // ★ CooperateSearch から戻ってきた COOPERATE_CD
+            const selectedCooperateCd = "@selected";
+
+            if (selectedCooperateCd) {
+                const companyCdEl = document.getElementById("companyCd");
+                if (companyCdEl) {
+                    companyCdEl.value = selectedCooperateCd;
+                }
+            }
+
+        });
+
 </script>
 </body>
 </html>
