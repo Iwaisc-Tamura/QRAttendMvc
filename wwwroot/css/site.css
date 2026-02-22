@@ -83,14 +83,21 @@ body {
     }
 
     body.index-home .home-main {
-        flex: 1 1 auto;
+        width: 1000px !important;
+        height: 250px !important;
+        margin: 0 auto;
         padding: 0 24px 24px;
+        justify-items: center;
     }
 
     body.index-home .home-main-title {
         font-size: 20pt !important;
         font-weight: 800;
-        margin: 24px 0;
+        margin: 10px 0;
+        padding: 10px 0 10px 12px; 
+        text-align: left; 
+        width: 1000px;
+        box-sizing: border-box; 
     }
 
     body.index-home .home-btn {
@@ -103,13 +110,41 @@ body {
         justify-content: center !important;
     }
 
-    body.index-home .btn,
-    body.index-home .badge,
-    body.index-home .card,
-    body.index-home .container,
-    body.index-home .container-fluid {
-        border-radius: 0 !important;
+    body.index-home .ee-login .ev-login-row {
+        display: grid;
+        grid-template-columns: 70px 1fr; 
+        column-gap: 10px;
+        align-items: center;
     }
+
+    body.index-home .ee-login .ev-login-label {
+        text-align: left;
+        font-weight: 700;
+    }
+
+    body.index-home .ee-login .ev-login-value {
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    body.index-home .ee-top {
+        border-bottom: none !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important; 
+    }
+
+    /* --- テストボタン --- */
+    .home-sub-left {
+        display: flex;
+        flex-direction: column; 
+        gap: 12px; 
+    }
+
+    .home-sub-left form button,
+    .home-sub-left > button {
+        width: 300px; 
+    }
+    /* --- テストボタン --- */
 
 /* =====================================================
    index（EventSelection） : body.event-page
@@ -117,27 +152,19 @@ body {
 
     body.event-page {
         font-size: 11pt;
-        overflow-x: hidden; 
+        overflow-x: hidden;
     }
 
-    body.event-page .ev-container {
-        position: relative; 
-        padding-top: 38px !important; 
-    }
+    /* ---------- ヘッダー ---------- */
 
     body.event-page .ev-header {
         display: flex;
         width: 100%;
     }
 
-    body.event-page .ev-tab,
-    body.event-page .ev-title {
-        height: 90px;
-        border: none;
-    }
-
     body.event-page .ev-tab {
         width: 140px;
+        height: 90px;
         background: #e8b7e8;
         color: #fff;
         font-weight: 800;
@@ -149,56 +176,49 @@ body {
 
     body.event-page .ev-title {
         flex: 1;
+        height: 90px;
         background: #129a3e;
         color: #fff;
         font-weight: 800;
         font-size: 18pt;
         display: flex;
         align-items: center;
-        padding-left: calc(18px + 2ch);
+        padding-left: 36px;
     }
+
+    /* ---------- コンテナ ---------- */
 
     body.event-page .ev-container {
-        box-sizing: border-box !important;
-        max-width: none !important;
-        width: 100% !important;
-        margin: 0 !important;
-        padding-left: 350pt !important;
-        padding-right: 30px !important;
-        padding-top: 18px;
-        padding-bottom: 10px;
-        font-size: 11pt;
+        width: 1000pt;
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 18px 30px 10px 30px;
+        box-sizing: border-box;
     }
 
+    /* ---------- 行レイアウト ---------- */
+
     body.event-page .ev-row:not(.ev-row-split) {
-        display: grid !important;
-        grid-template-columns: 140px 520px 1fr !important;
-        column-gap: 48px !important;
-        align-items: center !important;
+        display: grid;
+        grid-template-columns: 140px 1fr auto;
+        column-gap: 32px;
+        align-items: center;
         padding: 10px 0;
+        min-height: 48px; /* ← 下にズレないため固定 */
     }
 
     body.event-page .ev-label {
         font-weight: 800;
     }
 
-    body.event-page .ev-select,
-    body.event-page .ev-selectlike {
-        width: 520px;
-        height: 34px;
-        border: 2px solid #1d1d1d;
-
-        padding: 4px 10px;
-        box-sizing: border-box;
-        margin: 0 !important; 
-    }
-
-    body.event-page select,
-    body.event-page select option {
-        color: #000 !important;
-    }
+    /* ---------- 入力・下線 ---------- */
 
     body.event-page .ev-select {
+        width: 520px;
+        height: 36px;
+        border: 2px solid #1d1d1d;
+        padding: 4px 10px;
+        box-sizing: border-box;
         appearance: none;
         background-image: linear-gradient(45deg, transparent 50%, #2f9e44 50%), linear-gradient(135deg, #2f9e44 50%, transparent 50%);
         background-position: calc(100% - 18px) 13px, calc(100% - 10px) 13px;
@@ -207,128 +227,171 @@ body {
         padding-right: 34px;
     }
 
-    body.event-page .ev-underline {
+    /* 固定表示時 */
+    body.event-page .ev-select.is-fixed {
+        border: 2px solid transparent;
+        border-bottom-color: #1d1d1d;
+        background-image: none;
+    }
+
+    body.event-page .ev-select:disabled {
+        color: #000;
+        opacity: 1;
+    }
+
+    /* 通常項目（長い下線） */
+    body.event-page .ev-field .ev-underline {
         width: 520px;
+    }
+
+    /* 時刻項目（短い下線） */
+    body.event-page .ev-field-short {
+        width: 120px;
+    }
+
+    body.event-page .ev-field-short .ev-underline {
+        width: 100px;
+    }
+
+    /* 共通下線 */
+    body.event-page .ev-underline {
+        display: inline-block;
         border-bottom: 2px solid #1d1d1d;
-        padding: 4px 6px;
+        padding: 4px 10px;
+        min-height: 36px; /* 高さ固定でズレ防止 */
+        line-height: 28px; /* ← 垂直中央 */
         box-sizing: border-box;
     }
 
+    /* ---------- 開催日＋年度 ---------- */
+
     body.event-page .ev-row.ev-row-split {
-        display: grid !important;
-        grid-template-columns: 500px 360px 1fr !important;
-        column-gap: 40px !important;
-        justify-content: start !important;
-        align-items: center !important;
+        display: grid;
+        grid-template-columns: 500px 360px 1fr;
+        column-gap: 40px;
+        align-items: center;
         padding: 30px 0;
     }
 
     body.event-page .ev-row.ev-row-split .ev-split-left {
-        display: grid !important;
-        grid-template-columns: 175px 150px !important; 
-        column-gap: 12px !important;
-        align-items: center !important;
-    }
-
-    body.event-page .ev-row.ev-row-split .ev-underline {
-        width: 360px !important;
-        max-width:120px !important;
+        display: grid;
+        grid-template-columns: 140px 1fr; /* ←通常行と合わせる */
+        column-gap: 32px; /* ←通常行と合わせる */
+        align-items: center;
     }
 
     body.event-page .ev-row.ev-row-split .ev-split-right {
-        display: flex !important;
-        justify-content: flex-start !important;
-        align-items: center !important;
-        gap: 10px !important;
-    }
-
-    body.event-page .ev-row.ev-row-split .ev-split-right .ev-yearbox {
-        font-weight: 400 !important;
-    }
-
-    body.event-page .ev-label-inline {
-        font-weight: 800 !important;
-    }
-
-    body.event-page .ev-field-short .ev-underline {
-        width: 50px;
-        border-bottom: 2px solid #1d1d1d;
-        padding: 4px 6px;
-        box-sizing: border-box;
-    }
-
-    body.event-page .ev-yearbox {
-        display: inline-flex !important;
-        min-width: 72px !important;
-        justify-content: center !important;
-        border-bottom: 2px solid #1d1d1d !important;
-        padding: 4px 6px !important;
-        font-weight: 700 !important;
-    }
-
-    body.event-page .ev-info {
-        width: 940px;
-        border-top: 2px solid #cfcfcf;
-        margin-top: 14px;
-        padding-top: 12px;
-    }
-
-    body.event-page .ev-loginbox {
-        position: absolute !important;
-        top: 10px; 
-        right: 15px; 
-        justify-self: auto !important;
-        text-align: left !important;
-        min-width: 310px;
-        font-size: 12pt;
-        line-height: 1.6;
-    }
-
-    body.event-page .ev-login-row {
-        display: grid !important;
-        grid-template-columns: 70px 180px !important;
-        column-gap: 10px !important;
-        justify-content: start !important;
-        align-items: center !important;
-    }
-
-    body.event-page .ev-login-label {
-        grid-template-columns: 300px 90px !important;
-        text-align: left !important;
-        font-weight: 700 !important;
-    }
-
-    body.event-page .ev-login-value {
-        width: 220px;
-        text-align: right !important;
-        font-size: 12pt;
-        line-height: 1.6;
-    }
-
-    body.event-page .ev-actions {
-        margin-top: 18px;
         display: flex;
+        align-items: center;
         gap: 10px;
     }
 
+    body.event-page .ev-yearbox {
+        display: inline-flex;
+        min-width: 72px;
+        justify-content: center;
+        border-bottom: 2px solid #1d1d1d;
+        padding: 4px 6px;
+        font-weight: 700;
+    }
+
+    body.event-page .ev-date {
+        display: inline-block;
+        height: 36px;
+        line-height: 36px;
+        padding: 0 10px;
+        box-sizing: border-box;
+    }
+
+    body.event-page .ev-year {
+        display: inline-block;
+        min-width: 72px;
+        text-align: center;
+        height: 36px;
+        line-height: 36px;
+        padding: 0 6px;
+        box-sizing: border-box;
+    }
+
+    /* split行の開催日・年度：短い下線にする */
+    body.event-page .ev-date,
+    body.event-page .ev-year {
+        display: inline-block;
+        height: 36px;
+        line-height: 36px;
+        box-sizing: border-box;
+        border-bottom: 2px solid #1d1d1d; /* ←下線復活 */
+        padding: 0 10px;
+    }
+
+    /* 開催日：終了時刻くらいの短さ（必要なら 120〜180 で調整） */
+    body.event-page .ev-date {
+        width: 160px; /* ←まずはこのくらいが無難 */
+        text-align: left;
+    }
+
+    /* 年度：年だけなので短め */
+    body.event-page .ev-year {
+        width: 90px; /* ←終了時刻の100pxに近い */
+        text-align: center;
+        padding: 0 6px;
+    }
+
+    /* 開始時刻も短い幅に固定 */
+    body.event-page #startArea .ev-field-short {
+        width: 120px;
+    }
+
+    /* ---------- ログイン表示 ---------- */
+
+    body.event-page .ee-side {
+        justify-self: end;
+    }
+
+    body.event-page .ee-login .ev-login-row {
+        display: grid;
+        grid-template-columns: 70px 180px;
+        column-gap: 10px;
+    }
+
+    body.event-page .ee-login .ev-login-value {
+        text-align: right;
+    }
+
+    /* ---------- イベント情報 ---------- */
+
+    body.event-page .ev-info {
+        border-top: 2px solid #cfcfcf;
+        margin-top: 14px;
+        padding-top: 12px;
+        min-height: 100px; /* ← 表示時にズレない */
+    }
+
+    /* ---------- ボタン ---------- */
+
+    body.event-page .ev-actions {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 12px;
+    }
+
+    body.event-page .ev-actions form,
+    body.event-page .ev-actions a {
+        width: 100%;
+    }
+
     body.event-page .ev-btn {
-        width: 150px;
-        height: 74px;
-        border: none;
-        outline: none;
-        box-shadow: none;
+        width: 100%;
+        height: 84px;
+        font-size: 12pt;
         font-weight: 800;
-        font-size: 11pt;
+        border-radius: 10px;
+        border: none;
         display: inline-flex;
         align-items: center;
         justify-content: center;
     }
-
-        body.event-page .ev-btn:focus,
-        body.event-page .ev-btn:active {
-            outline: none;
-            box-shadow: none;
-        }
 
     body.event-page .ev-btn-blue {
         background: #1e88e5;
@@ -358,6 +421,25 @@ body {
     body.event-page .ev-btn-sky {
         background: #2a78c5;
         color: #fff;
+    }
+
+    /* 未確定（選べる状態）は区分と同等の幅に */
+    body.event-page #startSelect:not(.is-fixed) {
+        width: 520px; /* 区分の幅に合わせる */
+    }
+
+    /* その時、親も広げる（ev-field-short を使っていてもOK） */
+    body.event-page #startArea .ev-field-short {
+        width: 520px;
+    }
+
+    /* 確定（is-fixed）になったら短い下線表示に */
+    body.event-page #startSelect.is-fixed {
+        width: 100px !important; /* 終了時刻くらい */
+        border: 2px solid transparent;
+        border-bottom-color: #1d1d1d;
+        background-image: none !important;
+        padding-right: 0; /* 矢印スペース不要 */
     }
 
     /* =====================================================
