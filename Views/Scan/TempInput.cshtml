@@ -56,16 +56,32 @@
             -moz-appearance: none;
             appearance: none;
             width: 208px;
+            border-radius: inherit;
         }
 
         .ev-selectlike.ev-readonly.ev-underline:focus {
             outline: none;
-            border-bottom-color: #0d6efd; /* フォーカス時に色を付ける */
             box-shadow: none;
         }
 
         /* readonly なのでカーソルはデフォルトにする */
         .ev-selectlike.ev-readonly.ev-underline[readonly] {
+            cursor: default;
+        }
+
+        .ev-underline-only {
+            border: none;
+            border-bottom: 2px solid #1d1d1d;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .ev-underline-only:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+        .ev-underline-only[readonly] {
             cursor: default;
         }
 
@@ -75,6 +91,8 @@
             padding: .25rem .5rem;
             font-size: 12px;
             line-height: 1;
+            width: 120px;
+            min-width:120px;
             height: 24px;
             min-height: 24px;
             display: inline-flex;
@@ -114,6 +132,11 @@
             .name-split .name-split-input {
                 width: 100%;
             }
+        }
+
+        .btn-disabled {
+            opacity: .55;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -175,34 +198,29 @@
                         <div class="ev-field">
                             <!-- 非入力（下線表示）、フォーカス不可 -->
                             <input id="scanInput" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" />
-                        </div>
-                        <div class="ev-field">
                             <button id="btnWorkerSearch" class="btn btn-primary ee-btn ee-btn-back ee-btn-small btn-search" type="button" aria-label="作業員検索">作業員検索</button>
                         </div>
-
                     </div>
 
                     <div class="ev-row">
                         <div class="ev-label">協力会社コード</div>
                         <div class="ev-field">
                             <input id="companyCd" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" />
-                        </div>
-                        <div class="ev-field">
-                            <button id="btnCompanySearch" class="btn btn-primary ee-btn ee-btn-back ee-btn-small btn-search" type="button" aria-label="会社検索" >会社検索</button>
+                            <button id="btnCompanySearch" class="btn btn-primary ee-btn ee-btn-back ee-btn-small btn-search" type="button" aria-label="会社検索">会社検索</button>
                         </div>
                     </div>
 
                     <div class="ev-row">
                         <div class="ev-label">会社名カナ</div>
                         <div class="ev-field">
-                            <input id="companyKana" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" />
+                            <input id="companyKana" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" style="width: 100%;" />
                         </div>
                     </div>
 
                     <div class="ev-row">
                         <div class="ev-label">会社名</div>
                         <div class="ev-field">
-                            <input id="companyName" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" />
+                            <input id="companyName" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" style="width: 100%;" />
                         </div>
                     </div>
 
@@ -225,14 +243,15 @@
                     <div class="ev-row">
                         <div class="ev-label">生年月日</div>
                         <div class="ev-field">
-                            <input id="birthDate" type="date" class="form-control" />
+                            <!-- 手入力で 8桁許容。画面表示は YYYY/MM/DD -->
+                            <input id="birthDate" type="text" class="form-control" style="width: 90px" placeholder="YYYY/MM/DD" autocomplete="bday" />
                         </div>
                     </div>
 
                     <div class="ev-row">
                         <div class="ev-label">名簿対象除外日</div>
                         <div class="ev-field">
-                            <input id="excludeDate" type="date" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" />
+                            <input id="excludeDate" type="text" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" style="width: 90px" />
                         </div>
                     </div>
 
@@ -240,7 +259,7 @@
                         <div class="ev-label">入場記録</div>
                         <div class="ev-field">
                             <!-- 時刻（時:分）入力。step=60で分単位 -->
-                            <input id="entryRecord" type="time" step="60" class="form-control form-control-sm" />
+                            <input id="entryRecord" type="time" step="60" class="form-control form-control-sm" style="width: 90px" />
                         </div>
                     </div>
 
@@ -250,7 +269,7 @@
                         <div class="ev-row">
                             <div class="ev-label">退場記録</div>
                             <div class="ev-field">
-                                <input id="exitRecord" type="time" step="60" class="form-control form-control-sm" />
+                                <input id="exitRecord" type="time" step="60" class="form-control form-control-sm" style="width: 90px" />
                             </div>
                         </div>
                     }
@@ -275,15 +294,15 @@
                         <div class="ee-result-left">
                             <div class="ev-label ee-result-label">結果</div>
                             <div class="ee-result-box">
-                                <img id="resultIcon" class="result-icon" src="/images/Circle.png" alt="結果" />
-                            </div>
+                                 <img id="resultIcon" class="result-icon" src="/images/Circle.png" alt="結果" style="visibility:hidden" />
+                             </div>
                         </div>
                     </div>
                     <div>
                         <div class="ee-result-comment">
                             <div class="ee-section-title" style="margin-bottom:6px;">結果コメント</div>
                             <div class="ee-log-box">
-                                <textarea id="logArea" class="form-control ee-log" rows="6" readonly></textarea>
+                                <textarea id="logArea" class="ee-log" rows="6" readonly></textarea>
                             </div>
                         </div>
                     </div>
@@ -294,9 +313,12 @@
         }
         <div class="ee-footer">
             <button id="btnTempRegister" class="btn btn-primary ee-btn ee-btn-back" type="button">登録</button>
-            <a asp-controller="EventSelection" asp-action="Index" class="btn ee-btn btn-primary ee-btn-back">
-                イベント選択画面に戻る
-            </a>
+            <form asp-action="BackToEventSelectionTemp" method="post" style="display:inline;">
+                <input type="hidden" name="kind" value="@kind" />
+                <button id="btnBackToEventSelection" type="submit" class="btn ee-btn btn-primary ee-btn-back">
+                    イベント選択画面に戻る
+                </button>
+            </form>
         </div>
 
         <!-- QRスキャナ入力 -->
@@ -324,6 +346,8 @@
     const entryRecordEl = document.getElementById("entryRecord");
     const exitRecordEl = document.getElementById("exitRecord");
     const reasonEl = document.getElementById("reason");
+    const btnCompanySearch = document.getElementById("btnCompanySearch");
+    const btnBackToEventSelection = document.getElementById("btnBackToEventSelection");
 
     const logArea = document.getElementById("logArea");
     const lastCode = document.getElementById("lastCode");
@@ -334,13 +358,118 @@
     const kind = "@kind";
     const kaisaiCd = "@kaisaiCd";
     const evEventCd = "@(ev?.EventCd ?? "")";
-  
+
     //追加 2026.02.20 Takada start:作業員検索からのデータ保持
     const selectedEmployeeCd = "@selectedEmployeeCd";
+    const selectedCooperateCd = "@selected";
     //追加 2026.02.20 Takada end  ;作業員検索からのデータ保持
- 
-        let editingTemp = false;
+
+    let editingTemp = false;
     let currentQrPrefix = null; // '1' or '2' when set by QR scan
+
+    const formStateKey = "TempInputFormState";
+
+    function saveFormState() {
+        const state = {
+            companyCd: companyCdEl?.value || "",
+            companyKana: companyKanaEl?.value || "",
+            companyName: companyNameEl?.value || "",
+            workerFamilyKana: workerFamilyKanaEl?.value || "",
+            workerFirstKana: workerFirstKanaEl?.value || "",
+            workerFamilyName: workerFamilyNameEl?.value || "",
+            workerFirstName: workerFirstNameEl?.value || "",
+            birthDate: birthDateEl?.value || "",
+            entryRecord: entryRecordEl?.value || "",
+            exitRecord: exitRecordEl?.value || "",
+            reason: reasonEl?.value || "",
+            workerId: input?.value || "",
+            excludeDate: excludeDateEl?.value || "",
+            logArea: logArea?.value || "",
+            resultIconSrc: resultIcon?.getAttribute("src") || "",
+            resultIconAlt: resultIcon?.getAttribute("alt") || "",
+            resultIconVisible: !!(resultIcon && resultIcon.style.visibility !== "hidden" && resultIcon.style.visibility !== ""),
+            isLocked: !!(workerFamilyKanaEl && workerFamilyKanaEl.readOnly),
+            currentQrPrefix
+        };
+        sessionStorage.setItem(formStateKey, JSON.stringify(state));
+    }
+
+    function restoreFormState() {
+        const payload = sessionStorage.getItem(formStateKey);
+        if (!payload) {
+            setInputLock(false);
+            return;
+        }
+        try {
+            const state = JSON.parse(payload);
+            if (companyCdEl) companyCdEl.value = state.companyCd || "";
+            if (companyKanaEl) companyKanaEl.value = state.companyKana || "";
+            if (companyNameEl) companyNameEl.value = state.companyName || "";
+            if (workerFamilyKanaEl) workerFamilyKanaEl.value = state.workerFamilyKana || "";
+            if (workerFirstKanaEl) workerFirstKanaEl.value = state.workerFirstKana || "";
+            if (workerFamilyNameEl) workerFamilyNameEl.value = state.workerFamilyName || "";
+            if (workerFirstNameEl) workerFirstNameEl.value = state.workerFirstName || "";
+            if (birthDateEl) birthDateEl.value = state.birthDate || "";
+            if (entryRecordEl) entryRecordEl.value = state.entryRecord || "";
+            if (exitRecordEl) exitRecordEl.value = state.exitRecord || "";
+            if (reasonEl) reasonEl.value = state.reason || "";
+            if (input) input.value = state.workerId || "";
+            if (excludeDateEl) excludeDateEl.value = state.excludeDate || "";
+            if (logArea) logArea.value = state.logArea || "";
+            if (resultIcon) {
+                if (state.resultIconVisible && state.resultIconSrc) {
+                    resultIcon.src = state.resultIconSrc;
+                    resultIcon.alt = state.resultIconAlt || "";
+                    resultIcon.style.visibility = "visible";
+                } else {
+                    resultIcon.style.visibility = "hidden";
+                }
+            }
+            if (typeof state.isLocked === "boolean") {
+                setInputLock(state.isLocked);
+            } else {
+                setInputLock(false);
+            }
+            currentQrPrefix = state.currentQrPrefix || currentQrPrefix;
+        }
+        catch {
+            sessionStorage.removeItem(formStateKey);
+            setInputLock(false);
+        }
+    }
+
+    function setInputLock(isLocked) {
+        const fields = [workerFamilyKanaEl, workerFirstKanaEl, workerFamilyNameEl, workerFirstNameEl, birthDateEl];
+        fields.forEach(f => {
+            if (!f) return;
+            if (isLocked) {
+                f.readOnly = true;
+                f.classList.add("ev-underline-only");
+            } else {
+                f.readOnly = false;
+                f.classList.remove("ev-underline-only");
+            }
+        });
+
+        if (btnCompanySearch) {
+            btnCompanySearch.disabled = isLocked;
+            btnCompanySearch.classList.toggle("btn-disabled", isLocked);
+        }
+    }
+
+    function clearLookupFields() {
+        if (companyCdEl) companyCdEl.value = "";
+        if (companyKanaEl) companyKanaEl.value = "";
+        if (companyNameEl) companyNameEl.value = "";
+        if (workerFamilyKanaEl) workerFamilyKanaEl.value = "";
+        if (workerFirstKanaEl) workerFirstKanaEl.value = "";
+        if (workerFamilyNameEl) workerFamilyNameEl.value = "";
+        if (workerFirstNameEl) workerFirstNameEl.value = "";
+        if (birthDateEl) birthDateEl.value = "";
+        if (excludeDateEl) excludeDateEl.value = "";
+        if (entryRecordEl) entryRecordEl.value = "";
+        if (exitRecordEl) exitRecordEl.value = "";
+    }
 
     function appendLog(line) {
         if (!logArea) return;
@@ -440,6 +569,63 @@
         document.addEventListener('touchstart', onPointerForFocus, { passive: true, capture: true });
     })();
 
+    // --- 生年月日：手入力 8桁許容、画面表示は YYYY/MM/DD に整形 ---
+    function formatToDisplayYmd(raw) {
+        if (!raw) return "";
+        const digits = String(raw).replace(/[^\d]/g, "");
+        if (digits.length === 8) {
+            return digits.substring(0,4) + "/" + digits.substring(4,6) + "/" + digits.substring(6,8);
+        }
+        // 既に yyyy-mm-dd や yyyy/mm/dd の場合はスラッシュで整形
+        const m = String(raw).match(/^(\d{4})[-\/](\d{2})[-\/](\d{2})$/);
+        if (m) return `${m[1]}/${m[2]}/${m[3]}`;
+        return String(raw);
+    }
+
+    function toIsoDate(raw) {
+        if (!raw) return "";
+        const digits = String(raw).replace(/[^\d]/g, "");
+        if (digits.length === 8) {
+            return `${digits.substring(0,4)}-${digits.substring(4,6)}-${digits.substring(6,8)}`;
+        }
+        // try parseable value (leave as-is)
+        return String(raw);
+    }
+
+    function isValidBirthDate(raw) {
+        const iso = toIsoDate(raw);
+        if (!iso) return false;
+        const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!m) return false;
+        const y = Number(m[1]);
+        const mo = Number(m[2]);
+        const d = Number(m[3]);
+        const dt = new Date(y, mo - 1, d);
+        return dt.getFullYear() === y && dt.getMonth() === (mo - 1) && dt.getDate() === d;
+    }
+
+    if (birthDateEl) {
+        // 入力中に 8桁そろったら自動整形
+        birthDateEl.addEventListener('input', (e) => {
+            try {
+                const v = birthDateEl.value || "";
+                const onlyDigits = v.replace(/[^\d]/g, "");
+                if (onlyDigits.length === 8) {
+                    const disp = formatToDisplayYmd(onlyDigits);
+                    birthDateEl.value = disp;
+                }
+            } catch (ex) {}
+        });
+
+        // 失念防止: blur 時にも可能な限り整形
+        birthDateEl.addEventListener('blur', (e) => {
+            try {
+                const v = (birthDateEl.value || "").trim();
+                birthDateEl.value = formatToDisplayYmd(v);
+            } catch (ex) {}
+        });
+    }
+
     function parseQrString(raw) {
         if (!raw) return { ok: false, reason: "empty" };
         if (!raw.includes(",")) return { ok: false, reason: "no-comma", original: raw };
@@ -469,6 +655,14 @@
 
             const parsed = parseQrString(raw);
 
+            try {
+                await fetch('@Url.Action("TempQrReadLog", "Scan")', {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ kind: kind, workerCd: parsed.worker || "" })
+                });
+            } catch (ex) { }
+
             if (!parsed.ok) {
                 setIcon("NG");
                 playBeep("NG");
@@ -487,7 +681,7 @@
                 if (qrKaisai !== evEventCd) {
                     setIcon("NG");
                     playBeep("NG");
-                    appendLog(`${parsed.original} 仮QRのイベントが表示中のイベントと一致しません（QR:${qrKaisai} != ${evEventCd}）`);
+                    appendLog(`${parsed.original} 仮QRのイベントが表示中のイベントと一致しません （QR:${qrKaisai} != ${evEventCd}）`);
                     showReadResult(parsed.worker || parsed.original, "イベント不一致", "");
                     if (qrInput) { qrInput.value = ""; }
                     return;
@@ -516,10 +710,15 @@
                     return;
                 }
 
-                if (input) input.value = data.code ?? workerForLookup;
-                if (companyCdEl) companyCdEl.value = data.cooperateCd ?? "";
-                if (companyKanaEl) companyKanaEl.value = data.companyKana ?? "";
-                if (companyNameEl) companyNameEl.value = data.companyName ?? "";
+                sessionStorage.removeItem(formStateKey);
+                clearLookupFields();
+
+                 if (input) input.value = data.code ?? workerForLookup;
+                 if (companyCdEl) companyCdEl.value = data.cooperateCd ?? "";
+                 if (companyKanaEl) companyKanaEl.value = data.companyKana ?? "";
+                 if (companyNameEl) companyNameEl.value = data.companyName ?? "";
+
+                setInputLock(parsed.type === "1");
 
                 // 新しい分割フィールドにセット（存在しない場合は従来フィールド workerKana/workerName を分割） 
                 if (workerFamilyKanaEl) workerFamilyKanaEl.value = data.workerFamilyKana ?? (data.workerKana ? (data.workerKana.split(" ")[0] || "") : "");
@@ -530,14 +729,39 @@
                 if (birthDateEl && data.birthYmd) {
                     const by = String(data.birthYmd || "");
                     if (by.length === 8) {
-                        birthDateEl.value = `${by.substring(0,4)}-${by.substring(4,6)}-${by.substring(6,8)}`;
+                        // 画面表示は YYYY/MM/DD にする
+                        birthDateEl.value = `${by.substring(0,4)}/${by.substring(4,6)}/${by.substring(6,8)}`;
                     } else {
                         birthDateEl.value = "";
                     }
                 }
 
+                // 除外日を表示（サーバ側で既にフォーマット済み）
+                if (excludeDateEl) {
+                    excludeDateEl.value = data.excludeDate ?? "";
+                }
+
+                // 既存の入退場時刻が返されていれば画面に反映する
+                try {
+                    const et = data.entryTime || "";
+                    const xt = data.exitTime || "";
+                    if (et && entryRecordEl) {
+                        entryRecordEl.value = (et.length >= 4) ? (et.slice(0,2) + ":" + et.slice(2,4)) : et;
+                    }
+                    if (xt && exitRecordEl) {
+                        exitRecordEl.value = (xt.length >= 4) ? (xt.slice(0,2) + ":" + xt.slice(2,4)) : xt;
+                    }
+                } catch (ex) {}
+
                 const displayName = (data.workerFamilyName || "") + (data.workerFirstName ? (" " + data.workerFirstName) : "") || (data.workerName ?? (data.workerKana ?? ""));
-                showReadResult(data.code ?? workerForLookup, displayName, "");
+                // 表示する時刻は入場があれば入場、なければ退場を優先して表示
+                let timeToShow = "";
+                try {
+                    if (data.entryTime) timeToShow = (data.entryTime.length >= 4) ? (data.entryTime.slice(0,2) + ":" + data.entryTime.slice(2,4)) : data.entryTime;
+                    else if (data.exitTime) timeToShow = (data.exitTime.length >= 4) ? (data.exitTime.slice(0,2) + ":" + data.exitTime.slice(2,4)) : data.exitTime;
+                } catch (ex) { timeToShow = ""; }
+
+                showReadResult(data.code ?? workerForLookup, displayName, timeToShow);
                 setIcon("OK");
                 playBeep("OK");
                 appendLog(`${data.code ?? workerForLookup} ${displayName} 取得OK`);
@@ -565,7 +789,9 @@
             const firstKana = (workerFirstKanaEl?.value || "").trim();
             const workerName = [familyName, firstName].filter(Boolean).join(" ").trim();
             const workerKana = [familyKana, firstKana].filter(Boolean).join(" ").trim();
-            const birthDate = (birthDateEl?.value || "").trim();
+            const birthDateRaw = (birthDateEl?.value || "").trim();
+            // サーバに送る生年月日は ISO 形式 (yyyy-MM-dd) に正規化
+            const birthDate = toIsoDate(birthDateRaw);
             const excludeDate = (excludeDateEl?.value || "").trim();
             const entryRecordRaw = (entryRecordEl?.value || "").trim();
             const entryRecord = entryRecordRaw.includes(":") ? entryRecordRaw.replace(":", "") : entryRecordRaw;
@@ -574,8 +800,13 @@
             const reason = (reasonEl?.value || "").trim();
             const workerCd = (input?.value || "").trim();
 
-            if (!companyCd || !workerName || !reason || !workerCd) {
-                alert("協力会社コード・作業員名・事由・作業員IDは必須です（QRで取得してください）");
+            if (!workerCd || !workerName || !workerKana || !birthDateRaw || !reason) {
+                alert("作業員ID・作業員名・作業員名カナ・生年月日・事由は必須です。");
+                return;
+            }
+
+            if (!isValidBirthDate(birthDateRaw)) {
+                alert("生年月日が不正です。");
                 return;
             }
 
@@ -629,6 +860,8 @@
                         reasonEl.value = "";
                         if (input) input.value = "";
                         currentQrPrefix = null;
+                        setInputLock(false);
+                        sessionStorage.removeItem(formStateKey);
                     } catch (e) {}
                 } else {
                     // WARN/NGでも画面ロックしない
@@ -655,97 +888,118 @@
     updateLayoutClock();
     setInterval(updateLayoutClock, 1000);
 
-        // 追加 2023.02.20 Takada ; 検索画面から戻ってEMPLOYEE_CD
-        // 検索画面から戻ってきた EMPLOYEE_CD があれば Lookup して反映
-        document.addEventListener("DOMContentLoaded", async () => {
-            if (!selectedEmployeeCd) return;
-
+    // 追加 2023.02.20 Takada ; 検索画面から戻ってEMPLOYEE_CD
+    // 検索画面から戻ってきた EMPLOYEE_CD があれば Lookup して反映
+    document.addEventListener("DOMContentLoaded", async () => {
+        restoreFormState();
+        if (selectedCooperateCd) {
             try {
-                currentQrPrefix = "1"; // 検索選択は通常扱いにする（必要なら調整）
-
-                const res = await fetch('@Url.Action("Lookup", "Scan")', {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ code: selectedEmployeeCd, prefix: "1" })
-                });
-
+                const res = await fetch('@Url.Action("LookupCooperate", "Scan")' + `?cooperateCd=${encodeURIComponent(selectedCooperateCd)}`);
                 const data = await res.json();
-
-                if (!data || data.ok !== true) {
-                    setIcon("NG");
-                    playBeep("NG");
-                    appendLog(`${selectedEmployeeCd} ${data?.message ?? "Lookup failed"}`);
-                    return;
+                if (data && data.ok) {
+                    if (companyCdEl) companyCdEl.value = data.cooperateCd ?? selectedCooperateCd;
+                    if (companyKanaEl) companyKanaEl.value = data.companyKana ?? "";
+                    if (companyNameEl) companyNameEl.value = data.companyName ?? "";
                 }
+            } catch (ex) {}
+        }
+        if (!selectedEmployeeCd) return;
 
-                if (input) input.value = data.code ?? selectedEmployeeCd;
-                if (companyCdEl) companyCdEl.value = data.cooperateCd ?? "";
-                if (companyKanaEl) companyKanaEl.value = data.companyKana ?? "";
-                if (companyNameEl) companyNameEl.value = data.companyName ?? "";
+        try {
+            currentQrPrefix = "1"; // 検索選択は通常扱いにする（必要なら調整）
 
-                if (workerFamilyKanaEl) workerFamilyKanaEl.value = data.workerFamilyKana ?? "";
-                if (workerFirstKanaEl) workerFirstKanaEl.value = data.workerFirstKana ?? "";
-                if (workerFamilyNameEl) workerFamilyNameEl.value = data.workerFamilyName ?? "";
-                if (workerFirstNameEl) workerFirstNameEl.value = data.workerFirstName ?? "";
+            const res = await fetch('@Url.Action("Lookup", "Scan")', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code: selectedEmployeeCd, prefix: "1" })
+            });
 
-                if (birthDateEl && data.birthYmd) {
-                    const by = String(data.birthYmd || "");
-                    if (by.length === 8) birthDateEl.value = `${by.substring(0, 4)}-${by.substring(4, 6)}-${by.substring(6, 8)}`;
-                }
+            const data = await res.json();
 
-                const displayName =
-                    (data.workerFamilyName || "") + (data.workerFirstName ? (" " + data.workerFirstName) : "") ||
-                    (data.workerName ?? (data.workerKana ?? ""));
-
-                showReadResult(data.code ?? selectedEmployeeCd, displayName, "");
-                setIcon("OK");
-                playBeep("OK");
-                appendLog(`${data.code ?? selectedEmployeeCd} ${displayName} 検索選択OK`);
-
-            } catch (ex) {
+            if (!data || data.ok !== true) {
                 setIcon("NG");
                 playBeep("NG");
-                appendLog(`ERR ${ex}`);
-            }
-        });
-
-        // 追加 2023.02.20 Takada ; 作業員検索ボタン → EmployeeSearch へ遷移
-        const btnWorkerSearch = document.getElementById("btnWorkerSearch");
-
-        if (btnWorkerSearch) {
-            btnWorkerSearch.addEventListener("click", function () {
-                window.location.href =
-                    '@Url.Action("Index", "EmployeeSearch",
-            new { returnUrl = Url.Action("TempInput", "Scan", new { kind = kind }) })';
-            });
-        }
-
-        // 追加 2023.02.20 Takada ; 会社検索ボタン → CooperateSearch へ遷移
-        const btnCompanySearch = document.getElementById("btnCompanySearch");
-
-        if (btnCompanySearch) {
-            btnCompanySearch.addEventListener("click", function () {
-                window.location.href =
-                    '@Url.Action("Index", "CooperateSearch",
-            new { returnUrl = Url.Action("TempInput", "Scan", new { kind = kind }) })';
-            });
-        }
-
-        // 追加 2023.02.20 Takada ; 検索したCOOPERATE_CDを書き込み
-        document.addEventListener("DOMContentLoaded", function () {
-
-            // ★ CooperateSearch から戻ってきた COOPERATE_CD
-            const selectedCooperateCd = "@selected";
-
-            if (selectedCooperateCd) {
-                const companyCdEl = document.getElementById("companyCd");
-                if (companyCdEl) {
-                    companyCdEl.value = selectedCooperateCd;
-                }
+                appendLog(`${selectedEmployeeCd} ${data?.message ?? "Lookup failed"}`);
+                return;
             }
 
-        });
+            clearLookupFields(); // 追加: 新しいデータ適用前にフィールドクリア
+            if (input) input.value = data.code ?? selectedEmployeeCd;
+            if (companyCdEl) companyCdEl.value = data.cooperateCd ?? "";
+            if (companyKanaEl) companyKanaEl.value = data.companyKana ?? "";
+            if (companyNameEl) companyNameEl.value = data.companyName ?? "";
 
+            setInputLock(true);
+
+            if (workerFamilyKanaEl) workerFamilyKanaEl.value = data.workerFamilyKana ?? "";
+            if (workerFirstKanaEl) workerFirstKanaEl.value = data.workerFirstKana ?? "";
+            if (workerFamilyNameEl) workerFamilyNameEl.value = data.workerFamilyName ?? "";
+            if (workerFirstNameEl) workerFirstNameEl.value = data.workerFirstName ?? "";
+
+            if (birthDateEl && data.birthYmd) {
+                const by = String(data.birthYmd || "");
+                if (by.length === 8) birthDateEl.value = `${by.substring(0, 4)}/${by.substring(4, 6)}/${by.substring(6, 8)}`;
+            }
+
+            // 除外日を表示（サーバ側で既にフォーマット済み）
+            if (excludeDateEl) {
+                excludeDateEl.value = data.excludeDate ?? "";
+            }
+
+            // 既存の入退場時刻を反映
+            try {
+                const et = data.entryTime || "";
+                const xt = data.exitTime || "";
+                if (et && entryRecordEl) entryRecordEl.value = (et.length >= 4) ? (et.slice(0,2) + ":" + et.slice(2,4)) : et;
+                if (xt && exitRecordEl) exitRecordEl.value = (xt.length >= 4) ? (xt.slice(0,2) + ":" + xt.slice(2,4)) : xt;
+            } catch (ex) {}
+
+            const displayName =
+                (data.workerFamilyName || "") + (data.workerFirstName ? (" " + data.workerFirstName) : "") ||
+                (data.workerName ?? (data.workerKana ?? ""));
+
+            let timeToShow = "";
+            try {
+                if (data.entryTime) timeToShow = (data.entryTime.length >= 4) ? (data.entryTime.slice(0,2) + ":" + data.entryTime.slice(2,4)) : data.entryTime;
+                else if (data.exitTime) timeToShow = (data.exitTime.length >= 4) ? (data.exitTime.slice(0,2) + ":" + data.exitTime.slice(2,4)) : data.exitTime;
+            } catch (ex) { timeToShow = ""; }
+
+            showReadResult(data.code ?? selectedEmployeeCd, displayName, timeToShow);
+            setIcon("OK");
+            playBeep("OK");
+            appendLog(`${data.code ?? selectedEmployeeCd} ${displayName} 取得OK`);
+        } catch (ex) {
+            setIcon("NG");
+            playBeep("NG");
+            appendLog(`ERR ${ex}`);
+        }
+    });
+
+    const btnWorkerSearch = document.getElementById("btnWorkerSearch");
+    if (btnWorkerSearch) {
+        btnWorkerSearch.addEventListener("click", function () {
+            saveFormState();
+            window.location.href =
+                '@Url.Action("Index", "EmployeeSearch",
+        new { returnUrl = Url.Action("TempInput", "Scan", new { kind = kind }) })';
+        });
+    }
+
+    if (btnCompanySearch) {
+        btnCompanySearch.addEventListener("click", function () {
+            saveFormState();
+            window.location.href =
+                '@Url.Action("Index", "CooperateSearch",
+            new { returnUrl = Url.Action("TempInput", "Scan", new { kind = kind }) })';
+        });
+    }
+
+    if (btnBackToEventSelection) {
+        btnBackToEventSelection.addEventListener("click", function () {
+            sessionStorage.removeItem(formStateKey);
+        });
+    }
 </script>
+
 </body>
 </html>

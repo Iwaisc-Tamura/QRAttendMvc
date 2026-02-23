@@ -32,5 +32,11 @@ namespace QRAttendMvc.Models
         public string? ActionCd { get; set; }
         public string? TensoFlg { get; set; }
         public string? TensoYmdTime { get; set; }
+
+        /// <summary>更新担当者コード</summary>
+        public string? UTantoCd { get; set; }
+
+        /// <summary>更新時刻</summary>
+        public DateTime? UTimeStamp { get; set; }
     }
 }
