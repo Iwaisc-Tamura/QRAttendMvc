@@ -33,9 +33,9 @@ body.event-page .ee-header .ev-title {
   box-sizing: border-box;
 }
 
-.ev-tab.ev-mode-out {
-  background: #1f3a8a;
-}
+    .ev-tab.ev-mode-out {
+        background: #E57C2F !important;
+    }
 
 .ev-title {
   flex: 1;
@@ -184,13 +184,14 @@ body.event-page .ee-header .ev-title {
 }
 
 .ee-log-box {
-  border: 2px solid #1b1b1b;
-  padding: 10px;
-  background: #fff;
-  height: 310px;
-  box-sizing: border-box;
-  margin: 8px 0;
-  overflow: hidden;
+    border: 2px solid #1b1b1b;
+    padding: 0px;
+    border-radius: 6px;
+    background: #fff;
+    height: 310px;
+    box-sizing: border-box;
+    margin: 8px 0;
+    overflow: hidden;
 }
 
 .ee-log {
@@ -250,7 +251,7 @@ body.event-page .ee-header .ev-title {
 
 body.event-page .ev-login-row {
   display: grid;
-  grid-template-columns: 70px 180px;
+  grid-template-columns: 70px 100px !important;
   column-gap: 10px;
   justify-content: end;
   align-items: center;
@@ -262,7 +263,7 @@ body.event-page .ev-login-label {
 }
 
 body.event-page .ev-login-value {
-  text-align: left;
+  text-align: right;
   white-space: nowrap;
 }
 
