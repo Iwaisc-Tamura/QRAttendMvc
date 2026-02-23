@@ -251,7 +251,7 @@ body.event-page .ee-header .ev-title {
 
 body.event-page .ev-login-row {
   display: grid;
-  grid-template-columns: 70px 180px;
+  grid-template-columns: 70px 100px !important;
   column-gap: 10px;
   justify-content: end;
   align-items: center;
@@ -263,7 +263,7 @@ body.event-page .ev-login-label {
 }
 
 body.event-page .ev-login-value {
-  text-align: left;
+  text-align: right;
   white-space: nowrap;
 }
 
