@@ -148,11 +148,12 @@
 
 /* Scope to the TempInput area (uses .ee-temp-form present in TempInput.cshtml) */
 body.event-page .ee-temp-form .ev-row:not(.ev-row-split) {
-  /* narrower label column, flexible value column */
-  grid-template-columns: 120px 1fr;
-  column-gap: 16px;
-  padding: 4px 0;
-  align-items: center;
+    /* narrower label column, flexible value column */
+    grid-template-columns: 140px 600px 1fr;
+    column-gap: 16px;
+    padding: 4px 0;
+    align-items: center;
+    min-height: 0px;
 }
 
 /* Slightly smaller labels / values for compact mode */
@@ -244,16 +245,17 @@ body.event-page .ee-card {
 /* Allow scan-result to control select-like elements used in event pages */
 body.event-page .ev-select,
 body.event-page .ev-selectlike {
-  /* default appearance can be overridden here for TempInput */
-  display: inline-block;
-  padding: 6px 8px;
-  font-size: 13px;
-  line-height: 1.3;
-  border: 1px solid #cfcfcf;
-  border-radius: 4px;
-  background: #fff;
-  height: 24px;
-  box-sizing: border-box;
+    /* default appearance can be overridden here for TempInput */
+    display: inline-block;
+    padding: 6px 8px;
+    font-size: 13px;
+    line-height: 1.3;
+    border: 1px solid #cfcfcf;
+    border-radius: 4px;
+    background: #fff;
+    min-height: 24px !important;
+    height: 24px;
+    box-sizing: border-box;
 }
 
 /* Compact variant for select-like controls */
