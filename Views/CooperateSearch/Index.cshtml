@@ -30,18 +30,21 @@
         <div class="es-title">会社検索</div>
     </header>
 
-    <div class="ev-loginbox" aria-label="ログイン情報">
-        <div class="ev-login-row">
-            <span class="ev-login-label">ログイン</span>
-            <span class="ev-login-value">@login</span>
-        </div>
-        <div class="ev-login-row">
-            <div class="ev-login-label">日付</div>
-            <div class="ev-login-value"><span id="eventDate"></span></div>
-        </div>
-        <div class="ev-login-row">
-            <div class="ev-login-label">時刻</div>
-            <div class="ev-login-value"><span id="eventTime"></span></div>
+    <!-- ログイン情報 -->
+    <div class="ee-side">
+        <div class="ee-login" aria-label="ログイン情報">
+            <div class="ev-login-row">
+                <span class="ev-login-label">ログイン</span>
+                <span class="ev-login-value">@login</span>
+            </div>
+            <div class="ev-login-row">
+                <span class="ev-login-label">日付</span>
+                <span class="ev-login-value" id="layoutDate"></span>
+            </div>
+            <div class="ev-login-row">
+                <span class="ev-login-label">時刻</span>
+                <span class="ev-login-value" id="layoutTime"></span>
+            </div>
         </div>
     </div>
 
@@ -129,34 +132,35 @@
             </form>
 
             <!-- 単純戻る -->
-            <button type="button" class="es-btn es-btn-back" onclick="goBack()">戻る</button>
+            <button type="button" class="es-btn es-btn-back" onclick="goBack()">入退場登録画面<br />に戻る</button>
 
         </section>
 
     </main>
 
     <script>
-        // sessionStorage fixedLayoutTime を日付・時刻に表示
         document.addEventListener("DOMContentLoaded", function () {
-            const stored = sessionStorage.getItem("fixedLayoutTime");
-            if (!stored) return;
 
-            const fixedDate = new Date(stored);
-            const week = ["(日)", "(月)", "(火)", "(水)", "(木)", "(金)", "(土)"];
-            const w = week[fixedDate.getDay()];
+            const now = new Date();
 
+            const week = ["日", "月", "火", "水", "木", "金", "土"];
+            const w = week[now.getDay()];
+
+            // yyyy/MM/dd（曜日）
             const dateText =
-                fixedDate.getFullYear() + "/" +
-                (fixedDate.getMonth() + 1) + "/" +
-                fixedDate.getDate() + "/" + " " + w;
+                now.getFullYear() + "/" +
+                String(now.getMonth() + 1).padStart(2, "0") + "/" +
+                String(now.getDate()).padStart(2, "0") +
+                "（" + w + "）";
 
+            // HH:mm:ss
             const timeText =
-                fixedDate.getHours().toString().padStart(2, '0') + ":" +
-                fixedDate.getMinutes().toString().padStart(2, '0') + ":" +
-                fixedDate.getSeconds().toString().padStart(2, '0');
+                String(now.getHours()).padStart(2, "0") + ":" +
+                String(now.getMinutes()).padStart(2, "0") + ":" +
+                String(now.getSeconds()).padStart(2, "0");
 
-            document.getElementById("eventDate").textContent = dateText;
-            document.getElementById("eventTime").textContent = timeText;
+            document.getElementById("layoutDate").textContent = dateText;
+            document.getElementById("layoutTime").textContent = timeText;
         });
 
         // Enterで検索
@@ -199,6 +203,15 @@
             }
             history.back();
         }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll("tr.es-row").forEach(tr => {
+                tr.addEventListener("dblclick", function () {
+                    selectCooperate(tr);  
+                    commitSelect();
+                });
+            });
+        });
     </script>
 
     @functions {

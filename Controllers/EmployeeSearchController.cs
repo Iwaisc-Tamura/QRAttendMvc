@@ -23,7 +23,7 @@ namespace QRAttendMvc.Controllers
             string? companyKana,
             string? workerKanaLast,
             string? workerKanaFirst,
-            DateTime? birthDate,
+            string? birthDate,
             bool includeExpired,
             string? returnUrl,
             bool? searched,
@@ -38,12 +38,15 @@ namespace QRAttendMvc.Controllers
                 ? $"{userBranch}-{empCd}"
                 : "     -     ";
 
+            // サーバ現在日時（表示用）
+            ViewBag.ServerNow = DateTime.Now;
+
             // 検索条件保持
             ViewBag.EmployeeCd = employeeCd ?? "";
             ViewBag.CompanyKana = companyKana ?? "";
             ViewBag.WorkerKanaLast = workerKanaLast ?? "";
             ViewBag.WorkerKanaFirst = workerKanaFirst ?? "";
-            ViewBag.BirthDate = birthDate?.ToString("yyyy-MM-dd") ?? "";
+            ViewBag.BirthDate = birthDate ?? "";
             ViewBag.IncludeExpired = includeExpired;
             ViewBag.ReturnUrl = returnUrl ?? "";
 
@@ -112,7 +115,7 @@ namespace QRAttendMvc.Controllers
             string? companyKana,
             string? workerKanaLast,
             string? workerKanaFirst,
-            DateTime? birthDate,
+            string? birthDate,
             bool includeExpired)
         {
             // LEFT JOIN
@@ -173,10 +176,16 @@ namespace QRAttendMvc.Controllers
                 q = q.Where(x => (x.Emp.FirstNameKana ?? "").Contains(key));
             }
 
-            if (birthDate.HasValue)
+            if (!string.IsNullOrWhiteSpace(birthDate))
             {
-                var ymd = birthDate.Value.ToString("yyyyMMdd");
-                q = q.Where(x => x.Emp.BirthYmd == ymd);
+                var s = birthDate.Trim()
+                                 .Replace("/", "")
+                                 .Replace("-", "");
+
+                if (Regex.IsMatch(s, @"^\d{8}$"))
+                {
+                    q = q.Where(x => x.Emp.BirthYmd == s);
+                }
             }
 
             return q;
