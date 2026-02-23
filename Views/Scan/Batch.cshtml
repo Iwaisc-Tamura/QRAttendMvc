@@ -104,9 +104,9 @@
             </div>
 
             <div class="ee-read-text">
-                <div class="ee-code" id="lastCode">－</div>
+                <div class="ee-code" id="lastCode"></div>
                 <div class="ee-name-row">
-                    <span id="lastName">－</span>
+                    <span id="lastName"></span>
                     <span id="lastTime" class="ee-read-time"></span>
                 </div>
             </div>
@@ -332,14 +332,14 @@
         const parsed = parseQrString(raw);
 
         // クライアント側で仮QRを入場で使用しようとした場合は即時NG表示（サーバ側でも必ず検証します）
-        if (parsed.type === "2" && (kind || "").toUpperCase() === "IN") {
-            setIcon("NG");
-            playBeep("NG");
-            appendLog(`${parsed.original} 仮QRは入場では使用できません`);
-            showReadResult(parsed.worker || parsed.original, "仮QRは入場不可", "");
-            lockReading();
-            return;
-        }
+        // if (parsed.type === "2" && (kind || "").toUpperCase() === "IN") {
+        //     setIcon("NG");
+        //     playBeep("NG");
+        //     appendLog(`${parsed.original} 仮QRは入場では使用できません`);
+        //     showReadResult(parsed.worker || parsed.original, "仮QRは入場不可", "");
+        //     lockReading();
+        //     return;
+        // }
 
         const workerCd = parsed.worker;
         const overrideKaisai = parsed.overrideKaisai;
