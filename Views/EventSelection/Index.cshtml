@@ -39,6 +39,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <title>@ViewData["Title"] - 協力会社入退場記録システム</title>
 
     <link rel="stylesheet" href="~/css/site.css" />
@@ -75,22 +76,19 @@
                     </select>
                 </div>
 
-                <div class="ev-loginbox" aria-label="ログイン情報">
-                    <div class="ev-login-row">
-                        <span class="ev-login-label">ログイン</span>
-                        <span class="ev-login-value">@login</span>
-                    </div>
-                    <div class="ev-login-row">
-                        <div class="ev-login-label">日付</div>
-                        <div class="ev-login-value">
-                            <span id="eventDate"></span>
+                <div class="ee-side">
+                    <div class="ee-login" aria-label="ログイン情報">
+                        <div class="ev-login-row">
+                            <span class="ev-login-label">ログイン</span>
+                            <span class="ev-login-value">@login</span>
                         </div>
-                    </div>
-
-                    <div class="ev-login-row">
-                        <div class="ev-login-label">時刻</div>
-                        <div class="ev-login-value">
-                            <span id="eventTime"></span>
+                        <div class="ev-login-row">
+                            <span class="ev-login-label">日付</span>
+                            <span class="ev-login-value" id="layoutDate"></span>
+                        </div>
+                        <div class="ev-login-row">
+                            <span class="ev-login-label">時刻</span>
+                            <span class="ev-login-value" id="layoutTime"></span>
                         </div>
                     </div>
                 </div>
@@ -100,7 +98,7 @@
             <div class="ev-row">
                 <div class="ev-label">開催拠点</div>
                 <div class="ev-field">
-                    <div class="ev-selectlike ev-readonly" id="branchDisplay"></div>
+                    <div class="ev-underline" id="branchDisplay"></div>
                 </div>
             </div>
 
@@ -117,14 +115,14 @@
                 <div class="ev-split-left">
                     <div class="ev-label">イベント開催日</div>
                     <div class="ev-field">
-                        <div class="ev-underline" id="dateDisplay">@DateTime.Today.ToString("yyyy/MM/dd (ddd)")</div>
+                        <div class="ev-date" id="dateDisplay">@DateTime.Today.ToString("yyyy/MM/dd (ddd)")</div>
                     </div>
                 </div>
 
                 <div class="ev-split-right">
                     <div class="ev-inline">
                         <span class="ev-label-inline">年度</span>
-                        <span class="ev-yearbox" id="evYear"></span>
+                        <span class="ev-year" id="evYear"></span>
                         <span class="ev-yearbox-label-inline">年度</span>
                     </div>
                 </div>
@@ -177,39 +175,38 @@
 
             <form asp-action="GoToTemp" method="post">
                 <input type="hidden" name="kind" value="IN" />
-                <button type="submit" id="btnTempIn" class="ev-btn ev-btn-blue2" disabled>
+                <button type="submit" id="btnTempIn" class="btn ev-btn ev-btn-blue2" disabled>
                     入場登録<br />（臨時）
                 </button>
             </form>
 
             <form asp-action="GoToBatch" method="post">
                 <input type="hidden" name="mode" value="OUT" />
-                <button type="submit" id="btnBatchOut" class="ev-btn ev-btn-orange" disabled>
+                <button type="submit" id="btnBatchOut" class="btn ev-btn ev-btn-orange" disabled>
                     退場登録<br />（一括）
                 </button>
             </form>
 
             <form asp-action="GoToTemp" method="post">
                 <input type="hidden" name="kind" value="OUT" />
-                <button type="submit" id="btnTempOut" class="ev-btn ev-btn-orange2" disabled>
+                <button type="submit" id="btnTempOut" class="btn ev-btn ev-btn-orange2" disabled>
                     退場登録<br />（臨時）
                 </button>
             </form>
 
             <form asp-controller="AttendeeSearch" asp-action="Index" method="get">
-                <button type="submit" id="btnAttendeeSearch" class="ev-btn ev-btn-green">
-                    受講者名簿<br />検索
+                <button type="submit" id="btnAttendeeSearch" class="btn ev-btn ev-btn-green">
+                    入退場照会
                 </button>
             </form>
 
-            <a asp-controller="Home" asp-action="Index" class="ev-btn ev-btn-sky ev-btn-link">
+            <a asp-controller="Home" asp-action="Index" class="btn ev-btn ev-btn-sky ev-btn-link">
                 メインメニューに<br />戻る
             </a>
         </div>
     </div>
 
     <script>
-        // ★ データ時刻は「時間：分」
         setInterval(function () {
             const d = new Date();
             const pad = n => n.toString().padStart(2, '0');
@@ -226,12 +223,9 @@
         const autoSelected = @((autoSelected) ? "true" : "false");
         const preloaded = @Html.Raw(preloadedJson);
         const selected = @Html.Raw(selectedJson);
-
         const branchDisplay = document.getElementById('branchDisplay');
-
         const divisionSelect = document.getElementById('divisionSelect');
         const startSelect = document.getElementById('startSelect');
-
         const evCode = document.getElementById('evCode');
         const evName = document.getElementById('evName');
         const evYear = document.getElementById('evYear');
@@ -239,11 +233,11 @@
         const evRecept = document.getElementById('evRecept');
         const evStart = document.getElementById('evStart');
         const evEnd = document.getElementById('evEnd');
-
         const btnIn = document.getElementById('btnBatchIn');
         const btnOut = document.getElementById('btnBatchOut');
         const btnTempIn = document.getElementById('btnTempIn');
         const btnTempOut = document.getElementById('btnTempOut');
+        const defaultKaisaiCd = "@(ViewBag.DefaultKaisaiCd ?? "")";
 
         function clearDetail() {
             evCode.textContent = "";
@@ -257,6 +251,17 @@
             btnOut.disabled = true;
             btnTempIn.disabled = true;
             btnTempOut.disabled = true;
+        }
+
+        function setFixedSelect(selectEl, fixed) {
+            if (!selectEl) return;
+            if (fixed) {
+                selectEl.disabled = true;
+                selectEl.classList.add('is-fixed');
+            } else {
+                selectEl.disabled = false;
+                selectEl.classList.remove('is-fixed');
+            }
         }
 
         function setDetail(d) {
@@ -309,49 +314,55 @@
         }
 
         function initAutoSelected() {
-            // selected から固定表示（選択不可にする）
             if (selected) {
                 setDetail(selected);
 
                 const divText = (selected.eventCode ?? "") + " " + (selected.eventName ?? "");
                 setSelectOptions(divisionSelect, [{ value: selected.eventCode ?? "", text: divText }], " ");
                 divisionSelect.value = selected.eventCode ?? "";
-                divisionSelect.disabled = true;
+                setFixedSelect(divisionSelect, true);
 
                 setSelectOptions(startSelect, [{ value: selected.startTime ?? "", text: selected.startTime ?? "" }], " ");
                 startSelect.value = selected.startTime ?? "";
-                startSelect.disabled = true;
+                setFixedSelect(startSelect, true);
             }
         }
 
         function initMulti() {
             clearDetail();
 
-            // 支店表示（先頭データから）
             if (preloaded.length > 0) {
                 const d0 = preloaded[0];
                 branchDisplay.textContent = (d0.branchCd ? d0.branchCd : "") + (d0.branchName ? " " + d0.branchName : "");
             }
 
-            // 区分ユニーク
-            const divMap = new Map();
-            preloaded.forEach(e => {
-                if (!divMap.has(e.eventCd)) divMap.set(e.eventCd, e.eventName ?? "");
-            });
-            const divs = Array.from(divMap.entries())
-                .map(x => ({ value: x[0], text: `${x[0]} ${x[1]}` }))
-                .sort((a, b) => (a.value > b.value ? 1 : -1));
+            function rebuildStartTimesAll() {
+                clearDetail();
+                const timeMap = new Map();
+                preloaded.forEach(e => {
+                    if (!timeMap.has(e.startTimeRaw)) timeMap.set(e.startTimeRaw, e.startTime);
+                });
 
-            setSelectOptions(divisionSelect, divs);
+                const times = Array.from(timeMap.entries())
+                    .map(x => ({ raw: x[0], disp: x[1] }))
+                    .sort((a, b) => (a.raw > b.raw ? 1 : -1));
 
-            // 開始時刻候補の再構築
-            function rebuildStartTimes(divCode) {
+                const opts = times.map(t => ({ value: t.disp, text: t.disp }));
+                setSelectOptions(startSelect, opts);
+                setFixedSelect(startSelect, false);
+            }
+
+            function rebuildStartTimesByDivision(divCode, keepValue = "") {
                 clearDetail();
                 setSelectOptions(startSelect, []);
 
-                if (!divCode) return;
+                if (!divCode) {
+                    rebuildStartTimesAll();
+                    return;
+                }
 
                 const candidates = preloaded.filter(e => e.eventCd === divCode);
+
                 const timeMap = new Map();
                 candidates.forEach(e => {
                     if (!timeMap.has(e.startTimeRaw)) timeMap.set(e.startTimeRaw, e.startTime);
@@ -364,36 +375,57 @@
                 const opts = times.map(t => ({ value: t.disp, text: t.disp }));
                 setSelectOptions(startSelect, opts);
 
-                // 1件しかなければ自動確定（selectは枠内のまま、disabledに）
+                if (keepValue) startSelect.value = keepValue;
+
                 if (opts.length === 1) {
                     startSelect.value = opts[0].value;
-                    startSelect.disabled = true;
                     decide(divCode, opts[0].value);
                 } else {
-                    startSelect.disabled = false;
+                    setFixedSelect(startSelect, false);
                 }
             }
 
+            const divMap = new Map();
+            preloaded.forEach(e => {
+                if (!divMap.has(e.eventCd)) divMap.set(e.eventCd, e.eventName ?? "");
+            });
+            const divs = Array.from(divMap.entries())
+                .map(x => ({ value: x[0], text: `${x[0]} ${x[1]}` }))
+                .sort((a, b) => (a.value > b.value ? 1 : -1));
+
+            setSelectOptions(divisionSelect, divs);
+
+            const def = (defaultKaisaiCd || "").trim();
+            if (def) {
+                divisionSelect.value = def;
+                rebuildStartTimesByDivision(def);
+            } else {
+                rebuildStartTimesAll();
+            }
+
             divisionSelect.addEventListener('change', () => {
-                startSelect.disabled = false;
-                rebuildStartTimes(divisionSelect.value);
+                setFixedSelect(divisionSelect, false);
+                setFixedSelect(startSelect, false);
+                rebuildStartTimesByDivision(divisionSelect.value);
             });
 
             startSelect.addEventListener('change', () => {
-                const divCode = divisionSelect.value;
                 const st = startSelect.value;
-                if (!divCode || !st) return;
-                decide(divCode, st);
-            });
+                if (!st) return;
 
-            // 区分が1件しかなければ自動選択（selectは枠内のまま、disabledに）
-            if (divs.length === 1) {
-                divisionSelect.value = divs[0].value;
-                divisionSelect.disabled = true;
-                rebuildStartTimes(divs[0].value);
-            } else {
-                divisionSelect.disabled = false;
-            }
+                const divCode = divisionSelect.value;
+                if (divCode) {
+                    decide(divCode, st);
+                    return;
+                }
+
+                const hit = preloaded.find(e => e.startTime === st);
+                if (!hit) return;
+
+                divisionSelect.value = hit.eventCd;
+                rebuildStartTimesByDivision(hit.eventCd, st);
+                decide(hit.eventCd, st);
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -404,58 +436,19 @@
             }
         });
 
-        // ログイン情報　Home画面を表示した日時を取得し固定表示　日付はyyyy/mm/dd(ddd)　時刻はhh：mm：ss
-        document.addEventListener("DOMContentLoaded", function () {
-
-            const stored = sessionStorage.getItem("fixedLayoutTime");
-            if (!stored) return;
-
-            const fixedDate = new Date(stored);
-            const week = ["(日)", "(月)", "(火)", "(水)", "(木)", "(金)", "(土)"];
-            const w = week[fixedDate.getDay()];
-
-            // layoutClock と同じフォーマット
-            const dateText =
-                fixedDate.getFullYear() + "/" +
-                (fixedDate.getMonth() + 1) + "/" +
-                fixedDate.getDate() + "/" + " " + w;
-
-            // layoutTime　と同じフォーマット
-            const timeText =
-                fixedDate.getHours().toString().padStart(2, '0') + "：" +
-                fixedDate.getMinutes().toString().padStart(2, '0') + "：" +
-                fixedDate.getSeconds().toString().padStart(2, '0');
-
-            document.getElementById("eventDate").textContent = dateText;
-            document.getElementById("eventTime").textContent = timeText;
-        });
-
-        function updateLayoutClock() {
+        document.addEventListener('DOMContentLoaded', () => {
             const d = new Date();
             const pad = n => String(n).padStart(2, '0');
-
             const week = ["(日)", "(月)", "(火)", "(水)", "(木)", "(金)", "(土)"];
-            const w = week[d.getDay()];
 
-            const date =
-                d.getFullYear() + "/" +
-                pad(d.getMonth() + 1) + "/" +
-                pad(d.getDate()) + " " + w;
-
-            const time =
-                pad(d.getHours()) + "：" +
-                pad(d.getMinutes());
+            const date = `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${week[d.getDay()]}`;
+            const time = `${pad(d.getHours())}：${pad(d.getMinutes())}：${pad(d.getSeconds())}`;
 
             const elDate = document.getElementById("layoutDate");
-            if (elDate) elDate.textContent = date;
-
             const elTime = document.getElementById("layoutTime");
+            if (elDate) elDate.textContent = date;
             if (elTime) elTime.textContent = time;
-        }
-
-        updateLayoutClock();
-        setInterval(updateLayoutClock, 1000);
-
+        });
 
     </script>
 </body>

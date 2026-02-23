@@ -98,6 +98,32 @@ namespace QRAttendMvc.Controllers
                 e.QrKbn
             }).ToList();
 
+            // ★ 当日の「最後に選んだ区分（KAISAI_CD）」を TT01_TARGET_EVENT から取得
+            var todayKey = DateTime.Today.ToString("yyyyMMdd"); // サーバー当日
+
+            var latestTargetToday = await _db.TargetEvents
+                .Where(x => x.BranchCd == userBranch
+                         && x.SelectYmdTime != null
+                         && x.SelectYmdTime.Substring(0, 8) == todayKey) // 当日分だけ
+                .OrderByDescending(x => x.SelectYmdTime)
+                .FirstOrDefaultAsync();
+
+            // ★ TT01はKAISAI_CD（開催コード）なので、events から一致する EventCd（区分）へ変換して渡す
+            var defaultEventCd = "";
+
+            if (latestTargetToday?.KaisaiCd != null)
+            {
+                var kaisaiCd = latestTargetToday.KaisaiCd.Trim();
+
+                var hit = events.FirstOrDefault(e => (e.KaisaiCd ?? "").Trim() == kaisaiCd);
+                if (hit != null)
+                {
+                    defaultEventCd = (hit.EventCd ?? "").Trim();
+                }
+            }
+
+            ViewBag.DefaultKaisaiCd = defaultEventCd;
+
             return View();
         }
 

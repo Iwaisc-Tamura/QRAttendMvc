@@ -1,5 +1,6 @@
 @model IEnumerable<QRAttendMvc.Models.AttendeeSearchRow>
 @using QRAttendMvc.Models
+@using System.Globalization
 
 @{
     Layout = null; 
@@ -21,6 +22,11 @@
     Context.Request.Query.ContainsKey("searched") &&
     !string.IsNullOrWhiteSpace(Context.Request.Query["searched"]);
 
+    var ja = new CultureInfo("ja-JP");
+    var serverNow = DateTime.Now; // サーバ現在日時（ページを開いた瞬間）
+    var serverDateText = serverNow.ToString("yyyy/MM/dd (ddd)", ja);
+    var serverTimeText = serverNow.ToString("hh:mm:ss", ja); // 要望通り hh
+
     var currentSort = Context.Request.Query["sort"].ToString();
     var currentDir = Context.Request.Query["dir"].ToString(); // "asc" or "desc"
 
@@ -41,26 +47,23 @@
     <!-- ===== ヘッダー（master風） ===== -->
     <header class="as-header">
         <div class="as-tab">検索</div>
-        <div class="as-title">受講者名簿検索</div>
+        <div class="as-title">入退場照会</div>
     </header>
 
-    <!-- ★② 日付・時刻：指定の ev-loginbox を使用 -->
-    <div class="ev-loginbox" aria-label="ログイン情報">
-        <div class="ev-login-row">
-            <span class="ev-login-label">ログイン</span>
-            <span class="ev-login-value">@login</span>
-        </div>
-        <div class="ev-login-row">
-            <div class="ev-login-label">日付</div>
-            <div class="ev-login-value">
-                <span id="eventDate"></span>
+    <!-- ログイン情報 -->
+    <div class="ee-side">
+        <div class="ee-login" aria-label="ログイン情報">
+            <div class="ev-login-row">
+                <span class="ev-login-label">ログイン</span>
+                <span class="ev-login-value">@login</span>
             </div>
-        </div>
-
-        <div class="ev-login-row">
-            <div class="ev-login-label">時刻</div>
-            <div class="ev-login-value">
-                <span id="eventTime"></span>
+            <div class="ev-login-row">
+                <span class="ev-login-label">日付</span>
+                <span class="ev-login-value" id="layoutDate">@serverDateText</span>
+            </div>
+            <div class="ev-login-row">
+                <span class="ev-login-label">時刻</span>
+                <span class="ev-login-value" id="layoutTime">@serverTimeText</span>
             </div>
         </div>
     </div>
@@ -68,17 +71,6 @@
     <main class="as-container">
 
         <div class="as-event-header">
-            <!-- 開催コード（既存項目名は変更しない③） -->
-            @if (!string.IsNullOrEmpty(currentKaisaiCd))
-            {
-                <section class="as-eventinfo">
-                    <div class="as-info-row">
-                        <div class="as-info-label">開催コード</div>
-                        <div class="as-info-value">@currentKaisaiCd</div>
-                    </div>
-                </section>
-            }
-
             <div class="as-event-row">
                 <div class="as-ev-label">イベント開催日</div>
                 <div class="as-ev-value">@ViewBag.EventDate</div>
@@ -105,6 +97,9 @@
 
                 <div class="as-ev-label as-ev-label-inline">受付開始時刻</div>
                 <div class="as-ev-value as-ev-value-inline">@ViewBag.Uketsuke</div>
+
+                <div class="as-ev-label as-ev-label-inline">開催コード</div>
+                <div class="as-ev-value as-ev-value-inline">@currentKaisaiCd</div>
             </div>
 
         </div>
@@ -122,7 +117,6 @@
             <!-- 追加 2026.02.17 Takada ：ソート結果を残す -->
             <input type="hidden" name="sort" value="@currentSort" />
             <input type="hidden" name="dir" value="@currentDir" />
-            <input type="hidden" name="filter" value="@filter" />
 
             <!-- 1段目：会社名（カナ）／会社名／2次店以下含む／検索 -->
             <div class="as-grid as-grid-1">
@@ -166,8 +160,10 @@
 
                 <div class="as-field">
                     <label class="as-label">生年月日</label>
-                    <!-- type=dateはそのまま。masterに合わせて見た目はCSSで寄せる -->
-                    <input name="birthDate" type="date" value="@birthDate" class="as-input" />
+                    <!-- カレンダーアイコン非表示 -->
+                    <!-- <input name="birthDate" type="date" value="@birthDate" class="as-input" /> -->
+                    <input name="birthDate" type="text" inputmode="numeric" placeholder="yyyy/mm/dd"
+                           value="@birthDate" class="as-input as-birth" autocomplete="off" />
                 </div>
                 <div class="as-field">
                     <label class="as-label">絞り込み条件</label>
@@ -309,9 +305,6 @@
                 fixedDate.getHours().toString().padStart(2, '0') + "：" +
                 fixedDate.getMinutes().toString().padStart(2, '0') + "：" +
                 fixedDate.getSeconds().toString().padStart(2, '0');
-
-            document.getElementById("eventDate").textContent = dateText;
-            document.getElementById("eventTime").textContent = timeText;
         });
 
         document.addEventListener("DOMContentLoaded", function () {

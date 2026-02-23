@@ -16,6 +16,8 @@
 
     <!-- 共通CSS -->
     <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/scan-result.css" />
+    <link rel="stylesheet" href="~/css/entryexit-batch.css" />
 </head>
 
 <body class="index-home">
@@ -40,9 +42,24 @@
                             【テスト用】開催日を本日に更新
                         </button>
                     </form>
+
+                    <form asp-controller="TestUtility"
+                          asp-action="UpdateTodayEventDate20260220"
+                          method="post"
+                          onsubmit="sessionStorage.setItem('fixedLayoutTime','2026-02-21T00:00:00'); return confirm('テスト用処理です。\n開催日を2026/02/21に更新します。\nよろしいですか？');">
+                        <button type="submit" class="btn btn-warning fw-bold">
+                            【テスト用】開催日を2026/02/21に更新
+                        </button>
+                    </form>
+
+                    <button class="btn btn-secondary" onclick="sessionStorage.removeItem('fixedLayoutTime');">
+                        日付固定を解除
+                    </button>
+
                 </div>
 
-                <div class="home-sub-right">
+                <!-- ログイン項目（共通） -->
+                <div class="ee-top">
                     @{
                         var b = Context?.Session?.GetString("BRANCH_CD") ?? "";
                         var e = Context?.Session?.GetString("EMPLOYEE_CD") ?? "";
@@ -51,20 +68,20 @@
                         : "XXXXX-YYYYY";
                     }
 
-                    <div class="home-clock">
-                        <div class="home-clock-row">
-                            <span class="home-clock-label">ログイン</span>
-                            <span class="home-clock-value">@login</span>
-                        </div>
-
-                        <div class="home-clock-row">
-                            <span class="home-clock-label">日付</span>
-                            <span class="home-clock-value" id="layoutDate"></span>
-                        </div>
-
-                        <div class="home-clock-row">
-                            <span class="home-clock-label">時刻</span>
-                            <span class="home-clock-value" id="layoutTime"></span>
+                    <div class="ee-side">
+                        <div class="ee-login" aria-label="ログイン情報">
+                            <div class="ev-login-row">
+                                <span class="ev-login-label">ログイン</span>
+                                <span class="ev-login-value">@login</span>
+                            </div>
+                            <div class="ev-login-row">
+                                <span class="ev-login-label">日付</span>
+                                <span class="ev-login-value" id="layoutDate"></span>
+                            </div>
+                            <div class="ev-login-row">
+                                <span class="ev-login-label">時刻</span>
+                                <span class="ev-login-value" id="layoutTime"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -94,7 +111,13 @@
     <!-- 右上：日付・時刻更新（画像の表示形式に合わせる） -->
     <script>
         function updateLayoutClock() {
-            const d = new Date();
+            //const d = new Date();
+            //const pad = n => String(n).padStart(2, '0');
+
+            // ★固定日時があればそれを使う（無ければ現在時刻）
+            const fixedIso = sessionStorage.getItem("fixedLayoutTime");
+            const d = fixedIso ? new Date(fixedIso) : new Date();
+
             const pad = n => String(n).padStart(2, '0');
 
             const week = ["(日)", "(月)", "(火)", "(水)", "(木)", "(金)", "(土)"];
