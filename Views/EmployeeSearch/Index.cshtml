@@ -47,6 +47,11 @@
     </header>
 
     <!-- ログイン情報 -->
+    @{
+        var serverNow = (DateTime)(ViewBag.ServerNow ?? DateTime.Now);
+        var w = new[] { "日", "月", "火", "水", "木", "金", "土" };
+        var youbi = w[(int)serverNow.DayOfWeek];
+    }
     <div class="ee-side">
         <div class="ee-login" aria-label="ログイン情報">
             <div class="ev-login-row">
@@ -55,11 +60,11 @@
             </div>
             <div class="ev-login-row">
                 <span class="ev-login-label">日付</span>
-                <span class="ev-login-value" id="layoutDate"></span>
+                <span class="ev-login-value">@serverNow.ToString("yyyy/MM/dd") (@youbi)</span>
             </div>
             <div class="ev-login-row">
                 <span class="ev-login-label">時刻</span>
-                <span class="ev-login-value" id="layoutTime"></span>
+                <span class="ev-login-value">@serverNow.ToString("HH:mm:ss")</span>
             </div>
         </div>
     </div>
@@ -113,7 +118,7 @@
 
                 <div class="es-field">
                     <label class="es-label">生年月日</label>
-                    <input name="birthDate" type="date" value="@birthDate" class="es-input" />
+                    <input name="birthDate" type="text" value="@birthDate" class="es-input" placeholder="yyyy/MM/dd" />
                 </div>
 
                 <div class="es-field">
@@ -179,7 +184,10 @@
                 <tbody>
                     @foreach (var r in Model)
                     {
-                        <tr class="es-row" data-emp="@r.EmployeeCd" onclick="pickRow(this)">
+                        <tr class="es-row"
+                            data-emp="@r.EmployeeCd"
+                            onclick="pickRow(this)"
+                            ondblclick="pickRow(this); commitSelect();">
                             <td>@r.EmployeeCd</td>
                             <td>@r.CompanyName</td>
                             <td>@r.CompanyKana</td>
@@ -195,37 +203,13 @@
 
         <!-- 操作ボタン -->
         <section class="es-footer">
-            <button type="button" class="es-btn es-btn-search" onclick="commitSelect()">選択</button>
-            <button type="button" class="es-btn es-btn-back" onclick="goBack()">入退場登録に戻る</button>
+            <button type="button" class="es-btn es-btn-search es-btn-select" onclick="commitSelect()">選択</button>
+            <button type="button" class="es-btn es-btn-back" onclick="goBack()">入退場登録画面<br />に戻る</button>
         </section>
 
     </main>
 
     <script>
-        // ★ Attendee と同じ：sessionStorage fixedLayoutTime を使って日付・時刻を表示
-        document.addEventListener("DOMContentLoaded", function () {
-
-            const stored = sessionStorage.getItem("fixedLayoutTime");
-            if (!stored) return;
-
-            const fixedDate = new Date(stored);
-            const week = ["(日)", "(月)", "(火)", "(水)", "(木)", "(金)", "(土)"];
-            const w = week[fixedDate.getDay()];
-
-            const dateText =
-                fixedDate.getFullYear() + "/" +
-                (fixedDate.getMonth() + 1) + "/" +
-                fixedDate.getDate() + "/" + " " + w;
-
-            const timeText =
-                fixedDate.getHours().toString().padStart(2, '0') + "：" +
-                fixedDate.getMinutes().toString().padStart(2, '0') + "：" +
-                fixedDate.getSeconds().toString().padStart(2, '0');
-
-            document.getElementById("eventDate").textContent = dateText;
-            document.getElementById("eventTime").textContent = timeText;
-        });
-
         // Enterで検索（textareaは除外）
         document.addEventListener("DOMContentLoaded", function () {
             const form = document.getElementById("searchForm");

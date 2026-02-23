@@ -196,7 +196,7 @@
 
             <form asp-controller="AttendeeSearch" asp-action="Index" method="get">
                 <button type="submit" id="btnAttendeeSearch" class="btn ev-btn ev-btn-green">
-                    受講者名簿<br />検索
+                    入退場照会
                 </button>
             </form>
 
@@ -207,7 +207,6 @@
     </div>
 
     <script>
-        // ★ データ時刻は「時間：分」
         setInterval(function () {
             const d = new Date();
             const pad = n => n.toString().padStart(2, '0');
@@ -224,12 +223,9 @@
         const autoSelected = @((autoSelected) ? "true" : "false");
         const preloaded = @Html.Raw(preloadedJson);
         const selected = @Html.Raw(selectedJson);
-
         const branchDisplay = document.getElementById('branchDisplay');
-
         const divisionSelect = document.getElementById('divisionSelect');
         const startSelect = document.getElementById('startSelect');
-
         const evCode = document.getElementById('evCode');
         const evName = document.getElementById('evName');
         const evYear = document.getElementById('evYear');
@@ -237,12 +233,10 @@
         const evRecept = document.getElementById('evRecept');
         const evStart = document.getElementById('evStart');
         const evEnd = document.getElementById('evEnd');
-
         const btnIn = document.getElementById('btnBatchIn');
         const btnOut = document.getElementById('btnBatchOut');
         const btnTempIn = document.getElementById('btnTempIn');
         const btnTempOut = document.getElementById('btnTempOut');
-
         const defaultKaisaiCd = "@(ViewBag.DefaultKaisaiCd ?? "")";
 
         function clearDetail() {
@@ -320,7 +314,6 @@
         }
 
         function initAutoSelected() {
-            // selected から固定表示（選択不可にする）
             if (selected) {
                 setDetail(selected);
 
@@ -335,88 +328,14 @@
             }
         }
 
-        // function initMulti() {
-        //     clearDetail();
-
-        //     // 支店表示（先頭データから）
-        //     if (preloaded.length > 0) {
-        //         const d0 = preloaded[0];
-        //         branchDisplay.textContent = (d0.branchCd ? d0.branchCd : "") + (d0.branchName ? " " + d0.branchName : "");
-        //     }
-
-        //     // 区分ユニーク
-        //     const divMap = new Map();
-        //     preloaded.forEach(e => {
-        //         if (!divMap.has(e.eventCd)) divMap.set(e.eventCd, e.eventName ?? "");
-        //     });
-        //     const divs = Array.from(divMap.entries())
-        //         .map(x => ({ value: x[0], text: `${x[0]} ${x[1]}` }))
-        //         .sort((a, b) => (a.value > b.value ? 1 : -1));
-
-        //     setSelectOptions(divisionSelect, divs);
-
-        //     // 開始時刻候補の再構築
-        //     function rebuildStartTimes(divCode) {
-        //         clearDetail();
-        //         setSelectOptions(startSelect, []);
-
-        //         if (!divCode) return;
-
-        //         const candidates = preloaded.filter(e => e.eventCd === divCode);
-        //         const timeMap = new Map();
-        //         candidates.forEach(e => {
-        //             if (!timeMap.has(e.startTimeRaw)) timeMap.set(e.startTimeRaw, e.startTime);
-        //         });
-
-        //         const times = Array.from(timeMap.entries())
-        //             .map(x => ({ raw: x[0], disp: x[1] }))
-        //             .sort((a, b) => (a.raw > b.raw ? 1 : -1));
-
-        //         const opts = times.map(t => ({ value: t.disp, text: t.disp }));
-        //         setSelectOptions(startSelect, opts);
-
-        //         // 1件しかなければ自動確定（selectは枠内のまま、disabledに）
-        //         if (opts.length === 1) {
-        //             startSelect.value = opts[0].value;
-        //             setFixedSelect(startSelect, true);
-        //             decide(divCode, opts[0].value);
-        //         } else {
-        //             setFixedSelect(startSelect, false);
-        //         }
-        //     }
-
-        //     divisionSelect.addEventListener('change', () => {
-        //         setFixedSelect(startSelect, false);
-        //         rebuildStartTimes(divisionSelect.value);
-        //     });
-
-        //     startSelect.addEventListener('change', () => {
-        //         const divCode = divisionSelect.value;
-        //         const st = startSelect.value;
-        //         if (!divCode || !st) return;
-        //         decide(divCode, st);
-        //     });
-
-        //     // 区分が1件しかなければ自動選択（selectは枠内のまま、disabledに）
-        //     if (divs.length === 1) {
-        //         divisionSelect.value = divs[0].value;
-        //         setFixedSelect(divisionSelect, true);
-        //         rebuildStartTimes(divs[0].value);
-        //     } else {
-        //         divisionSelect.disabled = false;
-        //     }
-        // }
-
         function initMulti() {
             clearDetail();
 
-            // 支店表示（先頭データから）
             if (preloaded.length > 0) {
                 const d0 = preloaded[0];
                 branchDisplay.textContent = (d0.branchCd ? d0.branchCd : "") + (d0.branchName ? " " + d0.branchName : "");
             }
 
-            // ★開始時刻（全体ユニーク）
             function rebuildStartTimesAll() {
                 clearDetail();
                 const timeMap = new Map();
@@ -433,7 +352,6 @@
                 setFixedSelect(startSelect, false);
             }
 
-            // 区分を選んだ時：その区分の開始時刻だけに絞る
             function rebuildStartTimesByDivision(divCode, keepValue = "") {
                 clearDetail();
                 setSelectOptions(startSelect, []);
@@ -459,7 +377,6 @@
 
                 if (keepValue) startSelect.value = keepValue;
 
-                // 1件なら自動確定
                 if (opts.length === 1) {
                     startSelect.value = opts[0].value;
                     decide(divCode, opts[0].value);
@@ -468,7 +385,6 @@
                 }
             }
 
-            // 区分ユニーク
             const divMap = new Map();
             preloaded.forEach(e => {
                 if (!divMap.has(e.eventCd)) divMap.set(e.eventCd, e.eventName ?? "");
@@ -479,7 +395,6 @@
 
             setSelectOptions(divisionSelect, divs);
 
-            // ★ 当日履歴があれば区分をデフォルト選択（※ trim を JS 側でも保険）
             const def = (defaultKaisaiCd || "").trim();
             if (def) {
                 divisionSelect.value = def;
@@ -488,14 +403,12 @@
                 rebuildStartTimesAll();
             }
 
-            // 区分変更
             divisionSelect.addEventListener('change', () => {
                 setFixedSelect(divisionSelect, false);
                 setFixedSelect(startSelect, false);
                 rebuildStartTimesByDivision(divisionSelect.value);
             });
 
-            // 開始時刻変更
             startSelect.addEventListener('change', () => {
                 const st = startSelect.value;
                 if (!st) return;
@@ -523,7 +436,6 @@
             }
         });
 
-        // ログイン情報　Home画面を表示した日時を取得し固定表示　日付はyyyy/mm/dd(ddd)　時刻はhh：mm：ss
         document.addEventListener('DOMContentLoaded', () => {
             const d = new Date();
             const pad = n => String(n).padStart(2, '0');

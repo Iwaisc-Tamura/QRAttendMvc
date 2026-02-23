@@ -20,7 +20,7 @@ namespace QRAttendMvc.Controllers
             _db = db;
         }
 
-        [HttpGet]
+           [HttpGet]
         public async Task<IActionResult> Index(
             string? companyKana,
             string? companyName,
@@ -29,15 +29,12 @@ namespace QRAttendMvc.Controllers
             string? workerId,
             DateTime? birthDate,
             string? filter,
-             bool? searched,
+            bool? searched,
             string? sort,
             string? dir)
         {
-            // 現行仕様：イベントは GT01_KAISAI_EVENT を選択してセッションに保持する。
-            // 名簿検索画面では「現在選択中のイベント」は必須ではないため、ここでは参照のみ。
             ViewBag.CurrentKaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
 
-            // 追加 2026.02.16 Takada ；ログインコードの遷移
             var userBranch = HttpContext.Session.GetString("BRANCH_CD") ?? string.Empty;
             var empCd = HttpContext.Session.GetString("EMPLOYEE_CD") ?? string.Empty;
 
@@ -45,8 +42,17 @@ namespace QRAttendMvc.Controllers
                 ? $"{userBranch}-{empCd}"
                 : "     -     ";
 
-            // 追加 2026.02.16 Takada ；イベント表示用（EventSelectionController で Session に入れた値）
-            ViewBag.EventDate = HttpContext.Session.GetString("SelectedEventDate") ?? "";
+            var eventDateStr = HttpContext.Session.GetString("SelectedEventDate") ?? "";
+
+            if (DateTime.TryParse(eventDateStr, out var eventDate))
+            {
+                var ja = new System.Globalization.CultureInfo("ja-JP");
+                ViewBag.EventDate = eventDate.ToString("yyyy/MM/dd (ddd)", ja);
+            }
+            else
+            {
+                ViewBag.EventDate = eventDateStr;
+            }
             ViewBag.Kubun = HttpContext.Session.GetString("SelectedKubun") ?? "";
             ViewBag.Kyoten = HttpContext.Session.GetString("SelectedKyoten") ?? "";
             ViewBag.Place = HttpContext.Session.GetString("SelectedPlace") ?? "";
@@ -54,166 +60,73 @@ namespace QRAttendMvc.Controllers
             ViewBag.EndTime = HttpContext.Session.GetString("SelectedEndTime") ?? "";
             ViewBag.Uketsuke = HttpContext.Session.GetString("SelectedUketsuke") ?? "";
 
-            /* 追加 2026.02.17 Takada*/
             var hasSearched = searched.GetValueOrDefault();
 
-            // 検索条件の保持
-            ViewBag.CompanyKana = companyKana ?? "";
-            ViewBag.CompanyName = companyName ?? "";
-            ViewBag.WorkerKanaLast = workerKanaLast ?? "";
-            ViewBag.WorkerKanaFirst = workerKanaFirst ?? "";
-            ViewBag.WorkerId = workerId ?? "";
-            ViewBag.BirthDate = birthDate?.ToString("yyyy-MM-dd") ?? "";
-
-            // 初回表示は空リストで返す
             if (!hasSearched)
-            {
                 return View(Enumerable.Empty<AttendeeSearchRow>());
-            }
-            // 空csv出力防止
+
             if (searched != true)
                 return BadRequest("検索実行後にCSV出力してください。");
 
-            /* 修正 2025.02.16 Takada */
-            var q = BuildAttendeeQuery(companyKana, companyName, workerKanaLast, workerKanaFirst, workerId, birthDate);
+            var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd) ?? "";
 
-            // ★追加：ソート適用
+            // 母集団
+            var q = BuildBaseQuery(kaisaiCd, filter);
+
+            // 他条件
+            q = ApplySearchConditions(q, companyKana, companyName, workerKanaLast, workerKanaFirst, workerId, birthDate);
+
+            // DBソート
             q = ApplySort(q, sort, dir);
 
             var list = await q.ToListAsync();
 
+            // rows作成
             var rows = new List<AttendeeSearchRow>();
-
-            /* 追加 2025.02.17 Takada */
-            var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd) ?? "";
-
-            // 一括でログを取る（N+1解消）
-            var employeeCds = list.Select(x => x.Emp.EmployeeCd).Distinct().ToList();
-            var logMap = await LoadEntryExitMapAsync(kaisaiCd, employeeCds);
-
-            /* 修正 2025.02.16 Takada */
             foreach (var x in list)
             {
                 var p = x.Emp;
-
-                DateTime? lastIn = null;
-                DateTime? lastOut = null;
-
-                /* 修正 2025.02.17 Takada */
-                if (!string.IsNullOrEmpty(kaisaiCd) && logMap.TryGetValue(p.EmployeeCd, out var row))
-                {
-                    lastIn = ParseTodayHm(row.EntryTime);
-                    lastOut = ParseTodayHm(row.ExitTime);
-                }
-
                 rows.Add(new AttendeeSearchRow
                 {
                     CompanyName = x.CompanyName,
                     WorkerId = p.EmployeeCd,
                     WorkerName = p.DisplayName,
-
-                    /* 追加 2026.02.14 Takada　*/
                     BirthDate = ParseYyyyMMdd(p.BirthYmd),
                     ExcludeDate = ParseYyyyMMdd(p.RetireYmd),
-
-                    LastInTime = lastIn,
-                    LastOutTime = lastOut,
+                    LastInTime = ParseTodayHm(x.EntryTime),
+                    LastOutTime = ParseTodayHm(x.ExitTime),
                 });
             }
 
-            rows = ApplyRowSort(rows, sort, dir);
-            rows = ApplyFilter(rows, filter);
+            // lastin/lastout はメモリソート
             rows = ApplyRowSort(rows, sort, dir);
 
             return View(rows);
         }
 
-        private IQueryable<AttendeeJoined> BuildAttendeeQuery(
-            string? companyKana,
-            string? companyName,
-            string? workerKanaLast,
-            string? workerKanaFirst,
-            string? workerId,
-            DateTime? birthDate)
-        {
-            // ★ JOIN（LEFT JOIN）
-            var q =
-                from e in _db.Employees.AsNoTracking()
-                join c in _db.Cooperates.AsNoTracking()
-                    on e.CooperateCd equals c.CooperateCd into gj
-                from c in gj.DefaultIfEmpty()
-                select new AttendeeJoined
-                {
-                    Emp = e,
-                    CompanyName = c != null ? (c.CompanyName ?? "") : "",
-                    CompanyKana = c != null ? (c.CompanyNameKana ?? "") : ""
-                };
-
-
-            if (!string.IsNullOrWhiteSpace(workerKanaFirst))
-            {
-                var key = NormalizeKanaToWide(workerKanaFirst);
-                q = q.Where(x => (x.Emp.FirstNameKana ?? "").Contains(key));
-            }
-
-            /* 追加 2026.02.16 Takada*/
-            if (!string.IsNullOrWhiteSpace(workerKanaLast))
-            {
-                var key = NormalizeKanaToWide(workerKanaLast);
-                q = q.Where(x => (x.Emp.FamilyNameKana ?? "").Contains(key));
-            }
-
-            // ★ WHERE（共通）
-            if (!string.IsNullOrWhiteSpace(workerId))
-            {
-                var key = workerId.Trim();
-                q = q.Where(x => x.Emp.EmployeeCd.Contains(key));
-            }
-
-            if (!string.IsNullOrWhiteSpace(companyName))
-            {
-                var key = companyName.Trim();
-                q = q.Where(x => x.CompanyName.Contains(key));
-            }
-
-            if (!string.IsNullOrWhiteSpace(companyKana))
-            {
-                 var key = NormalizeKanaToWide(companyKana);// 全角寄せ
-
-                q = q.Where(x =>
-                    (x.CompanyKana ?? "").Contains(key));
-            }
-
-            /* 追加 2026.02.16 Takada */
-            if (birthDate.HasValue)
-            {
-                var ymd = birthDate.Value.ToString("yyyyMMdd");
-                q = q.Where(x => x.Emp.BirthYmd == ymd);
-            }
-
-            return q;
-        }
-
-        // BuildAttendeeQuery 用のDTO（Controller内でOK）
         private class AttendeeJoined
         {
             public Gm01Employee Emp { get; set; } = default!;
             public string CompanyName { get; set; } = "";
             public string CompanyKana { get; set; } = "";
+
+            // ★追加：TT02の文字列(4桁HHmm想定)
+            public string? EntryTime { get; set; }
+            public string? ExitTime { get; set; }
         }
 
         public async Task<FileResult> Export(
-            string? companyKana,
-            string? companyName,
-            string? workerKanaLast,
-            string? workerKanaFirst,
-            string? workerId,
-            DateTime? birthDate,
-            bool? searched,
-            string? sort,
-            string? dir) 
+    string? companyKana,
+    string? companyName,
+    string? workerKanaLast,
+    string? workerKanaFirst,
+    string? workerId,
+    DateTime? birthDate,
+    string? filter,
+    bool? searched,
+    string? sort,
+    string? dir)
         {
-
             if (searched != true)
             {
                 var readmeBytes = Encoding.UTF8.GetPreamble()
@@ -223,41 +136,24 @@ namespace QRAttendMvc.Controllers
                 return File(readmeBytes, "text/plain", "readme.txt");
             }
 
-            /* 変更 2026.02.16 Takada*/
-            var q = BuildAttendeeQuery(companyKana, companyName, workerKanaLast, workerKanaFirst, workerId, birthDate);
+            var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd) ?? "";
 
+            // 母集団
+            var q = BuildBaseQuery(kaisaiCd, filter);
+
+            // 他条件
+            q = ApplySearchConditions(q, companyKana, companyName, workerKanaLast, workerKanaFirst, workerId, birthDate);
+
+            // DBソート
             q = ApplySort(q, sort, dir);
 
             var list = await q.ToListAsync();
 
-            var sb = new StringBuilder();
-            sb.AppendLine("会社名\t作業員ID\t作業員名\t生年月日\t名簿対象除外日\t入場記録\t退場記録");
-
-            string Esc(string? v) => (v ?? "").Replace("\t", " ");
-
-            /* 追加 2026.02.17 Takada */
-            var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd) ?? "";
-
-            // 一括でログを取る（N+1解消）
-            var employeeCds = list.Select(x => x.Emp.EmployeeCd).Distinct().ToList();
-            var logMap = await LoadEntryExitMapAsync(kaisaiCd, employeeCds);
-
-            // ★ここから：Indexと同じ rows を作る
+            // rows作成
             var rows = new List<AttendeeSearchRow>();
-
             foreach (var x in list)
             {
                 var p = x.Emp;
-
-                DateTime? lastIn = null;
-                DateTime? lastOut = null;
-
-                if (!string.IsNullOrEmpty(kaisaiCd) && logMap.TryGetValue(p.EmployeeCd, out var row))
-                {
-                    lastIn = ParseTodayHm(row.EntryTime);
-                    lastOut = ParseTodayHm(row.ExitTime);
-                }
-
                 rows.Add(new AttendeeSearchRow
                 {
                     CompanyName = x.CompanyName,
@@ -265,31 +161,36 @@ namespace QRAttendMvc.Controllers
                     WorkerName = p.DisplayName,
                     BirthDate = ParseYyyyMMdd(p.BirthYmd),
                     ExcludeDate = ParseYyyyMMdd(p.RetireYmd),
-                    LastInTime = lastIn,
-                    LastOutTime = lastOut,
+                    LastInTime = ParseTodayHm(x.EntryTime),
+                    LastOutTime = ParseTodayHm(x.ExitTime),
                 });
             }
 
-            // ★ここがポイント：入退場ソートなどメモリ側のソートをCSVにも反映
+            // lastin/lastout はメモリソート
             rows = ApplyRowSort(rows, sort, dir);
 
-            // ★CSVは rows の順で出す（これで画面と一致）
+            // TSV作成
+            var sb = new StringBuilder();
+            sb.AppendLine("会社名\t作業員ID\t作業員名\t生年月日\t名簿対象除外日\t入場記録\t退場記録");
+
+            string Esc(string? v) => (v ?? "").Replace("\t", " ");
+
             foreach (var r in rows)
             {
                 sb.AppendLine(string.Join("\t", new[]
                 {
-                    Esc(r.CompanyName),
-                    Esc(r.WorkerId),
-                    Esc(r.WorkerName),
-                    r.BirthDate?.ToString("yyyy/MM/dd") ?? "",
-                    r.ExcludeDate?.ToString("yyyy/MM/dd") ?? "",
-                    r.LastInTime?.ToString("HH:mm") ?? "",
-                    r.LastOutTime?.ToString("HH:mm") ?? ""
-                }));
+            Esc(r.CompanyName),
+            Esc(r.WorkerId),
+            Esc(r.WorkerName),
+            r.BirthDate?.ToString("yyyy/MM/dd") ?? "",
+            r.ExcludeDate?.ToString("yyyy/MM/dd") ?? "",
+            r.LastInTime?.ToString("HH:mm") ?? "",
+            r.LastOutTime?.ToString("HH:mm") ?? ""
+        }));
             }
 
-            var bytes = System.Text.Encoding.UTF8.GetPreamble()
-                .Concat(System.Text.Encoding.UTF8.GetBytes(sb.ToString()))
+            var bytes = Encoding.UTF8.GetPreamble()
+                .Concat(Encoding.UTF8.GetBytes(sb.ToString()))
                 .ToArray();
 
             var fileName = $"attendee_{DateTime.Now:yyyyMMdd_HHmmss}.tsv";
@@ -341,63 +242,6 @@ namespace QRAttendMvc.Controllers
             return s;
         }
 
-        private static List<AttendeeSearchRow> ApplyFilter(List<AttendeeSearchRow> rows, string? filter)
-        {
-            var key = (filter ?? "").Trim().ToLowerInvariant();
-            if (string.IsNullOrEmpty(key)) return rows;
-
-            return key switch
-            {
-                // 未受講者（入場、退場とも記録なし）
-                "no_log" => rows
-                    .Where(r => r.LastInTime == null && r.LastOutTime == null)
-                    .ToList(),
-
-                // 入場記録のみ、または退場記録のみあり
-                "partial_log" => rows
-                    .Where(r => (r.LastInTime == null) ^ (r.LastOutTime == null)) // XOR
-                    .ToList(),
-
-                // 未受講者（従業員情報マスタに登録あり）
-                // ※現状は全員マスタ由来なので差を出すため「退職日なし＆未受講」で実装
-                "no_log_active" => rows
-                    .Where(r => r.LastInTime == null && r.LastOutTime == null && r.ExcludeDate == null)
-                    .ToList(),
-
-                _ => rows
-            };
-        }
-
-        private async Task<Dictionary<string, Tt02EntryExit>> LoadEntryExitMapAsync(
-            string kaisaiCd,
-            List<string> employeeCds)
-        {
-            var map = new Dictionary<string, Tt02EntryExit>();
-
-            if (string.IsNullOrWhiteSpace(kaisaiCd) || employeeCds.Count == 0)
-                return map;
-
-            // SQL Server の IN パラメータ上限対策（大人数でも落ちないように）
-            const int batchSize = 1000;
-
-            for (int i = 0; i < employeeCds.Count; i += batchSize)
-            {
-                var batch = employeeCds.Skip(i).Take(batchSize).ToList();
-
-                var rows = await _db.EntryExitLogs.AsNoTracking()
-                    .Where(l => l.KaisaiCd == kaisaiCd && batch.Contains(l.EmployeeCd))
-                    .ToListAsync();
-
-                foreach (var r in rows)
-                {
-                    // 同一 EmployeeCd が複数あっても最後に入ったものを優先（基本は一意のはず）
-                    map[r.EmployeeCd] = r;
-                }
-            }
-
-            return map;
-        }
-
         private static IQueryable<AttendeeJoined> ApplySort(IQueryable<AttendeeJoined> q, string? sort, string? dir)
         {
             var key = (sort ?? "").Trim().ToLowerInvariant();
@@ -443,6 +287,144 @@ namespace QRAttendMvc.Controllers
 
                 _ => rows
             };
+        }
+
+        private IQueryable<AttendeeJoined> BuildBaseQuery(string kaisaiCd, string? filter)
+        {
+            var key = (filter ?? "").Trim().ToLowerInvariant();
+
+            // TT02の有無が前提なので、開催コードが無いと母集団が作れないパターンは空にする
+            // （要件的には「画面で指定されている開催コード」なので、未選択なら空が自然）
+            if (string.IsNullOrWhiteSpace(kaisaiCd))
+            {
+                // 「②はEMP全件からTT02に無い」も開催コードが必要なので空に寄せる
+                return Enumerable.Empty<AttendeeJoined>().AsQueryable();
+            }
+
+            // ①（空欄）→ TT02(開催コード) を母集団
+            IQueryable<AttendeeJoined> BaseFromTT02()
+            {
+                var q =
+                    from l in _db.EntryExitLogs.AsNoTracking() // TT02_ENTRY_EXIT
+                    where l.KaisaiCd == kaisaiCd
+                    join e in _db.Employees.AsNoTracking()
+                        on l.EmployeeCd equals e.EmployeeCd
+                    join c in _db.Cooperates.AsNoTracking()
+                        on e.CooperateCd equals c.CooperateCd into gj
+                    from c in gj.DefaultIfEmpty()
+                    select new AttendeeJoined
+                    {
+                        Emp = e,
+                        CompanyName = c != null ? (c.CompanyName ?? "") : "",
+                        CompanyKana = c != null ? (c.CompanyNameKana ?? "") : "",
+                        EntryTime = l.EntryTime,
+                        ExitTime = l.ExitTime
+                    };
+
+                return q;
+            }
+
+            // ② 未受講者（入退場とも記録なし）→ EMP全件から、TT02(開催コード)に存在しない従業員
+            IQueryable<AttendeeJoined> BaseFromEmployeeNotInTT02()
+            {
+                var q =
+                    from e in _db.Employees.AsNoTracking()
+                    where !_db.EntryExitLogs.AsNoTracking()
+                        .Any(l => l.KaisaiCd == kaisaiCd && l.EmployeeCd == e.EmployeeCd)
+                    join c in _db.Cooperates.AsNoTracking()
+                        on e.CooperateCd equals c.CooperateCd into gj
+                    from c in gj.DefaultIfEmpty()
+                    select new AttendeeJoined
+                    {
+                        Emp = e,
+                        CompanyName = c != null ? (c.CompanyName ?? "") : "",
+                        CompanyKana = c != null ? (c.CompanyNameKana ?? "") : "",
+                        EntryTime = null,
+                        ExitTime = null
+                    };
+
+                return q;
+            }
+
+            // ③ 入場のみ or 退場のみ（XOR）
+            IQueryable<AttendeeJoined> BaseFromTT02_Partial()
+            {
+                var q = BaseFromTT02();
+
+                q = q.Where(x =>
+                    (!string.IsNullOrEmpty(x.EntryTime) && string.IsNullOrEmpty(x.ExitTime)) ||
+                    (string.IsNullOrEmpty(x.EntryTime) && !string.IsNullOrEmpty(x.ExitTime))
+                );
+
+                return q;
+            }
+
+            // ④ 入退場ともnull/空
+            IQueryable<AttendeeJoined> BaseFromTT02_BothNull()
+            {
+                var q = BaseFromTT02();
+
+                q = q.Where(x => string.IsNullOrEmpty(x.EntryTime) && string.IsNullOrEmpty(x.ExitTime));
+
+                return q;
+            }
+
+            return key switch
+            {
+                "" => BaseFromTT02(),           // ①
+                "no_log" => BaseFromEmployeeNotInTT02(),   // ②
+                "partial_log" => BaseFromTT02_Partial(),   // ③
+                "no_log_active" => BaseFromTT02_BothNull(),// ④
+                _ => BaseFromTT02()
+            };
+        }
+
+        private IQueryable<AttendeeJoined> ApplySearchConditions(
+            IQueryable<AttendeeJoined> q,
+            string? companyKana,
+            string? companyName,
+            string? workerKanaLast,
+            string? workerKanaFirst,
+            string? workerId,
+            DateTime? birthDate)
+        {
+            if (!string.IsNullOrWhiteSpace(workerKanaFirst))
+            {
+                var key = NormalizeKanaToWide(workerKanaFirst);
+                q = q.Where(x => (x.Emp.FirstNameKana ?? "").Contains(key));
+            }
+
+            if (!string.IsNullOrWhiteSpace(workerKanaLast))
+            {
+                var key = NormalizeKanaToWide(workerKanaLast);
+                q = q.Where(x => (x.Emp.FamilyNameKana ?? "").Contains(key));
+            }
+
+            if (!string.IsNullOrWhiteSpace(workerId))
+            {
+                var key = workerId.Trim();
+                q = q.Where(x => x.Emp.EmployeeCd.Contains(key));
+            }
+
+            if (!string.IsNullOrWhiteSpace(companyName))
+            {
+                var key = companyName.Trim();
+                q = q.Where(x => (x.CompanyName ?? "").Contains(key));
+            }
+
+            if (!string.IsNullOrWhiteSpace(companyKana))
+            {
+                var key = NormalizeKanaToWide(companyKana);
+                q = q.Where(x => (x.CompanyKana ?? "").Contains(key));
+            }
+
+            if (birthDate.HasValue)
+            {
+                var ymd = birthDate.Value.ToString("yyyyMMdd");
+                q = q.Where(x => x.Emp.BirthYmd == ymd);
+            }
+
+            return q;
         }
 
     }

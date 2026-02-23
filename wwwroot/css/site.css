@@ -18,6 +18,17 @@ body {
    index（Home） : body.index-home
    ===================================================== */
 
+    body.index-cooprete .es-container {
+        padding: 10px 0 10px 0;
+    }
+
+    body.index-cooprete .es-tablewrap {
+        height: 60vh; 
+        max-height: 510px;
+        min-height: 300px;
+        overflow-y: auto;
+    }
+
     body.index-home .container-fluid {
         padding-left: 0 !important;
         padding-right: 0 !important;
@@ -133,7 +144,8 @@ body {
         padding-bottom: 0 !important; 
     }
 
-    /* --- テストボタン --- */
+    /* ---------- テストボタン---------- */
+
     .home-sub-left {
         display: flex;
         flex-direction: column; 
@@ -144,7 +156,7 @@ body {
     .home-sub-left > button {
         width: 300px; 
     }
-    /* --- テストボタン --- */
+/* ---------- テストボタン---------- */
 
 /* =====================================================
    index（EventSelection） : body.event-page
@@ -204,7 +216,7 @@ body {
         column-gap: 32px;
         align-items: center;
         padding: 10px 0;
-        min-height: 48px; /* ← 下にズレないため固定 */
+        min-height: 48px;
     }
 
     body.event-page .ev-label {
@@ -258,8 +270,8 @@ body {
         display: inline-block;
         border-bottom: 2px solid #1d1d1d;
         padding: 4px 10px;
-        min-height: 36px; /* 高さ固定でズレ防止 */
-        line-height: 28px; /* ← 垂直中央 */
+        min-height: 36px; 
+        line-height: 28px;
         box-sizing: border-box;
     }
 
@@ -275,8 +287,8 @@ body {
 
     body.event-page .ev-row.ev-row-split .ev-split-left {
         display: grid;
-        grid-template-columns: 140px 1fr; /* ←通常行と合わせる */
-        column-gap: 32px; /* ←通常行と合わせる */
+        grid-template-columns: 140px 1fr; 
+        column-gap: 32px;
         align-items: center;
     }
 
@@ -313,26 +325,26 @@ body {
         box-sizing: border-box;
     }
 
-    /* split行の開催日・年度：短い下線にする */
+    /*開催日・年度：下線 */
     body.event-page .ev-date,
     body.event-page .ev-year {
         display: inline-block;
         height: 36px;
         line-height: 36px;
         box-sizing: border-box;
-        border-bottom: 2px solid #1d1d1d; /* ←下線復活 */
+        border-bottom: 2px solid #1d1d1d; 
         padding: 0 10px;
     }
 
-    /* 開催日：終了時刻くらいの短さ（必要なら 120〜180 で調整） */
+    /* 開催日 */
     body.event-page .ev-date {
-        width: 160px; /* ←まずはこのくらいが無難 */
+        width: 160px; 
         text-align: left;
     }
 
-    /* 年度：年だけなので短め */
+    /* 年度：年の下線*/
     body.event-page .ev-year {
-        width: 90px; /* ←終了時刻の100pxに近い */
+        width: 90px;
         text-align: center;
         padding: 0 6px;
     }
@@ -423,23 +435,22 @@ body {
         color: #fff;
     }
 
-    /* 未確定（選べる状態）は区分と同等の幅に */
+    /* プルダウン未確定は区分と同等の幅に */
     body.event-page #startSelect:not(.is-fixed) {
-        width: 520px; /* 区分の幅に合わせる */
+        width: 520px; 
     }
 
-    /* その時、親も広げる（ev-field-short を使っていてもOK） */
     body.event-page #startArea .ev-field-short {
         width: 520px;
     }
 
-    /* 確定（is-fixed）になったら短い下線表示に */
+    /* プルダウン確定は下線 */
     body.event-page #startSelect.is-fixed {
-        width: 100px !important; /* 終了時刻くらい */
+        width: 100px !important; 
         border: 2px solid transparent;
         border-bottom-color: #1d1d1d;
         background-image: none !important;
-        padding-right: 0; /* 矢印スペース不要 */
+        padding-right: 0; 
     }
 
     /* =====================================================
@@ -485,15 +496,34 @@ body {
     }
 
     /* ログイン情報 */
-    body.index-attende .ev-loginbox {
-        position: absolute;
-        top: 100px;
-        right: 10pt;
-        justify-self: auto !important;
-        text-align: left !important;
+    body.index-attende .ee-side {
+        position: fixed;
+        top: 100px; 
+        right: 300px; 
+        z-index: 50;
+    }
+
+    body.index-attende .ee-login {
         min-width: 310px;
         font-size: 12pt;
         line-height: 1.6;
+    }
+
+    body.index-attende .ee-login .ev-login-row {
+        display: grid;
+        grid-template-columns: 70px 1fr;
+        column-gap: 10px;
+        align-items: center;
+    }
+
+    body.index-attende .ee-login .ev-login-label {
+        text-align: left;
+        font-weight: 700;
+    }
+
+    body.index-attende .ee-login .ev-login-value {
+        text-align: right;
+        white-space: nowrap;
     }
 
     body.index-attende .ev-login-row {
@@ -519,14 +549,13 @@ body {
 
     /* コンテンツ領域 */
     body.index-attende .as-container {
-        width: 1200pt; /* 1000pt → 1200pt など */
+        width: 1200pt;
         min-width: 600pt;
         margin: 0 auto;
         padding: 18px 0 20px 0;
         box-sizing: border-box;
     }
 
-    /* 開催コードなど上部情報 */
     body .index-attende .as-eventinfo {
         padding-top: 4px;
         padding-right: 0;
@@ -577,7 +606,7 @@ body {
     }
 
     body.index-attende .as-grid-2 {
-        grid-template-columns: 240px 240px 240px 240px 320px; /* 5列目を少し広め */
+        grid-template-columns: 240px 240px 240px 240px 320px;
     }
 
     body.index-attende .as-label {
@@ -589,7 +618,7 @@ body {
     body.index-attende .as-input {
         width: 100%;
         height: 34px;
-        border: 2px solid #1d1d1d;
+        border: 1px solid #d0d0d0;
         padding: 4px 10px;
         box-sizing: border-box;
         background: #fff;
@@ -664,7 +693,6 @@ body {
         text-align: center;
     }
 
-    /* フッターボタン */
     body.index-attende .as-footer {
         position: sticky;
         margin-top: 16px;
@@ -674,8 +702,8 @@ body {
     }
 
     body.index-attende .as-btn-primary {
-        width: 100pt;
-        min-width: 100px;
+        width: 200pt;
+        min-width: 200px;
         height: 74px;
         background: #3cb371; 
         color: #fff;
@@ -683,8 +711,8 @@ body {
     }
 
     body.index-attende .as-btn-secondary {
-        width: 100pt;
-        min-width: 100px;
+        width: 200pt;
+        min-width: 200px;
         height: 74px;
         background: #2a78c5; 
         color: #fff;
@@ -719,12 +747,11 @@ body {
 
     body.index-attende .as-event-row-time {
         display: grid;
-        grid-template-columns: 180px 220px 140px 1fr; /* 左から：開催時刻ラベル｜時刻｜受付開始ラベル｜受付時刻 */
+        grid-template-columns: 180px 220px 140px 160px 140px 1fr;
         column-gap: 20px;
         align-items: center;
     }
 
-    /* インライン用（太字などは既存と揃える） */
     body.index-attende .as-ev-label-inline {
         font-weight: 800;
         text-align: left;
@@ -735,29 +762,25 @@ body {
         text-align: left;
     }
 
-    /* 一覧の枠を固定してスクロール */
     body.index-attende .as-tablewrap {
         margin-top: 6px;
-        max-height: 520px; /* ←ここは好みで調整（例：20〜25行分） */
-        min-height: 520px; /* ←件数が少なくても枠の高さを固定 */
+        max-height: 520px;
+        min-height: 520px;
         overflow-y: auto;
-        border: 1px solid #d7d7d7; /* 任意：枠線 */
+        border: 1px solid #d7d7d7; 
     }
 
-    /* ヘッダー固定（スクロールしても見出しが残る） */
     body.index-attende .as-table thead th {
         position: sticky;
         top: 0;
         z-index: 2;
     }
 
-    /* テーブルのレイアウトを安定させる */
-        body.index-attende .as-table {
+    body.index-attende .as-table {
         table-layout: fixed;
         width: 100%;
     }
 
-    /* 文字が長い列は省略表示（横に広がりすぎ防止） */
         body.index-attende .as-table th,
         body.index-attende .as-table td {
         overflow: hidden;
@@ -768,7 +791,7 @@ body {
     /* 会社名 */
     body.index-attende .as-table th:nth-child(1),
     body.index-attende .as-table td:nth-child(1) {
-        width: 260px; /* 220→260など */
+        width: 260px; 
     }
 
     /* 作業員ID */
@@ -777,10 +800,10 @@ body {
         width: 120px;
     }
 
-    /* 作業員名（追加：広めに取る） */
+    /* 作業員名*/
     body.index-attende .as-table th:nth-child(3),
     body.index-attende .as-table td:nth-child(3) {
-        width: 260px; /* ここを大きく */
+        width: 260px; 
     }
 
     body.index-attende .as-footer {
@@ -802,7 +825,7 @@ body {
 
     body.index-attende .as-btn-disabled {
         opacity: 0.45;
-        pointer-events: none; /* クリック無効 */
+        pointer-events: none;
         cursor: not-allowed;
         text-decoration: none;
     }
@@ -820,6 +843,10 @@ body {
         text-align: center;
         padding-left: 0;
         padding-right: 0;
+    }
+
+    body.index-attende .as-btn {
+        border-radius: 10px; 
     }
 
     /* =====================================================
@@ -908,7 +935,7 @@ body {
     body.index-employee .es-input {
         width: 100%;
         height: 34px;
-        border: 2px solid #1d1d1d;
+        border: 1px solid #d0d0d0;
         padding: 4px 10px;
         box-sizing: border-box;
         background: #fff;
@@ -934,6 +961,7 @@ body {
         text-decoration: none;
         cursor: pointer;
         font-weight: 800;
+        width: 200px;
         height: 44px;
         padding: 0 18px;
         box-sizing: border-box;
@@ -942,7 +970,8 @@ body {
     body.index-employee .es-btn-search {
         background: #3cb371;
         color: #fff;
-        width: 150px;
+        width: 200px;
+        height: 74px;
     }
 
     body.index-employee .es-checkline {
@@ -951,6 +980,11 @@ body {
         align-items: center;
         font-weight: 700;
     }
+
+    body.index-employee .es-btn-select{
+    width: 200px;
+    height: 74px;
+}
 
     body.index-employee .es-tablewrap {
         margin-top: 6px;
@@ -982,35 +1016,41 @@ body {
         margin-top: 16px;
         display: flex;
         justify-content: flex-end;
+        gap: 16px;
     }
 
     body.index-employee .es-btn-back {
         background: #4b86c5;
         color: #fff;
-        width: 220px;
-        height: 56px;
+        width: 200px;
+        height: 74px;
     }
 
-    /* ④ 最低 11pt 以上 */
     body.index-employee {
         font-size: 11pt;
     }
 
-    /* ② ログインユニット：緑バーより下10pt、右端10pt */
     body.index-employee .ev-loginbox {
         position: absolute;
-        top: 100px; /* ※緑バー高さ90px想定 → 下10pt相当 */
+        top: 100px;
         right: 10pt;
         left: auto;
         min-width: 260px;
     }
 
-    /* ② ラベル左寄せ / 値右寄せ */
+    /* ラベル */
     body.index-employee .ev-login-row {
         display: grid;
         grid-template-columns: 70px 1fr;
-        column-gap: 8px;
+        column-gap: 23px;
         align-items: center;
+    }
+
+    body.index-employee .ee-side {
+        position: fixed;
+        top: 100px; 
+        right: 300px; 
+        z-index: 50;
     }
 
     body.index-employee .ev-login-label {
@@ -1095,20 +1135,27 @@ body {
         outline-offset: -2px; /* 内側に表示 */
     }
 
-    /* =====================================================
+    body.index-employee .es-btn {
+        border-radius: 10px;
+    }
+
+/* =====================================================
    index(Company/Cooperate Search) : body.index-cooprete
    ===================================================== */
 
-    body.index-cooprete {
-        font-size: 11pt;
-        overflow-x: hidden;
-    }
+body.index-cooprete {
+    font-size: 11pt;
+    overflow-x: hidden;
+}
 
     body.index-cooprete * {
         font-size: inherit;
     }
 
-    /* header */
+    /* ========================
+   Header
+   ======================== */
+
     body.index-cooprete .es-header {
         display: flex;
         width: 100%;
@@ -1137,15 +1184,56 @@ body {
         padding-left: 36px;
     }
 
-    /* main container */
+    /* ========================
+   Login (右上固定)
+   ======================== */
+
+    body.index-cooprete .ee-side {
+        position: fixed;
+        top: 100px;
+        right: 200px; /* ← ここを調整 */
+        z-index: 50;
+    }
+
+    body.index-cooprete .ee-login {
+        min-width: 280px;
+        font-size: 12pt;
+        line-height: 1.6;
+    }
+
+    body.index-cooprete .ev-login-row {
+        display: grid;
+        grid-template-columns: 80px 200px;
+        column-gap: 10px;
+        align-items: center;
+    }
+
+    body.index-cooprete .ev-login-label {
+        font-weight: 700;
+        text-align: left;
+    }
+
+    body.index-cooprete .ev-login-value {
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    /* ========================
+   Main Container
+   ======================== */
+
     body.index-cooprete .es-container {
         position: relative;
         width: 1000pt;
         min-width: 600pt;
         margin: 0 auto;
-        padding: 18px 0 20px 0;
+        padding: 12px 0;
         box-sizing: border-box;
     }
+
+    /* ========================
+   Search Form
+   ======================== */
 
     body.index-cooprete .es-form {
         padding-top: 10px;
@@ -1160,34 +1248,25 @@ body {
         margin-bottom: 10px;
     }
 
-    /* 会社検索：会社名(カナ) + 検索 + クリア（EmployeeSearchの1段目と同じ配列に合わせる） */
     body.index-cooprete .es-grid-1 {
         grid-template-columns: 220px 520px 160px 160px;
     }
 
-    /* 会社名（カナ）入力を 1-2列に跨らせる（Index.cshtml側は es-span2 を付与） */
     body.index-cooprete .es-span2 {
         grid-column: 1 / span 2;
     }
 
     body.index-cooprete .es-label {
-        display: block;
         font-weight: 800;
-        margin: 0 0 6px 0;
+        margin-bottom: 6px;
     }
 
     body.index-cooprete .es-input {
         width: 100%;
         height: 34px;
-        border: 2px solid #1d1d1d;
+        border: 1px solid #bdbdbd;
         padding: 4px 10px;
         box-sizing: border-box;
-        background: #fff;
-        color: #000;
-    }
-
-    body.index-cooprete .es-hint {
-        margin: 10px 0 14px 0;
     }
 
     body.index-cooprete .es-action {
@@ -1202,30 +1281,29 @@ body {
         align-items: center;
         justify-content: center;
         border: none;
-        text-decoration: none;
         cursor: pointer;
         font-weight: 800;
-        height: 44px;
-        padding: 0 18px;
-        box-sizing: border-box;
+        border-radius: 10px;
     }
 
-    /* 検索・クリア（Esearch_now.png同等） */
+    /* 検索・クリア */
     body.index-cooprete .es-btn-search {
         background: #3cb371;
         color: #fff;
         width: 150px;
-    }
-    /* ===== リスト外枠 ===== */
-    body.index-cooprete .es-tablewrap {
-        margin-top: 6px;
-        border: 1px solid #dcdcdc; /* 薄い灰色 */
-        height: 520px;
-        overflow-y: auto;
+        height: 44px;
     }
 
-    body.index-cooprete .es-table tbody tr:nth-child(even) {
-        background-color: #f5f5f5;
+    /* ========================
+   Table
+   ======================== */
+
+    body.index-cooprete .es-tablewrap {
+        margin-top: 6px;
+        border: 1px solid #dcdcdc;
+        height: 55vh; /* 安定サイズ */
+        min-height: 300px;
+        overflow-y: auto;
     }
 
     body.index-cooprete .es-table {
@@ -1233,100 +1311,62 @@ body {
         border-collapse: collapse;
     }
 
-    /* ===== ヘッダー（項目名行） ===== */
-    body.index-cooprete .es-table thead th {
-        background: #e5e5e5; 
-        border-bottom: 1px solid #dcdcdc;
-        padding: 8px 6px;
-        text-align: left;
-    }
+        body.index-cooprete .es-table thead th {
+            background: #e5e5e5;
+            border-bottom: 1px solid #dcdcdc;
+            padding: 8px 6px;
+            text-align: left;
+        }
 
-    /* ===== データ行 ===== */
-    body.index-cooprete .es-table tbody td {
-        border-bottom: 1px solid #eeeeee; 
-        padding: 6px 6px;
-    }
+        body.index-cooprete .es-table tbody td {
+            border-bottom: 1px solid #eeeeee;
+            padding: 6px;
+        }
 
-    /* 行背景（全体を薄いグレーにする場合） */
-    body.index-cooprete .es-table tbody tr {
-        background-color: #fafafa; 
-    }
+        body.index-cooprete .es-table tbody tr:nth-child(even) {
+            background-color: #f7f7f7;
+        }
 
+    /* hover */
     body.index-cooprete .es-row {
-        cursor: pointer;
-    }
-
-    /* 選択状態（クリックで付くクラス） */
-    body.index-cooprete tr.es-row.es-selected {
-        outline: 3px solid #4b86c5;
-        outline-offset: -3px;
-    }
-
-    /* footer */
-    body.index-cooprete .es-footer {
-        margin-top: 16px;
-        display: flex;
-        justify-content: flex-end;
-    }
-
-    body.index-cooprete .es-btn-back {
-        background: #4b86c5;
-        color: #fff;
-        width: 220px;
-        height: 56px;
-    }
-
-    /* 右上ログイン枠（index-employee と同等） */
-    body.index-cooprete .ev-loginbox {
-        position: absolute;
-        top: 100px; /* ヘッダー90px + 余白相当 */
-        right: 10pt;
-        left: auto;
-        min-width: 260px;
-    }
-
-    body.index-cooprete .ev-login-row {
-        display: grid;
-        grid-template-columns: 70px 1fr;
-        column-gap: 8px;
-        align-items: center;
-    }
-
-    body.index-cooprete .ev-login-label {
-        text-align: left;
-    }
-
-    body.index-cooprete .ev-login-value {
-        text-align: right;
-    }
-
-    /* 通常行 */
-    body.index-cooprete .es-table .es-row {
         cursor: pointer;
         transition: background-color 0.15s ease;
     }
 
-    /* 未選択行だけ hover（枠は出さない） */
-    body.index-cooprete .es-table .es-row:not(.es-selected):hover {
-        background-color: #f2f6fb; /* うっすら色 */
-        outline: none;
-    }
+        body.index-cooprete .es-row:not(.es-selected):hover {
+            background-color: #f2f6fb;
+        }
 
-    /* 選択状態（クリックで付くクラス） */
-    body.index-cooprete .es-table .es-row.es-selected,
-    body.index-cooprete .es-table .es-row.es-selected:hover {
-        background-color: #e7f1ff; /* 薄い青 */
-        outline: 2px solid #0d6efd; /* 青枠 */
-        outline-offset: -2px; /* 内側に表示 */
-    }
+        /* selected */
+        body.index-cooprete .es-row.es-selected,
+        body.index-cooprete .es-row.es-selected:hover {
+            background-color: #e7f1ff;
+            outline: 2px solid #0d6efd;
+            outline-offset: -2px;
+        }
 
-    body.index-cooprete tr.es-row.es-selected:hover {
-        outline: 3px solid #4b86c5;
-        outline-offset: -3px;
-    }
+    /* ========================
+   Footer
+   ======================== */
 
     body.index-cooprete .es-footer {
+        margin-top: 16px;
         display: flex;
         gap: 20px;
         justify-content: flex-end;
+    }
+
+    /* 選択ボタン */
+    body.index-cooprete #selectForm .es-btn-search {
+        width: 200px;
+        height: 74px;
+    }
+
+    /* 戻るボタン */
+    body.index-cooprete .es-btn-back {
+        background: #4b86c5;
+        color: #fff;
+        width: 200px;
+        height: 74px;
+        border-radius: 10px;
     }
