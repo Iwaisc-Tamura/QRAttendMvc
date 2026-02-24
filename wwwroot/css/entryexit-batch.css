@@ -101,9 +101,10 @@ body.event-page .ee-header .ev-title {
 }
 
 .ee-side {
-  justify-self: end;
-  text-align: right;
-  max-width: 260px;
+    right: auto !important;
+    justify-self: end;
+    text-align: right;
+    max-width: 260px;
 }
 
 .ee-login {

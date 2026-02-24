@@ -66,91 +66,96 @@
         }
 
         <div class="ev-form">
-
-            <!-- ログイン情報（位置・スタイル維持のため独立） -->
-            <div class="ee-side">
-                <div class="ee-login" aria-label="ログイン情報">
-                    <div class="ev-login-row">
-                        <span class="ev-login-label">ログイン</span>
-                        <span class="ev-login-value">@login</span>
+            <div class="ee-top">
+                <div>
+                    <!-- 開催拠点（先に表示） -->
+                    <div class="ev-row">
+                        <div class="ev-label">開催拠点</div>
+                        <div class="ev-field">
+                            <div class="ev-underline" id="branchDisplay"></div>
+                        </div>
                     </div>
-                    <div class="ev-login-row">
-                        <span class="ev-login-label">日付</span>
-                        <span class="ev-login-value" id="layoutDate"></span>
+
+                    <!-- 区分（開催拠点の下へ） -->
+                    <div class="ev-row ev-row-3" id="divisionArea">
+                        <div class="ev-label">区分</div>
+
+                        <div class="ev-field ev-field-mid">
+                            <select id="divisionSelect" class="ev-select">
+                                <option value="">選択してください</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="ev-login-row">
-                        <span class="ev-login-label">時刻</span>
-                        <span class="ev-login-value" id="layoutTime"></span>
+
+                    <!-- 受講場所 -->
+                    <div class="ev-row">
+                        <div class="ev-label">受講場所</div>
+                        <div class="ev-field">
+                            <div class="ev-underline" id="evLoc"></div>
+                        </div>
+                    </div>
+
+                    <!-- イベント開催日 -->
+                    <div class="ev-row ev-row-split">
+                        <div class="ev-split-left">
+                            <div class="ev-label">イベント開催日</div>
+                            <div class="ev-field">
+                                <div class="ev-date" id="dateDisplay">@DateTime.Today.ToString("yyyy/MM/dd (ddd)")</div>
+                            </div>
+                        </div>
+                        <div class="ev-split-right">
+                            <span id="evYear" style="display:none"></span>
+                        </div>
+                    </div>
+
+                    <!-- 開始時刻 -->
+                    <div class="ev-row" id="startArea">
+                        <div class="ev-label">開始時刻</div>
+
+                        <div class="ev-field ev-field-short">
+                            <select id="startSelect" class="ev-select">
+                                <option value="">選択してください</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 終了時刻 -->
+                    <div class="ev-row">
+                        <div class="ev-label">終了時刻</div>
+                        <div class="ev-field ev-field-short">
+                            <div class="ev-underline" id="evEnd"></div>
+                        </div>
+                    </div>
+
+                    <!-- 受付開始時刻 -->
+                    <div class="ev-row">
+                        <div class="ev-label">受付開始時刻</div>
+                        <div class="ev-field ev-field-short">
+                            <div class="ev-underline" id="evRecept"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- ログイン情報（位置・スタイル維持のため独立） -->
+                <div class="ee-side">
+                    <div class="ee-login" aria-label="ログイン情報">
+                        <div class="ev-login-row">
+                            <span class="ev-login-label">ログイン</span>
+                            <span class="ev-login-value">@login</span>
+                        </div>
+                        <div class="ev-login-row">
+                            <span class="ev-login-label">日付</span>
+                            <span class="ev-login-value" id="layoutDate"></span>
+                        </div>
+                        <div class="ev-login-row">
+                            <span class="ev-login-label">時刻</span>
+                            <span class="ev-login-value" id="layoutTime"></span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 開催拠点（先に表示） -->
-            <div class="ev-row">
-                <div class="ev-label">開催拠点</div>
-                <div class="ev-field">
-                    <div class="ev-underline" id="branchDisplay"></div>
-                </div>
-            </div>
 
-            <!-- 区分（開催拠点の下へ） -->
-            <div class="ev-row ev-row-3" id="divisionArea">
-                <div class="ev-label">区分</div>
 
-                <div class="ev-field ev-field-mid">
-                    <select id="divisionSelect" class="ev-select">
-                        <option value="">選択してください</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- 受講場所 -->
-            <div class="ev-row">
-                <div class="ev-label">受講場所</div>
-                <div class="ev-field">
-                    <div class="ev-underline" id="evLoc"></div>
-                </div>
-            </div>
-
-            <!-- イベント開催日 -->
-            <div class="ev-row ev-row-split">
-                <div class="ev-split-left">
-                    <div class="ev-label">イベント開催日</div>
-                    <div class="ev-field">
-                        <div class="ev-date" id="dateDisplay">@DateTime.Today.ToString("yyyy/MM/dd (ddd)")</div>
-                    </div>
-                </div>
-                <div class="ev-split-right">
-                    <span id="evYear" style="display:none"></span>
-                </div>
-            </div>
-
-            <!-- 開始時刻 -->
-            <div class="ev-row" id="startArea">
-                <div class="ev-label">開始時刻</div>
-
-                <div class="ev-field ev-field-short">
-                    <select id="startSelect" class="ev-select">
-                        <option value="">選択してください</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- 終了時刻 -->
-            <div class="ev-row">
-                <div class="ev-label">終了時刻</div>
-                <div class="ev-field ev-field-short">
-                    <div class="ev-underline" id="evEnd"></div>
-                </div>
-            </div>
-
-            <!-- 受付開始時刻 -->
-            <div class="ev-row">
-                <div class="ev-label">受付開始時刻</div>
-                <div class="ev-field ev-field-short">
-                    <div class="ev-underline" id="evRecept"></div>
-                </div>
-            </div>
 
             <!-- イベント情報 -->
             <div class="ev-info">
