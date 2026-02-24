@@ -732,6 +732,25 @@ namespace QRAttendMvc.Controllers
                 });
             }
 
+            // 通常QRで作業員マスタ未登録の場合は警告
+            if (qrPrefix == "1")
+            {
+                var empCheck = await _db.Employees.AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.EmployeeCd == workerCd);
+                if (empCheck == null)
+                {
+                    return Json(new
+                    {
+                        ok = false,
+                        result = "WARN",
+                        mark = "△",
+                        message = "作業員マスタに登録がありません",
+                        code = workerCd,
+                        time = hhmm
+                    });
+                }
+            }
+
             // 画面から渡された KaisaiCd（あれば）を優先する
             var effectiveKaisai = !string.IsNullOrWhiteSpace(req.KaisaiCd) ? req.KaisaiCd : null;
 

@@ -18,6 +18,16 @@ body {
    index（Home） : body.index-home
    ===================================================== */
 
+    body .ee-top {
+        display: grid;
+        grid-template-columns: 1fr 200px;
+        gap: 12px 24px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #d6d6d6;
+        margin-bottom: 12px;
+    }
+
+
     body.index-cooprete .es-container {
         padding: 10px 0 10px 0;
     }
@@ -241,7 +251,7 @@ body {
 
     /* 固定表示時 */
     body.event-page .ev-select.is-fixed {
-        border: 2px solid transparent;
+        border: 1px solid transparent;
         border-bottom-color: #1d1d1d;
         background-image: none;
     }
@@ -268,7 +278,7 @@ body {
     /* 共通下線 */
     body.event-page .ev-underline {
         display: inline-block;
-        border-bottom: 2px solid #1d1d1d;
+        border-bottom: 1px solid #1d1d1d;
         padding: 4px 10px;
         min-height: 36px; 
         line-height: 28px;
@@ -332,7 +342,7 @@ body {
         height: 36px;
         line-height: 36px;
         box-sizing: border-box;
-        border-bottom: 2px solid #1d1d1d; 
+        border-bottom: 1px solid #1d1d1d; 
         padding: 0 10px;
     }
 
@@ -357,7 +367,7 @@ body {
     /* ---------- ログイン表示 ---------- */
 
     body.event-page .ee-side {
-        position: fixed;
+        /*position: fixed;*/
         top: 110px; /* 90pxヘッダ + 少し余白 */
         right: 60px; /* ev-container の右余白に合わせる */
         z-index: 50;
@@ -365,7 +375,7 @@ body {
 
     body.event-page .ee-login .ev-login-row {
         display: grid;
-        grid-template-columns: 70px 180px;
+        grid-template-columns: 70px 120px;
         column-gap: 10px;
     }
 
@@ -376,7 +386,7 @@ body {
     /* ---------- イベント情報 ---------- */
 
     body.event-page .ev-info {
-        border-top: 2px solid #cfcfcf;
+        /*border-top: 2px solid #cfcfcf;*/
         margin-top: 14px;
         padding-top: 12px;
         min-height: 100px; /* ← 表示時にズレない */
@@ -450,7 +460,7 @@ body {
     /* プルダウン確定は下線 */
     body.event-page #startSelect.is-fixed {
         width: 100px !important; 
-        border: 2px solid transparent;
+        border: 1px solid transparent;
         border-bottom-color: #1d1d1d;
         background-image: none !important;
         padding-right: 0; 
@@ -921,7 +931,7 @@ body {
     }
 
     body.index-employee .es-grid-1 {
-        grid-template-columns: 220px 520px 160px 160px;
+        grid-template-columns: 220px 520px 100px 100px;
     }
 
     body.index-employee .es-grid-2 {
@@ -972,8 +982,8 @@ body {
     body.index-employee .es-btn-search {
         background: #3cb371;
         color: #fff;
-        width: 200px;
-        height: 74px;
+        width: 100px;
+        height: 34px;
     }
 
     body.index-employee .es-checkline {
@@ -1049,7 +1059,6 @@ body {
     }
 
     body.index-employee .ee-side {
-        position: fixed;
         top: 100px; 
         right: 300px; 
         z-index: 50;
@@ -1105,16 +1114,16 @@ body {
 
     /* 一覧エリアの高さを固定（件数で下が動かない） */
     body.index-employee .es-tablewrap {
-        height: 220px; /* ここを好みで調整 */
+        height: 480px; /* ここを好みで調整 */
         overflow-y: auto;
     }
 
     /* 戻るボタンを画面右下に固定 */
     body.index-employee .es-footer {
-        position: fixed;
+        /*position: fixed;*/
         right: 40px;
         bottom: 30px;
-        margin-top: 0 !important;
+        margin-top: 10px !important;
         z-index: 10;
     }
 
@@ -1191,7 +1200,6 @@ body.index-cooprete {
    ======================== */
 
     body.index-cooprete .ee-side {
-        position: fixed;
         top: 100px;
         right: 200px; /* ← ここを調整 */
         z-index: 50;
@@ -1205,7 +1213,7 @@ body.index-cooprete {
 
     body.index-cooprete .ev-login-row {
         display: grid;
-        grid-template-columns: 80px 200px;
+        grid-template-columns: 70px 120px;
         column-gap: 10px;
         align-items: center;
     }
@@ -1251,7 +1259,7 @@ body.index-cooprete {
     }
 
     body.index-cooprete .es-grid-1 {
-        grid-template-columns: 220px 520px 160px 160px;
+        grid-template-columns: 220px 520px 100px 100px;
     }
 
     body.index-cooprete .es-span2 {
@@ -1292,8 +1300,8 @@ body.index-cooprete {
     body.index-cooprete .es-btn-search {
         background: #3cb371;
         color: #fff;
-        width: 150px;
-        height: 44px;
+        width: 100px;
+        height: 34px;
     }
 
     /* ========================
