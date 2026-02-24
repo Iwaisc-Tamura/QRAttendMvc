@@ -9,6 +9,10 @@
     string login = ViewBag.LoginDisplay as string ?? "XXXXXX";
     var ev = ViewBag.Event as Gt01KaisaiEvent ?? new Gt01KaisaiEvent();
 
+    var serverNow = DateTime.Now;
+    var w = new[] { "日", "月", "火", "水", "木", "金", "土" };
+    var youbi = w[(int)serverNow.DayOfWeek];
+
     // テスト用  start 2026.02.20 Takada
     var selected = Context.Request.Query["COOPERATE_CD"].ToString();
     var selectedEmployeeCd = Context.Request.Query["EMPLOYEE_CD"].ToString();
@@ -180,11 +184,11 @@
                         </div>
                         <div class="ev-login-row">
                             <span class="ev-login-label">日付</span>
-                            <span class="ev-login-value">@DateTime.Now.ToString("yyyy/MM/dd")</span>
+                            <span class="ev-login-value">@serverNow.ToString("yyyy/MM/dd") (@youbi)</span>
                         </div>
                         <div class="ev-login-row">
                             <span class="ev-login-label">時刻</span>
-                            <span class="ev-login-value">@DateTime.Now.ToString("HH:mm:ss")</span>
+                            <span class="ev-login-value">@serverNow.ToString("HH:mm:ss")</span>
                         </div>
                     </div>
                 </div>
@@ -357,7 +361,7 @@
 
     const kind = "@kind";
     const kaisaiCd = "@kaisaiCd";
-    const evEventCd = "@(ev?.EventCd ?? "")";
+    const evKaisaiCd = "@kaisaiCd";
 
     //追加 2026.02.20 Takada start:作業員検索からのデータ保持
     const selectedEmployeeCd = "@selectedEmployeeCd";
@@ -678,11 +682,11 @@
 
             if (parsed.type === "2") {
                 const qrKaisai = parsed.overrideKaisai || "";
-                if (qrKaisai !== evEventCd) {
+                if (qrKaisai !== evKaisaiCd) {
                     setIcon("NG");
                     playBeep("NG");
-                    appendLog(`${parsed.original} 仮QRのイベントが表示中のイベントと一致しません （QR:${qrKaisai} != ${evEventCd}）`);
-                    showReadResult(parsed.worker || parsed.original, "イベント不一致", "");
+                    appendLog(`${parsed.original} 仮QRの開催コードが表示中の開催コードと一致しません （QR:${qrKaisai} != ${evKaisaiCd}）`);
+                    showReadResult(parsed.worker || parsed.original, "開催コード不一致", "");
                     if (qrInput) { qrInput.value = ""; }
                     return;
                 }
