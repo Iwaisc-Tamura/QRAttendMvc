@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QRAttendMvc.Models;
@@ -6,6 +5,9 @@ using QRAttendMvc.Services;
 using System;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Linq;
+using Microsoft.Data.SqlClient;
+using System.Globalization;
 
 namespace QRAttendMvc.Controllers
 {
@@ -20,7 +22,7 @@ namespace QRAttendMvc.Controllers
             _db = db;
         }
 
-           [HttpGet]
+        [HttpGet]
         public async Task<IActionResult> Index(
             string? companyKana,
             string? companyName,
@@ -28,7 +30,7 @@ namespace QRAttendMvc.Controllers
             string? workerKanaLast,
             string? workerKanaFirst,
             string? workerId,
-            DateTime? birthDate,
+            string? birthDate,
             string? filter,
             bool? searched,
             string? sort,
@@ -47,13 +49,14 @@ namespace QRAttendMvc.Controllers
 
             if (DateTime.TryParse(eventDateStr, out var eventDate))
             {
-                var ja = new System.Globalization.CultureInfo("ja-JP");
+                var ja = new CultureInfo("ja-JP");
                 ViewBag.EventDate = eventDate.ToString("yyyy/MM/dd (ddd)", ja);
             }
             else
             {
                 ViewBag.EventDate = eventDateStr;
             }
+
             ViewBag.Kubun = HttpContext.Session.GetString("SelectedKubun") ?? "";
             ViewBag.Kyoten = HttpContext.Session.GetString("SelectedKyoten") ?? "";
             ViewBag.Place = HttpContext.Session.GetString("SelectedPlace") ?? "";
@@ -71,33 +74,74 @@ namespace QRAttendMvc.Controllers
 
             var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd) ?? "";
 
-            // 母集団
-            var q = BuildBaseQuery(kaisaiCd, filter);
+            // SP用パラメータ整形（★不足していたメソッドを暫定追加）
+            var spFilter = MapFilterToSp(filter);
 
-            // 他条件
-            q = ApplySearchConditions(q, companyKana, companyName, workerName, workerKanaLast, workerKanaFirst, workerId, birthDate);
+            // 画面のcheckbox未接続なら false固定のままでOK（後で繋ぐ）
+            var spPrimeOffice = MapPrimeOfficeToSp(false);
 
-            // DBソート
-            q = ApplySort(q, sort, dir);
+            var birthYmd = NormalizeBirthDate(birthDate) ?? "";
 
-            var list = await q.ToListAsync();
+            var employeeName = (workerName ?? "").Trim();
+            var employeeNameKana =
+                ((workerKanaLast ?? "").Trim() + "　" + (workerKanaFirst ?? "").Trim()).Trim();
 
-            // rows作成
-            var rows = new List<AttendeeSearchRow>();
-            foreach (var x in list)
+            // SP実行
+            var sql = @"
+                        EXEC dbo.sp_EntryExit_Inquiry
+                            @KAISAI_CD,
+                            @COMPANY_NAME_KANA,
+                            @COMPANY_NAME,
+                            @EMPLOYEE_NAME_KANA,
+                            @EMPLOYEE_NAME,
+                            @EMPLOYEE_CD,
+                            @BIRTH_YMD,
+                            @FILTERCONDITION,
+                            @PRIMEOFFICE";
+
+            var spResult = await _db.EntryExitInquiry
+                .FromSqlRaw(sql,
+                    new SqlParameter("@KAISAI_CD", kaisaiCd),
+                    new SqlParameter("@COMPANY_NAME_KANA", companyKana ?? ""),
+                    new SqlParameter("@COMPANY_NAME", companyName ?? ""),
+                    new SqlParameter("@EMPLOYEE_NAME_KANA", employeeNameKana ?? ""),
+                    new SqlParameter("@EMPLOYEE_NAME", employeeName ?? ""),
+                    new SqlParameter("@EMPLOYEE_CD", workerId ?? ""),
+                    new SqlParameter("@BIRTH_YMD", birthYmd),
+                    new SqlParameter("@FILTERCONDITION", spFilter),
+                    new SqlParameter("@PRIMEOFFICE", spPrimeOffice)
+                )
+                .AsNoTracking()
+                .ToListAsync();
+
+            // rows作成（★不足していた ParseYmdSlash / ParseHmColon を暫定追加）
+            var rows = spResult.Select(x => new AttendeeSearchRow
             {
-                var p = x.Emp;
-                rows.Add(new AttendeeSearchRow
-                {
-                    CompanyName = x.CompanyName,
-                    WorkerId = p.EmployeeCd,
-                    WorkerName = p.DisplayName,
-                    BirthDate = ParseYyyyMMdd(p.BirthYmd),
-                    ExcludeDate = ParseYyyyMMdd(p.RetireYmd),
-                    LastInTime = ParseTodayHm(x.EntryTime),
-                    LastOutTime = ParseTodayHm(x.ExitTime),
-                });
-            }
+                CompanyName = x.COMPANY_NAME ?? "",
+                WorkerId = x.EMPLOYEE_CD ?? "",
+                WorkerName = x.EMPLOYEE_NAME ?? "",
+
+                BirthDate = ParseYmdSlash(x.BIRTH_YMD),
+                ExcludeDate = ParseYmdSlash(x.RETIRE_YMD),
+                LastInTime = ParseHmColon(x.ENTRY_TIME),
+                LastOutTime = ParseHmColon(x.EXIT_TIME),
+            }).ToList();
+
+            // ★注意：あなたの貼付コードに list が未定義のため、ここは一旦コメントアウト
+            //foreach (var x in list)
+            //{
+            //    var p = x.Emp;
+            //    rows.Add(new AttendeeSearchRow
+            //    {
+            //        CompanyName = x.CompanyName,
+            //        WorkerId = p.EmployeeCd,
+            //        WorkerName = p.DisplayName,
+            //        BirthDate = ParseYyyyMMdd(p.BirthYmd),
+            //        ExcludeDate = ParseYyyyMMdd(p.RetireYmd),
+            //        LastInTime = ParseTodayHm(x.EntryTime),
+            //        LastOutTime = ParseTodayHm(x.ExitTime),
+            //    });
+            //}
 
             // lastin/lastout はメモリソート
             rows = ApplyRowSort(rows, sort, dir);
@@ -123,7 +167,7 @@ namespace QRAttendMvc.Controllers
             string? workerKanaLast,
             string? workerKanaFirst,
             string? workerId,
-            DateTime? birthDate,
+            string? birthDate,
             string? filter,
             bool? searched,
             string? sort,
@@ -140,33 +184,74 @@ namespace QRAttendMvc.Controllers
 
             var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd) ?? "";
 
-            // 母集団
-            var q = BuildBaseQuery(kaisaiCd, filter);
+            // SP用パラメータ整形（★不足していたメソッドを暫定追加）
+            var spFilter = MapFilterToSp(filter);
 
-            // 他条件
-            q = ApplySearchConditions(q, companyKana, companyName, workerName, workerKanaLast, workerKanaFirst, workerId, birthDate);
+            // 画面のcheckbox未接続なら false固定のままでOK（後で繋ぐ）
+            var spPrimeOffice = MapPrimeOfficeToSp(false);
 
-            // DBソート
-            q = ApplySort(q, sort, dir);
+            var birthYmd = NormalizeBirthDate(birthDate) ?? "";
 
-            var list = await q.ToListAsync();
+            var employeeName = (workerName ?? "").Trim();
+            var employeeNameKana =
+                ((workerKanaLast ?? "").Trim() + "　" + (workerKanaFirst ?? "").Trim()).Trim();
+
+            // SP実行
+            var sql = @"
+                        EXEC dbo.sp_EntryExit_Inquiry
+                            @KAISAI_CD,
+                            @COMPANY_NAME_KANA,
+                            @COMPANY_NAME,
+                            @EMPLOYEE_NAME_KANA,
+                            @EMPLOYEE_NAME,
+                            @EMPLOYEE_CD,
+                            @BIRTH_YMD,
+                            @FILTERCONDITION,
+                            @PRIMEOFFICE";
+
+            var spResult = await _db.EntryExitInquiry
+                .FromSqlRaw(sql,
+                    new SqlParameter("@KAISAI_CD", kaisaiCd),
+                    new SqlParameter("@COMPANY_NAME_KANA", companyKana ?? ""),
+                    new SqlParameter("@COMPANY_NAME", companyName ?? ""),
+                    new SqlParameter("@EMPLOYEE_NAME_KANA", employeeNameKana ?? ""),
+                    new SqlParameter("@EMPLOYEE_NAME", employeeName ?? ""),
+                    new SqlParameter("@EMPLOYEE_CD", workerId ?? ""),
+                    new SqlParameter("@BIRTH_YMD", birthYmd),
+                    new SqlParameter("@FILTERCONDITION", spFilter),
+                    new SqlParameter("@PRIMEOFFICE", spPrimeOffice)
+                )
+                .AsNoTracking()
+                .ToListAsync();
 
             // rows作成
-            var rows = new List<AttendeeSearchRow>();
-            foreach (var x in list)
+            var rows = spResult.Select(x => new AttendeeSearchRow
             {
-                var p = x.Emp;
-                rows.Add(new AttendeeSearchRow
-                {
-                    CompanyName = x.CompanyName,
-                    WorkerId = p.EmployeeCd,
-                    WorkerName = p.DisplayName,
-                    BirthDate = ParseYyyyMMdd(p.BirthYmd),
-                    ExcludeDate = ParseYyyyMMdd(p.RetireYmd),
-                    LastInTime = ParseTodayHm(x.EntryTime),
-                    LastOutTime = ParseTodayHm(x.ExitTime),
-                });
-            }
+                CompanyName = x.COMPANY_NAME ?? "",
+                WorkerId = x.EMPLOYEE_CD ?? "",
+                WorkerName = x.EMPLOYEE_NAME ?? "",
+
+                BirthDate = ParseYmdSlash(x.BIRTH_YMD),
+                ExcludeDate = ParseYmdSlash(x.RETIRE_YMD),
+                LastInTime = ParseHmColon(x.ENTRY_TIME),
+                LastOutTime = ParseHmColon(x.EXIT_TIME),
+            }).ToList();
+
+            // ★注意：あなたの貼付コードに list が未定義のため、ここは一旦コメントアウト
+            //foreach (var x in list)
+            //{
+            //    var p = x.Emp;
+            //    rows.Add(new AttendeeSearchRow
+            //    {
+            //        CompanyName = x.CompanyName,
+            //        WorkerId = p.EmployeeCd,
+            //        WorkerName = p.DisplayName,
+            //        BirthDate = ParseYyyyMMdd(p.BirthYmd),
+            //        ExcludeDate = ParseYyyyMMdd(p.RetireYmd),
+            //        LastInTime = ParseTodayHm(x.EntryTime),
+            //        LastOutTime = ParseTodayHm(x.ExitTime),
+            //    });
+            //}
 
             // lastin/lastout はメモリソート
             rows = ApplyRowSort(rows, sort, dir);
@@ -181,14 +266,14 @@ namespace QRAttendMvc.Controllers
             {
                 sb.AppendLine(string.Join("\t", new[]
                 {
-            Esc(r.CompanyName),
-            Esc(r.WorkerId),
-            Esc(r.WorkerName),
-            r.BirthDate?.ToString("yyyy/MM/dd") ?? "",
-            r.ExcludeDate?.ToString("yyyy/MM/dd") ?? "",
-            r.LastInTime?.ToString("HH:mm") ?? "",
-            r.LastOutTime?.ToString("HH:mm") ?? ""
-        }));
+                    Esc(r.CompanyName),
+                    Esc(r.WorkerId),
+                    Esc(r.WorkerName),
+                    r.BirthDate?.ToString("yyyy/MM/dd") ?? "",
+                    r.ExcludeDate?.ToString("yyyy/MM/dd") ?? "",
+                    r.LastInTime?.ToString("HH:mm") ?? "",
+                    r.LastOutTime?.ToString("HH:mm") ?? ""
+                }));
             }
 
             var bytes = Encoding.UTF8.GetPreamble()
@@ -197,6 +282,99 @@ namespace QRAttendMvc.Controllers
 
             var fileName = $"attendee_{DateTime.Now:yyyyMMdd_HHmmss}.tsv";
             return File(bytes, "text/tab-separated-values", fileName);
+        }
+
+        // =====================================================
+        // ★ここから下：不足していたメソッドを暫定実装で追加
+        // =====================================================
+
+        /// <summary>
+        /// 画面の filter 値を SP 用の値にマッピング（暫定）
+        /// View側が旧/新の値混在でもビルド＆動作確認できるよう吸収。
+        /// </summary>
+        private static string MapFilterToSp(string? filter)
+        {
+            var key = (filter ?? "").Trim().ToLowerInvariant();
+
+            // 新仕様想定: both_log / entry_only / master_only
+            // 画面側の現状: no_log / partial_log / no_log_active 等が来ても落ちないよう暫定対応
+            return key switch
+            {
+                "both_log" => "both_log",
+                "entry_only" => "entry_only",
+                "master_only" => "master_only",
+
+                // 画面側の現状値（文言と中身は後で揃える）
+                "no_log" => "both_log",
+                "partial_log" => "entry_only",
+                "no_log_active" => "master_only",
+
+                _ => "both_log"
+            };
+        }
+
+        /// <summary>
+        /// 2次店以下含む等のフラグをSP用に変換（暫定）
+        /// SPが bit/int/string いずれでも受けられるよう "0"/"1" を返す。
+        /// </summary>
+        private static string MapPrimeOfficeToSp(bool includeSecond)
+        {
+            // 仕様確定前の暫定。必要なら後で逆にする等調整。
+            return includeSecond ? "1" : "0";
+        }
+
+        private static string? NormalizeBirthDate(string? input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return null;
+
+            var s = input.Trim();
+
+            // スラッシュやハイフン削除
+            s = s.Replace("/", "").Replace("-", "");
+
+            // 8桁数字のみ許可
+            if (s.Length == 8 && s.All(char.IsDigit))
+                return s;
+
+            return null;
+        }
+
+        /// <summary>
+        /// "yyyy/MM/dd"（または "yyyyMMdd"）を DateTime? に変換（暫定）
+        /// </summary>
+        private static DateTime? ParseYmdSlash(string? ymd)
+        {
+            if (string.IsNullOrWhiteSpace(ymd)) return null;
+
+            var s = ymd.Trim().Replace("/", "");
+            if (s.Length != 8 || !s.All(char.IsDigit)) return null;
+
+            if (!int.TryParse(s.Substring(0, 4), out var y)) return null;
+            if (!int.TryParse(s.Substring(4, 2), out var m)) return null;
+            if (!int.TryParse(s.Substring(6, 2), out var d)) return null;
+
+            try { return new DateTime(y, m, d); }
+            catch { return null; }
+        }
+
+        /// <summary>
+        /// "HH:mm" を DateTime? に変換（暫定：今日の日付で返す）
+        /// </summary>
+        private static DateTime? ParseHmColon(string? hm)
+        {
+            if (string.IsNullOrWhiteSpace(hm)) return null;
+
+            var s = hm.Trim();
+            var parts = s.Split(':');
+            if (parts.Length != 2) return null;
+
+            if (!int.TryParse(parts[0], out var h)) return null;
+            if (!int.TryParse(parts[1], out var m)) return null;
+
+            if (h < 0 || h > 23 || m < 0 || m > 59) return null;
+
+            return DateTime.Today.AddHours(h).AddMinutes(m);
         }
 
         private static DateTime? ParseTodayHm(string? hhmm)
@@ -209,7 +387,7 @@ namespace QRAttendMvc.Controllers
             if (h < 0 || h > 23 || m < 0 || m > 59) return null;
             return DateTime.Today.AddHours(h).AddMinutes(m);
         }
- 
+
         /* 追加 2026.02.14　Takada */
         private static DateTime? ParseYyyyMMdd(string? yyyymmdd)
         {
@@ -255,20 +433,20 @@ namespace QRAttendMvc.Controllers
             return key switch
             {
                 "company" => desc ? q.OrderByDescending(x => x.CompanyName).ThenByDescending(x => x.Emp.EmployeeCd)
-                                    : q.OrderBy(x => x.CompanyName).ThenBy(x => x.Emp.EmployeeCd),
+                                  : q.OrderBy(x => x.CompanyName).ThenBy(x => x.Emp.EmployeeCd),
 
                 "workerid" => desc ? q.OrderByDescending(x => x.Emp.EmployeeCd)
-                                    : q.OrderBy(x => x.Emp.EmployeeCd),
+                                   : q.OrderBy(x => x.Emp.EmployeeCd),
 
                 "workername" => desc
                     ? q.OrderByDescending(x => x.Emp.FamilyNameKana).ThenByDescending(x => x.Emp.FirstNameKana).ThenByDescending(x => x.Emp.EmployeeCd)
                     : q.OrderBy(x => x.Emp.FamilyNameKana).ThenBy(x => x.Emp.FirstNameKana).ThenBy(x => x.Emp.EmployeeCd),
 
                 "birth" => desc ? q.OrderByDescending(x => x.Emp.BirthYmd).ThenByDescending(x => x.Emp.EmployeeCd)
-                                    : q.OrderBy(x => x.Emp.BirthYmd).ThenBy(x => x.Emp.EmployeeCd),
+                                : q.OrderBy(x => x.Emp.BirthYmd).ThenBy(x => x.Emp.EmployeeCd),
 
                 "exclude" => desc ? q.OrderByDescending(x => x.Emp.RetireYmd).ThenByDescending(x => x.Emp.EmployeeCd)
-                                    : q.OrderBy(x => x.Emp.RetireYmd).ThenBy(x => x.Emp.EmployeeCd),
+                                  : q.OrderBy(x => x.Emp.RetireYmd).ThenBy(x => x.Emp.EmployeeCd),
 
                 _ => q.OrderBy(x => x.Emp.EmployeeCd)
             };
@@ -282,7 +460,7 @@ namespace QRAttendMvc.Controllers
             return key switch
             {
                 "lastin" => desc ? rows.OrderByDescending(r => r.LastInTime).ThenByDescending(r => r.WorkerId).ToList()
-                                  : rows.OrderBy(r => r.LastInTime).ThenBy(r => r.WorkerId).ToList(),
+                                 : rows.OrderBy(r => r.LastInTime).ThenBy(r => r.WorkerId).ToList(),
 
                 "lastout" => desc ? rows.OrderByDescending(r => r.LastOutTime).ThenByDescending(r => r.WorkerId).ToList()
                                   : rows.OrderBy(r => r.LastOutTime).ThenBy(r => r.WorkerId).ToList(),
@@ -370,12 +548,11 @@ namespace QRAttendMvc.Controllers
             string? workerKanaLast,
             string? workerKanaFirst,
             string? workerId,
-            DateTime? birthDate)
+            string? birthDate)
         {
             if (!string.IsNullOrWhiteSpace(workerName))
             {
                 var key = workerName.Trim();
-                // DisplayName に部分一致（想定）
                 q = q.Where(x => (x.Emp.DisplayName ?? "").Contains(key));
             }
 
@@ -409,14 +586,13 @@ namespace QRAttendMvc.Controllers
                 q = q.Where(x => (x.CompanyKana ?? "").Contains(key));
             }
 
-            if (birthDate.HasValue)
+            var normalized = NormalizeBirthDate(birthDate);
+            if (!string.IsNullOrEmpty(normalized))
             {
-                var ymd = birthDate.Value.ToString("yyyyMMdd");
-                q = q.Where(x => x.Emp.BirthYmd == ymd);
+                q = q.Where(x => x.Emp.BirthYmd == normalized);
             }
 
             return q;
         }
-
     }
 }

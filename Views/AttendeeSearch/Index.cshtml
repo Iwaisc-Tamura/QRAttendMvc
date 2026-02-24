@@ -10,8 +10,8 @@
 
     string companyKana = Context.Request.Query["companyKana"].ToString();
     string companyName = Context.Request.Query["companyName"].ToString();
-    string workerKanaLast = Context.Request.Query["workerKanaLast"].ToString();
-    string workerKanaFirst = Context.Request.Query["workerKanaFirst"].ToString();
+    string workerKana = Context.Request.Query["workerKana"].ToString(); // 使うなら定義
+    string workerName = Context.Request.Query["workerName"].ToString(); // ★不足してたので追加
     string workerId = Context.Request.Query["workerId"].ToString();
     string birthDate = Context.Request.Query["birthDate"].ToString();
     string filter = Context.Request.Query["filter"].ToString();
@@ -156,17 +156,13 @@
             <!-- 2段目：作業員名（カナ）姓／名／作業員ID／生年月日 -->
             <div class="as-grid as-grid-2">
                 <div class="as-field">
-                    <label class="as-label">作業員氏名</label>
-                    <input name="workerName" value="@Context.Request.Query["workerName"].ToString()" class="as-input" />
-                </div>
-                <div class="as-field">
-                    <label class="as-label">作業員名（カナ） 姓</label>
-                    <input name="workerKanaLast" value="@workerKanaLast" class="as-input" />
+                    <label class="as-label">作業員名（カナ）</label>
+                    <input name="workerKana" value="@workerKana" class="as-input" />
                 </div>
 
                 <div class="as-field">
-                    <label class="as-label">作業員名（カナ） 名</label>
-                    <input name="workerKanaFirst" value="@workerKanaFirst" class="as-input" />
+                    <label class="as-label">作業員名</label>
+                    <input name="workerName" value="@workerName" class="as-input" />
                 </div>
 
                 <div class="as-field">
@@ -184,9 +180,9 @@
                 <div class="as-field">
                     <label class="as-label">絞り込み条件</label>
                     <select name="filter" class="as-input">
-                        <option value="both_log" selected="@(filter=="both_log")">入場・退場記録あり</option>
-                        <option value="entry_only" selected="@(filter=="entry_only")">入場記録のみあり（退場記録なし）</option>
-                        <option value="master_only" selected="@(filter=="master_only")">従業員情報マスタに登録あり</option>
+                        <option value="no_log" selected="@(filter=="no_log")">入場・退場記録あり</option>
+                        <option value="partial_log" selected="@(filter=="partial_log")">入場記録のみあり（退場記録なし）</option>
+                        <option value="no_log_active" selected="@(filter=="no_log_active")">従業員情報マスタに登録あり</option>
                     </select>
                 </div>
             </div>
