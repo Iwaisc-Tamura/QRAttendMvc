@@ -24,6 +24,7 @@ namespace QRAttendMvc.Controllers
         public async Task<IActionResult> Index(
             string? companyKana,
             string? companyName,
+            string? workerName,
             string? workerKanaLast,
             string? workerKanaFirst,
             string? workerId,
@@ -74,7 +75,7 @@ namespace QRAttendMvc.Controllers
             var q = BuildBaseQuery(kaisaiCd, filter);
 
             // 他条件
-            q = ApplySearchConditions(q, companyKana, companyName, workerKanaLast, workerKanaFirst, workerId, birthDate);
+            q = ApplySearchConditions(q, companyKana, companyName, workerName, workerKanaLast, workerKanaFirst, workerId, birthDate);
 
             // DBソート
             q = ApplySort(q, sort, dir);
@@ -116,16 +117,17 @@ namespace QRAttendMvc.Controllers
         }
 
         public async Task<FileResult> Export(
-    string? companyKana,
-    string? companyName,
-    string? workerKanaLast,
-    string? workerKanaFirst,
-    string? workerId,
-    DateTime? birthDate,
-    string? filter,
-    bool? searched,
-    string? sort,
-    string? dir)
+            string? companyKana,
+            string? companyName,
+            string? workerName,
+            string? workerKanaLast,
+            string? workerKanaFirst,
+            string? workerId,
+            DateTime? birthDate,
+            string? filter,
+            bool? searched,
+            string? sort,
+            string? dir)
         {
             if (searched != true)
             {
@@ -142,7 +144,7 @@ namespace QRAttendMvc.Controllers
             var q = BuildBaseQuery(kaisaiCd, filter);
 
             // 他条件
-            q = ApplySearchConditions(q, companyKana, companyName, workerKanaLast, workerKanaFirst, workerId, birthDate);
+            q = ApplySearchConditions(q, companyKana, companyName, workerName, workerKanaLast, workerKanaFirst, workerId, birthDate);
 
             // DBソート
             q = ApplySort(q, sort, dir);
@@ -293,19 +295,13 @@ namespace QRAttendMvc.Controllers
         {
             var key = (filter ?? "").Trim().ToLowerInvariant();
 
-            // TT02の有無が前提なので、開催コードが無いと母集団が作れないパターンは空にする
-            // （要件的には「画面で指定されている開催コード」なので、未選択なら空が自然）
             if (string.IsNullOrWhiteSpace(kaisaiCd))
-            {
-                // 「②はEMP全件からTT02に無い」も開催コードが必要なので空に寄せる
                 return Enumerable.Empty<AttendeeJoined>().AsQueryable();
-            }
 
-            // ①（空欄）→ TT02(開催コード) を母集団
             IQueryable<AttendeeJoined> BaseFromTT02()
             {
                 var q =
-                    from l in _db.EntryExitLogs.AsNoTracking() // TT02_ENTRY_EXIT
+                    from l in _db.EntryExitLogs.AsNoTracking()
                     where l.KaisaiCd == kaisaiCd
                     join e in _db.Employees.AsNoTracking()
                         on l.EmployeeCd equals e.EmployeeCd
@@ -320,11 +316,9 @@ namespace QRAttendMvc.Controllers
                         EntryTime = l.EntryTime,
                         ExitTime = l.ExitTime
                     };
-
                 return q;
             }
 
-            // ② 未受講者（入退場とも記録なし）→ EMP全件から、TT02(開催コード)に存在しない従業員
             IQueryable<AttendeeJoined> BaseFromEmployeeNotInTT02()
             {
                 var q =
@@ -342,40 +336,29 @@ namespace QRAttendMvc.Controllers
                         EntryTime = null,
                         ExitTime = null
                     };
-
                 return q;
             }
 
-            // ③ 入場のみ or 退場のみ（XOR）
-            IQueryable<AttendeeJoined> BaseFromTT02_Partial()
-            {
-                var q = BaseFromTT02();
+            // ★新仕様
+            IQueryable<AttendeeJoined> BothLog()
+                => BaseFromTT02().Where(x => !string.IsNullOrEmpty(x.EntryTime) && !string.IsNullOrEmpty(x.ExitTime));
 
-                q = q.Where(x =>
-                    (!string.IsNullOrEmpty(x.EntryTime) && string.IsNullOrEmpty(x.ExitTime)) ||
-                    (string.IsNullOrEmpty(x.EntryTime) && !string.IsNullOrEmpty(x.ExitTime))
-                );
+            IQueryable<AttendeeJoined> EntryOnly()
+                => BaseFromTT02().Where(x => !string.IsNullOrEmpty(x.EntryTime) && string.IsNullOrEmpty(x.ExitTime));
 
-                return q;
-            }
+            IQueryable<AttendeeJoined> MasterOnly()
+                => BaseFromEmployeeNotInTT02()
+                   .Where(x => string.IsNullOrEmpty(x.Emp.RetireYmd)); // 退職者除外したいなら
 
-            // ④ 入退場ともnull/空
-            IQueryable<AttendeeJoined> BaseFromTT02_BothNull()
-            {
-                var q = BaseFromTT02();
-
-                q = q.Where(x => string.IsNullOrEmpty(x.EntryTime) && string.IsNullOrEmpty(x.ExitTime));
-
-                return q;
-            }
+            // デフォルトは both_log
+            if (string.IsNullOrEmpty(key)) key = "both_log";
 
             return key switch
             {
-                "" => BaseFromTT02(),           // ①
-                "no_log" => BaseFromEmployeeNotInTT02(),   // ②
-                "partial_log" => BaseFromTT02_Partial(),   // ③
-                "no_log_active" => BaseFromTT02_BothNull(),// ④
-                _ => BaseFromTT02()
+                "both_log" => BothLog(),
+                "entry_only" => EntryOnly(),
+                "master_only" => MasterOnly(),
+                _ => BothLog()
             };
         }
 
@@ -383,11 +366,19 @@ namespace QRAttendMvc.Controllers
             IQueryable<AttendeeJoined> q,
             string? companyKana,
             string? companyName,
+            string? workerName,
             string? workerKanaLast,
             string? workerKanaFirst,
             string? workerId,
             DateTime? birthDate)
         {
+            if (!string.IsNullOrWhiteSpace(workerName))
+            {
+                var key = workerName.Trim();
+                // DisplayName に部分一致（想定）
+                q = q.Where(x => (x.Emp.DisplayName ?? "").Contains(key));
+            }
+
             if (!string.IsNullOrWhiteSpace(workerKanaFirst))
             {
                 var key = NormalizeKanaToWide(workerKanaFirst);
