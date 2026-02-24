@@ -107,7 +107,7 @@
 
                         <div class="es-field">
                             <label class="es-label">生年月日</label>
-                            <input name="birthDate" type="text" value="@birthDate" class="es-input" placeholder="yyyy/MM/dd" />
+                            <input name="birthDate" id="birthDate" type="text" inputmode="numeric" value="@birthDate" class="es-input" placeholder="yyyy/MM/dd" autocomplete="off" />
                         </div>
 
                         <div class="es-field">
@@ -218,6 +218,36 @@
     </main>
 
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const birthDateEl = document.getElementById("birthDate");
+
+            function formatToDisplayYmd(raw) {
+                if (!raw) return "";
+                const digits = String(raw).replace(/[^\d]/g, "");
+                if (digits.length === 8) {
+                    return digits.substring(0, 4) + "/" + digits.substring(4, 6) + "/" + digits.substring(6, 8);
+                }
+                const m = String(raw).match(/^(\d{4})[-\/](\d{2})[-\/](\d{2})$/);
+                if (m) return `${m[1]}/${m[2]}/${m[3]}`;
+                return String(raw);
+            }
+
+            if (birthDateEl) {
+                birthDateEl.addEventListener('input', () => {
+                    const v = birthDateEl.value || "";
+                    const onlyDigits = v.replace(/[^\d]/g, "");
+                    if (onlyDigits.length === 8) {
+                        birthDateEl.value = formatToDisplayYmd(onlyDigits);
+                    }
+                });
+
+                birthDateEl.addEventListener('blur', () => {
+                    const v = (birthDateEl.value || "").trim();
+                    birthDateEl.value = formatToDisplayYmd(v);
+                });
+            }
+        });
+
         // Enterで検索（textareaは除外）
         document.addEventListener("DOMContentLoaded", function () {
             const form = document.getElementById("searchForm");
