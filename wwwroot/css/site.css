@@ -357,7 +357,10 @@ body {
     /* ---------- ログイン表示 ---------- */
 
     body.event-page .ee-side {
-        justify-self: end;
+        position: fixed;
+        top: 110px; /* 90pxヘッダ + 少し余白 */
+        right: 60px; /* ev-container の右余白に合わせる */
+        z-index: 50;
     }
 
     body.event-page .ee-login .ev-login-row {
@@ -601,12 +604,12 @@ body {
         margin-bottom: 10px;
     }
 
-    body.index-attende .as-grid-1 {
-        grid-template-columns: 260px 520px 160px 140px;
-    }
+        body.index-attende .as-grid-1 {
+            grid-template-columns: 260px 520px 180px 160px 140px;
+        }
 
     body.index-attende .as-grid-2 {
-        grid-template-columns: 240px 240px 240px 240px 320px;
+        grid-template-columns: 260px 220px 220px 180px 180px 320px;
     }
 
     body.index-attende .as-label {
@@ -702,8 +705,8 @@ body {
     }
 
     body.index-attende .as-btn-primary {
-        width: 200pt;
-        min-width: 200px;
+        width: 150pt;
+        min-width: 150px;
         height: 74px;
         background: #3cb371; 
         color: #fff;
@@ -711,12 +714,11 @@ body {
     }
 
     body.index-attende .as-btn-secondary {
-        width: 200pt;
-        min-width: 200px;
+        width: 150pt;
+        min-width: 150px;
         height: 74px;
         background: #2a78c5; 
         color: #fff;
-        text-decoration: underline;
         line-height: 1.1;
     }
 
