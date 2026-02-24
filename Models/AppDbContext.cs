@@ -24,6 +24,9 @@ namespace QRAttendMvc.Models
         // 操作ログ
         public DbSet<Tx01Log> OperationLogs => Set<Tx01Log>();
 
+        // 入退場照会データ検索
+        public DbSet<EntryExitInquiryDto> EntryExitInquiry => Set<EntryExitInquiryDto>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -113,42 +116,51 @@ namespace QRAttendMvc.Models
                 e.Property(x => x.KaisaiCd).HasColumnName("KAISAI_CD");
                 e.Property(x => x.SelectYmdTime).HasColumnName("SELECT_YMD_TIME");
             });
-        
-modelBuilder.Entity<Tx01Log>(e =>
-{
-    e.ToTable("TX01_LOG");
-    e.HasKey(x => x.InsNo);
 
-    e.Property(x => x.InsNo).HasColumnName("INS_NO");
-    e.Property(x => x.ScreenId).HasColumnName("SCREEN_ID");
-    e.Property(x => x.ActionCd).HasColumnName("ACTION_CD");
-    e.Property(x => x.EventCd).HasColumnName("EVENT_CD");
-    e.Property(x => x.EmployeeCd).HasColumnName("EMPLOYEE_CD");
-    e.Property(x => x.CooperateCd).HasColumnName("COOPERATE_CD");
-    e.Property(x => x.FamilyName).HasColumnName("FAMILY_NAME");
-    e.Property(x => x.FirstName).HasColumnName("FIRST_NAME");
-    e.Property(x => x.BirthYmd).HasColumnName("BIRTH_YMD");
-    e.Property(x => x.EntryTime).HasColumnName("ENTRY_TIME");
-    e.Property(x => x.ExitTime).HasColumnName("EXIT_TIME");
-    e.Property(x => x.ReasonCd).HasColumnName("REASON_CD");
+            modelBuilder.Entity<Tx01Log>(e =>
+            {
+                e.ToTable("TX01_LOG");
+                e.HasKey(x => x.InsNo);
 
-    e.Property(x => x.SCooperateKana).HasColumnName("S_COOPERATE_KANA");
-    e.Property(x => x.SCooperateName).HasColumnName("S_COOPERATE_NAME");
-    e.Property(x => x.SEmployeeKanas).HasColumnName("S_EMPLOYEE_KANAS");
-    e.Property(x => x.SEmployeeKanan).HasColumnName("S_EMPLOYEE_KANAN");
-    e.Property(x => x.SEmployeeKanjis).HasColumnName("S_EMPLOYEE_KANJIS");
-    e.Property(x => x.SEmployeeKanjin).HasColumnName("S_EMPLOYEE_KANJIN");
-    e.Property(x => x.SBirthYmd).HasColumnName("S_BIRTH_YMD");
-    e.Property(x => x.SEmployeeCd).HasColumnName("S_EMPLOYEE_CD");
-    e.Property(x => x.SSelect).HasColumnName("S_SELECT");
+                e.Property(x => x.InsNo).HasColumnName("INS_NO");
+                e.Property(x => x.ScreenId).HasColumnName("SCREEN_ID");
+                e.Property(x => x.ActionCd).HasColumnName("ACTION_CD");
+                e.Property(x => x.EventCd).HasColumnName("EVENT_CD");
+                e.Property(x => x.EmployeeCd).HasColumnName("EMPLOYEE_CD");
+                e.Property(x => x.CooperateCd).HasColumnName("COOPERATE_CD");
+                e.Property(x => x.FamilyName).HasColumnName("FAMILY_NAME");
+                e.Property(x => x.FirstName).HasColumnName("FIRST_NAME");
+                e.Property(x => x.BirthYmd).HasColumnName("BIRTH_YMD");
+                e.Property(x => x.EntryTime).HasColumnName("ENTRY_TIME");
+                e.Property(x => x.ExitTime).HasColumnName("EXIT_TIME");
+                e.Property(x => x.ReasonCd).HasColumnName("REASON_CD");
 
-    e.Property(x => x.JStrat).HasColumnName("J_STRAT");
-    e.Property(x => x.JMaisu).HasColumnName("J_MAISU");
-    e.Property(x => x.TResart).HasColumnName("T_RESART");
+                e.Property(x => x.SCooperateKana).HasColumnName("S_COOPERATE_KANA");
+                e.Property(x => x.SCooperateName).HasColumnName("S_COOPERATE_NAME");
+                e.Property(x => x.SEmployeeKanas).HasColumnName("S_EMPLOYEE_KANAS");
+                e.Property(x => x.SEmployeeKanan).HasColumnName("S_EMPLOYEE_KANAN");
+                e.Property(x => x.SEmployeeKanjis).HasColumnName("S_EMPLOYEE_KANJIS");
+                e.Property(x => x.SEmployeeKanjin).HasColumnName("S_EMPLOYEE_KANJIN");
+                e.Property(x => x.SBirthYmd).HasColumnName("S_BIRTH_YMD");
+                e.Property(x => x.SEmployeeCd).HasColumnName("S_EMPLOYEE_CD");
+                e.Property(x => x.SSelect).HasColumnName("S_SELECT");
 
-    e.Property(x => x.UTantoCd).HasColumnName("U_TANTO_CD");
-    e.Property(x => x.UTimeStamp).HasColumnName("U_TIME_STAMP");
-});
-}
+                e.Property(x => x.JStrat).HasColumnName("J_STRAT");
+                e.Property(x => x.JMaisu).HasColumnName("J_MAISU");
+                e.Property(x => x.TResart).HasColumnName("T_RESART");
+
+                e.Property(x => x.UTantoCd).HasColumnName("U_TANTO_CD");
+                e.Property(x => x.UTimeStamp).HasColumnName("U_TIME_STAMP");
+            });
+
+            // ★ここは OnModelCreating の中に置く（Tx01Log の直後）
+            modelBuilder.Entity<EntryExitInquiryDto>(e =>
+            {
+                e.HasNoKey();
+                e.ToView(null);
+            });
+
+        }
+
     }
 }
