@@ -67,6 +67,33 @@
 
         <div class="ev-form">
 
+            <!-- ログイン情報（位置・スタイル維持のため独立） -->
+            <div class="ee-side">
+                <div class="ee-login" aria-label="ログイン情報">
+                    <div class="ev-login-row">
+                        <span class="ev-login-label">ログイン</span>
+                        <span class="ev-login-value">@login</span>
+                    </div>
+                    <div class="ev-login-row">
+                        <span class="ev-login-label">日付</span>
+                        <span class="ev-login-value" id="layoutDate"></span>
+                    </div>
+                    <div class="ev-login-row">
+                        <span class="ev-login-label">時刻</span>
+                        <span class="ev-login-value" id="layoutTime"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 開催拠点（先に表示） -->
+            <div class="ev-row">
+                <div class="ev-label">開催拠点</div>
+                <div class="ev-field">
+                    <div class="ev-underline" id="branchDisplay"></div>
+                </div>
+            </div>
+
+            <!-- 区分（開催拠点の下へ） -->
             <div class="ev-row ev-row-3" id="divisionArea">
                 <div class="ev-label">区分</div>
 
@@ -74,31 +101,6 @@
                     <select id="divisionSelect" class="ev-select">
                         <option value="">選択してください</option>
                     </select>
-                </div>
-
-                <div class="ee-side">
-                    <div class="ee-login" aria-label="ログイン情報">
-                        <div class="ev-login-row">
-                            <span class="ev-login-label">ログイン</span>
-                            <span class="ev-login-value">@login</span>
-                        </div>
-                        <div class="ev-login-row">
-                            <span class="ev-login-label">日付</span>
-                            <span class="ev-login-value" id="layoutDate"></span>
-                        </div>
-                        <div class="ev-login-row">
-                            <span class="ev-login-label">時刻</span>
-                            <span class="ev-login-value" id="layoutTime"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 開催拠点 -->
-            <div class="ev-row">
-                <div class="ev-label">開催拠点</div>
-                <div class="ev-field">
-                    <div class="ev-underline" id="branchDisplay"></div>
                 </div>
             </div>
 
@@ -110,7 +112,7 @@
                 </div>
             </div>
 
-            <!-- イベント開催日 / 年度 -->
+            <!-- イベント開催日 -->
             <div class="ev-row ev-row-split">
                 <div class="ev-split-left">
                     <div class="ev-label">イベント開催日</div>
@@ -118,13 +120,8 @@
                         <div class="ev-date" id="dateDisplay">@DateTime.Today.ToString("yyyy/MM/dd (ddd)")</div>
                     </div>
                 </div>
-
                 <div class="ev-split-right">
-                    <div class="ev-inline">
-                        <span class="ev-label-inline">年度</span>
-                        <span class="ev-year" id="evYear"></span>
-                        <span class="ev-yearbox-label-inline">年度</span>
-                    </div>
+                    <span id="evYear" style="display:none"></span>
                 </div>
             </div>
 
@@ -242,6 +239,7 @@
         function clearDetail() {
             evCode.textContent = "";
             evName.textContent = "";
+            if (evYear) evYear.textContent = "";
             evYear.textContent = "";
             evLoc.textContent = "";
             evRecept.textContent = "";
@@ -271,6 +269,7 @@
 
             evCode.textContent = d.eventCode ?? "－";
             evName.textContent = d.eventName ?? "－";
+            if (evYear) evYear.textContent = d.fiscalYear ?? "－";
             evYear.textContent = d.fiscalYear ?? "－";
             evLoc.textContent = d.location ?? "－";
             evRecept.textContent = d.receptTime ?? "－";

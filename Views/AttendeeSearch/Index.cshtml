@@ -15,8 +15,13 @@
     string workerId = Context.Request.Query["workerId"].ToString();
     string birthDate = Context.Request.Query["birthDate"].ToString();
     string filter = Context.Request.Query["filter"].ToString();
-   
+    if (string.IsNullOrEmpty(filter))
+    {
+        filter = "both_log"; // ★デフォルト
+    }
     string login = ViewBag.LoginText as string ?? "";
+    string includeSecond = Context.Request.Query["includeSecond"].ToString();
+    bool includeSecondChecked = includeSecond == "true" || includeSecond == "on";
 
     bool hasSearched =
     Context.Request.Query.ContainsKey("searched") &&
@@ -130,6 +135,13 @@
                     <input name="companyName" value="@companyName" class="as-input" />
                 </div>
 
+                <div class="as-field as-check">
+                    <label class="as-checkline">
+                        <input type="checkbox" name="includeSecond" value="true" @(includeSecondChecked ? "checked" : "") />
+                        2次店以下を含む
+                    </label>
+                </div>
+
                 <div class="as-field as-action">
                     <button type="submit" class="as-btn as-btn-search">検索</button>
                 </div>
@@ -144,12 +156,16 @@
             <!-- 2段目：作業員名（カナ）姓／名／作業員ID／生年月日 -->
             <div class="as-grid as-grid-2">
                 <div class="as-field">
+                    <label class="as-label">作業員氏名</label>
+                    <input name="workerName" value="@Context.Request.Query["workerName"].ToString()" class="as-input" />
+                </div>
+                <div class="as-field">
                     <label class="as-label">作業員名（カナ） 姓</label>
                     <input name="workerKanaLast" value="@workerKanaLast" class="as-input" />
                 </div>
 
                 <div class="as-field">
-                    <label class="as-label">名</label>
+                    <label class="as-label">作業員名（カナ） 名</label>
                     <input name="workerKanaFirst" value="@workerKanaFirst" class="as-input" />
                 </div>
 
@@ -168,10 +184,9 @@
                 <div class="as-field">
                     <label class="as-label">絞り込み条件</label>
                     <select name="filter" class="as-input">
-                        <option value="" selected="@(string.IsNullOrEmpty(filter))">（空欄）</option>
-                        <option value="no_log" selected="@(filter=="no_log")">未受講者（入場、退場とも記録なし）</option>
-                        <option value="partial_log" selected="@(filter=="partial_log")">入場記録のみ、または退場記録のみあり</option>
-                        <option value="no_log_active" selected="@(filter=="no_log_active")">未受講者（従業員情報マスタに登録あり）</option>
+                        <option value="both_log" selected="@(filter=="both_log")">入場・退場記録あり</option>
+                        <option value="entry_only" selected="@(filter=="entry_only")">入場記録のみあり（退場記録なし）</option>
+                        <option value="master_only" selected="@(filter=="master_only")">従業員情報マスタに登録あり</option>
                     </select>
                 </div>
             </div>

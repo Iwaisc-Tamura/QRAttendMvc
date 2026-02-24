@@ -108,21 +108,25 @@ namespace QRAttendMvc.Controllers
                 .OrderByDescending(x => x.SelectYmdTime)
                 .FirstOrDefaultAsync();
 
-            // ★ TT01はKAISAI_CD（開催コード）なので、events から一致する EventCd（区分）へ変換して渡す
-            var defaultEventCd = "";
+            // ★ TT01はKAISAI_CD（開催コード）なので、events から一致イベントを特定
+            Gt01KaisaiEvent? defaultEv = null;
 
-            if (latestTargetToday?.KaisaiCd != null)
+            if (!string.IsNullOrWhiteSpace(latestTargetToday?.KaisaiCd))
             {
-                var kaisaiCd = latestTargetToday.KaisaiCd.Trim();
-
-                var hit = events.FirstOrDefault(e => (e.KaisaiCd ?? "").Trim() == kaisaiCd);
-                if (hit != null)
-                {
-                    defaultEventCd = (hit.EventCd ?? "").Trim();
-                }
+                var kaisaiCd = latestTargetToday!.KaisaiCd.Trim();
+                defaultEv = events.FirstOrDefault(e => (e.KaisaiCd ?? "").Trim() == kaisaiCd);
             }
 
-            ViewBag.DefaultKaisaiCd = defaultEventCd;
+            // ★ TT01 に該当があれば「常に選択済み（確定状態）」にする
+            if (defaultEv != null)
+            {
+                await SetCurrentEventAsync(defaultEv);               // ←これで戻っても確定が維持される
+                ViewBag.DefaultKaisaiCd = (defaultEv.EventCd ?? "").Trim(); // 区分も選択済みに
+            }
+            else
+            {
+                ViewBag.DefaultKaisaiCd = "";
+            }
 
             return View();
         }
