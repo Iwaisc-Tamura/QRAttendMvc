@@ -120,7 +120,7 @@
             gap: .5rem;
         }
         .name-split .name-split-input {
-            width: 50%;
+            width: 30%;
             min-width: 6rem;
         }
 
@@ -244,14 +244,14 @@
                         <div class="ev-label">生年月日</div>
                         <div class="ev-field">
                             <!-- 手入力で 8桁許容。画面表示は YYYY/MM/DD -->
-                            <input id="birthDate" type="text" class="form-control" style="width: 90px" placeholder="YYYY/MM/DD" autocomplete="bday" />
+                            <input id="birthDate" type="text" class="form-control" style="width: 100px" placeholder="YYYY/MM/DD" autocomplete="bday" />
                         </div>
                     </div>
 
                     <div class="ev-row">
                         <div class="ev-label">名簿対象除外日</div>
                         <div class="ev-field">
-                            <input id="excludeDate" type="text" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" style="width: 90px !important" />
+                            <input id="excludeDate" type="text" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" style="width: 100px !important" />
                         </div>
                     </div>
 
@@ -702,8 +702,9 @@
                 const data = await res.json();
 
                 if (!data || data.ok !== true) {
-                    setIcon("NG");
-                    playBeep("NG");
+                    const isNoMaster = (data?.message ?? "") === "作業員マスタに登録がありません";
+                    setIcon(isNoMaster ? "WARN" : "NG");
+                    playBeep(isNoMaster ? "WARN" : "NG");
                     appendLog(`${workerForLookup} ${data?.message ?? "Lookup failed"}`);
                     showReadResult(workerForLookup, data?.message ?? "取得失敗", "");
                     if (qrInput) { qrInput.value = ""; }
