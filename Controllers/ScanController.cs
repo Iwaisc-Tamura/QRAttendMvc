@@ -625,16 +625,9 @@ namespace QRAttendMvc.Controllers
             if (qrPrefix == "2")
             {
                 var sessionKaisai = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
-                string? sessionEventCd = null;
-                if (!string.IsNullOrWhiteSpace(sessionKaisai))
-                {
-                    var sessionEvent = await _db.KaisaiEvents.AsNoTracking()
-                        .FirstOrDefaultAsync(x => x.KaisaiCd == sessionKaisai);
-                    sessionEventCd = sessionEvent?.EventCd;
-                }
 
-                if (string.IsNullOrWhiteSpace(overrideKaisaiFromQr) || string.IsNullOrWhiteSpace(sessionEventCd)
-                    || !string.Equals(overrideKaisaiFromQr, sessionEventCd))
+                if (string.IsNullOrWhiteSpace(overrideKaisaiFromQr) || string.IsNullOrWhiteSpace(sessionKaisai)
+                    || !string.Equals(overrideKaisaiFromQr, sessionKaisai))
                 {
                     try
                     {

@@ -357,7 +357,7 @@
 
     const kind = "@kind";
     const kaisaiCd = "@kaisaiCd";
-    const evEventCd = "@(ev?.EventCd ?? "")";
+    const evKaisaiCd = "@kaisaiCd";
 
     //追加 2026.02.20 Takada start:作業員検索からのデータ保持
     const selectedEmployeeCd = "@selectedEmployeeCd";
@@ -678,11 +678,11 @@
 
             if (parsed.type === "2") {
                 const qrKaisai = parsed.overrideKaisai || "";
-                if (qrKaisai !== evEventCd) {
+                if (qrKaisai !== evKaisaiCd) {
                     setIcon("NG");
                     playBeep("NG");
-                    appendLog(`${parsed.original} 仮QRのイベントが表示中のイベントと一致しません （QR:${qrKaisai} != ${evEventCd}）`);
-                    showReadResult(parsed.worker || parsed.original, "イベント不一致", "");
+                    appendLog(`${parsed.original} 仮QRの開催コードが表示中の開催コードと一致しません （QR:${qrKaisai} != ${evKaisaiCd}）`);
+                    showReadResult(parsed.worker || parsed.original, "開催コード不一致", "");
                     if (qrInput) { qrInput.value = ""; }
                     return;
                 }
