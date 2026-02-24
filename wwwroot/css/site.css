@@ -471,8 +471,8 @@ body {
     ===================================================== */
 
     body.index-attende {
-        font-size: 11pt;
-        overflow-x: hidden;
+    height: 100vh;
+    overflow: hidden; 
     }
 
     body.index-attende * {
@@ -565,7 +565,7 @@ body {
         width: 1200pt;
         min-width: 600pt;
         margin: 0 auto;
-        padding: 18px 0 20px 0;
+        padding: 12px 0 12px 0;
         box-sizing: border-box;
     }
 
@@ -609,17 +609,30 @@ body {
 
     body.index-attende .as-grid {
         display: grid;
-        column-gap: 16px;
+        width: 100%;
+        column-gap: 12px;
         align-items: end;
         margin-bottom: 10px;
     }
 
-        body.index-attende .as-grid-1 {
-            grid-template-columns: 260px 520px 180px 160px 140px;
-        }
+    body.index-attende .as-grid-1 {
+        grid-template-columns: 360px 520px 180px 140px 140px;
+    }
 
     body.index-attende .as-grid-2 {
-        grid-template-columns: 260px 220px 220px 180px 180px 320px;
+        grid-template-columns: 360px 240px 220px 180px 320px;
+    }
+
+    body.index-attende select[name="filter"] {
+        min-width: 320px;
+    }
+
+    body.index-attende .as-grid-1 .as-field.as-action {
+        justify-self: start; 
+    }
+
+    body.index-attende .as-grid-1 .as-field.as-action + .as-field.as-action {
+        margin-left: 20px; /* 今より広げたい分（例：20px） */
     }
 
     body.index-attende .as-label {
@@ -678,7 +691,9 @@ body {
 
     /* 一覧テーブル */
     body.index-attende .as-tablewrap {
-        margin-top: 6px;
+        height: 42vh; 
+        max-height: 440px;
+        min-height: unset; 
     }
 
     body.index-attende .as-table {
@@ -712,6 +727,8 @@ body {
         display: flex;
         justify-content: flex-end;
         gap: 16px;
+        margin-top: 8px; 
+        padding: 6px 0;
     }
 
     body.index-attende .as-btn-primary {
@@ -737,12 +754,12 @@ body {
         margin-bottom: 10px;
     }
 
-    body.index-attende .as-event-row {
-        display: grid;
-        grid-template-columns: 180px 1fr;
-        column-gap: 20px;
-        padding: 6px 0;
-    }
+        body.index-attende .as-event-row {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            column-gap: 20px;
+            padding: 4px 0;
+        }
 
     body.index-attende .as-ev-label {
         font-weight: 800;
