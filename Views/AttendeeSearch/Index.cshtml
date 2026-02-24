@@ -55,63 +55,61 @@
         <div class="as-title">入退場照会</div>
     </header>
 
-    <!-- ログイン情報 -->
-    <div class="ee-side">
-        <div class="ee-login" aria-label="ログイン情報">
-            <div class="ev-login-row">
-                <span class="ev-login-label">ログイン</span>
-                <span class="ev-login-value">@login</span>
-            </div>
-            <div class="ev-login-row">
-                <span class="ev-login-label">日付</span>
-                <span class="ev-login-value" id="layoutDate">@serverDateText</span>
-            </div>
-            <div class="ev-login-row">
-                <span class="ev-login-label">時刻</span>
-                <span class="ev-login-value" id="layoutTime">@serverTimeText</span>
-            </div>
-        </div>
-    </div>
-
     <main class="as-container">
+        <div class="ee-top">
 
-        <div class="as-event-header">
-            <div class="as-event-row">
-                <div class="as-ev-label">イベント開催日</div>
-                <div class="as-ev-value">@ViewBag.EventDate</div>
+            <div class="as-event-header">
+                <div class="as-event-row">
+                    <div class="as-ev-label">イベント開催日</div>
+                    <div class="as-ev-value">@ViewBag.EventDate</div>
+                </div>
+
+                <div class="as-event-row">
+                    <div class="as-ev-label">区分</div>
+                    <div class="as-ev-value">@ViewBag.Kubun</div>
+                </div>
+
+                <div class="as-event-row">
+                    <div class="as-ev-label">開催拠点</div>
+                    <div class="as-ev-value">@ViewBag.Kyoten</div>
+                </div>
+
+                <div class="as-event-row">
+                    <div class="as-ev-label">講習場所</div>
+                    <div class="as-ev-value">@ViewBag.Place</div>
+                </div>
+
+                <div class="as-event-row as-event-row-time">
+                    <div class="as-ev-label">開催時刻</div>
+                    <div class="as-ev-value">@ViewBag.StartTime ～ @ViewBag.EndTime</div>
+
+                    <div class="as-ev-label as-ev-label-inline">受付開始時刻</div>
+                    <div class="as-ev-value as-ev-value-inline">@ViewBag.Uketsuke</div>
+
+                    <div class="as-ev-label as-ev-label-inline">開催コード</div>
+                    <div class="as-ev-value as-ev-value-inline">@currentKaisaiCd</div>
+                </div>
+
             </div>
-
-            <div class="as-event-row">
-                <div class="as-ev-label">区分</div>
-                <div class="as-ev-value">@ViewBag.Kubun</div>
-            </div>
-
-            <div class="as-event-row">
-                <div class="as-ev-label">開催拠点</div>
-                <div class="as-ev-value">@ViewBag.Kyoten</div>
-            </div>
-
-            <div class="as-event-row">
-                <div class="as-ev-label">講習場所</div>
-                <div class="as-ev-value">@ViewBag.Place</div>
-            </div>
-
-            <div class="as-event-row as-event-row-time">
-                <div class="as-ev-label">開催時刻</div>
-                <div class="as-ev-value">@ViewBag.StartTime ～ @ViewBag.EndTime</div>
-
-                <div class="as-ev-label as-ev-label-inline">受付開始時刻</div>
-                <div class="as-ev-value as-ev-value-inline">@ViewBag.Uketsuke</div>
-
-                <div class="as-ev-label as-ev-label-inline">開催コード</div>
-                <div class="as-ev-value as-ev-value-inline">@currentKaisaiCd</div>
+            <!-- ログイン情報 -->
+            <div class="ee-side">
+                <div class="ee-login" aria-label="ログイン情報">
+                    <div class="ev-login-row">
+                        <span class="ev-login-label">ログイン</span>
+                        <span class="ev-login-value">@login</span>
+                    </div>
+                    <div class="ev-login-row">
+                        <span class="ev-login-label">日付</span>
+                        <span class="ev-login-value" id="layoutDate">@serverDateText</span>
+                    </div>
+                    <div class="ev-login-row">
+                        <span class="ev-login-label">時刻</span>
+                        <span class="ev-login-value" id="layoutTime">@serverTimeText</span>
+                    </div>
+                </div>
             </div>
 
         </div>
-
-        <div class="as-dashline"></div>
-
-
 
         <!-- ===== 検索条件 ===== -->
         <form method="get" class="as-form" id="searchForm">
@@ -172,9 +170,7 @@
 
                 <div class="as-field">
                     <label class="as-label">生年月日</label>
-                    <!-- カレンダーアイコン非表示 -->
-                    <!-- <input name="birthDate" type="date" value="@birthDate" class="as-input" /> -->
-                    <input name="birthDate" type="text" inputmode="numeric" placeholder="yyyy/mm/dd"
+                    <input name="birthDate" id="birthDate" type="text" inputmode="numeric" placeholder="yyyy/mm/dd"
                            value="@birthDate" class="as-input as-birth" autocomplete="off" />
                 </div>
                 <div class="as-field">
@@ -317,6 +313,36 @@
 
     <!-- ★② 指定スクリプト（そのまま） -->
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const birthDateEl = document.getElementById("birthDate");
+
+            function formatToDisplayYmd(raw) {
+                if (!raw) return "";
+                const digits = String(raw).replace(/[^\d]/g, "");
+                if (digits.length === 8) {
+                    return digits.substring(0, 4) + "/" + digits.substring(4, 6) + "/" + digits.substring(6, 8);
+                }
+                const m = String(raw).match(/^(\d{4})[-\/](\d{2})[-\/](\d{2})$/);
+                if (m) return `${m[1]}/${m[2]}/${m[3]}`;
+                return String(raw);
+            }
+
+            if (birthDateEl) {
+                birthDateEl.addEventListener('input', () => {
+                    const v = birthDateEl.value || "";
+                    const onlyDigits = v.replace(/[^\d]/g, "");
+                    if (onlyDigits.length === 8) {
+                        birthDateEl.value = formatToDisplayYmd(onlyDigits);
+                    }
+                });
+
+                birthDateEl.addEventListener('blur', () => {
+                    const v = (birthDateEl.value || "").trim();
+                    birthDateEl.value = formatToDisplayYmd(v);
+                });
+            }
+        });
+
         document.addEventListener("DOMContentLoaded", function () {
 
             const stored = sessionStorage.getItem("fixedLayoutTime");

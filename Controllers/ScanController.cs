@@ -287,6 +287,14 @@ namespace QRAttendMvc.Controllers
             // 作業員マスタ（仮QR の場合はマスタなしでも処理を許可する）
             var emp = await _db.Employees.FirstOrDefaultAsync(x => x.EmployeeCd == workerCd);
 
+            string ResolveDisplayName(Tt02EntryExit? entryRow)
+            {
+                if (emp != null) return emp.DisplayName;
+                var name = string.Join(" ", new[] { entryRow?.FamilyName, entryRow?.FirstName }
+                    .Where(s => !string.IsNullOrWhiteSpace(s)));
+                return string.IsNullOrWhiteSpace(name) ? workerCd : name;
+            }
+
             // 協力会社マスタ（会社名などを補完） — emp が存在する場合のみ取得
             Gm02Cooperate? coop = null;
             if (emp != null && !string.IsNullOrWhiteSpace(emp.CooperateCd))
@@ -312,7 +320,7 @@ namespace QRAttendMvc.Controllers
             // 退場で入場なしは受け付けない（既存の仕様）
             if (kind == "OUT" && (row == null || string.IsNullOrWhiteSpace(row.EntryTime)))
             {
-                var display = emp != null ? emp.DisplayName : workerCd;
+                var display = ResolveDisplayName(row);
                 return (false, "WARN", "△", "入場記録がないため退場登録できません。", display);
             }
 
@@ -481,13 +489,13 @@ namespace QRAttendMvc.Controllers
             catch (Exception)
             {
                 // 追跡ログとして簡潔に返す（詳細はサーバ側ログ参照）
-                var display = emp != null ? emp.DisplayName : workerCd;
+                var display = ResolveDisplayName(row);
                 return (false, "NG", "×", "DB書き込みエラーが発生しました。係員に問い合わせてください。", display);
             }
 
             return (true, "OK", "〇",
                 kind == "IN" ? "入場記録OK" : "退場記録OK",
-                emp != null ? emp.DisplayName : workerCd);
+                ResolveDisplayName(row));
         }
 
         // QR または手入力で入退場記録（連続登録） 
@@ -625,16 +633,9 @@ namespace QRAttendMvc.Controllers
             if (qrPrefix == "2")
             {
                 var sessionKaisai = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
-                string? sessionEventCd = null;
-                if (!string.IsNullOrWhiteSpace(sessionKaisai))
-                {
-                    var sessionEvent = await _db.KaisaiEvents.AsNoTracking()
-                        .FirstOrDefaultAsync(x => x.KaisaiCd == sessionKaisai);
-                    sessionEventCd = sessionEvent?.EventCd;
-                }
 
-                if (string.IsNullOrWhiteSpace(overrideKaisaiFromQr) || string.IsNullOrWhiteSpace(sessionEventCd)
-                    || !string.Equals(overrideKaisaiFromQr, sessionEventCd))
+                if (string.IsNullOrWhiteSpace(overrideKaisaiFromQr) || string.IsNullOrWhiteSpace(sessionKaisai)
+                    || !string.Equals(overrideKaisaiFromQr, sessionKaisai))
                 {
                     try
                     {

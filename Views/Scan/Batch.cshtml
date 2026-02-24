@@ -9,6 +9,10 @@
     string login = ViewBag.LoginDisplay as string ?? "XXXXXX";
     var ev = ViewBag.Event as Gt01KaisaiEvent;
 
+    var serverNow = DateTime.Now;
+    var w = new[] { "日", "月", "火", "水", "木", "金", "土" };
+    var youbi = w[(int)serverNow.DayOfWeek];
+
     string FmtYmd(string? ymd)
     {
         if (string.IsNullOrWhiteSpace(ymd)) return "";
@@ -87,11 +91,11 @@
                         </div>
                         <div class="ev-login-row">
                             <span class="ev-login-label">日付</span>
-                            <span class="ev-login-value">@DateTime.Now.ToString("yyyy/MM/dd")</span>
+                            <span class="ev-login-value">@serverNow.ToString("yyyy/MM/dd") (@youbi)</span>
                         </div>
                         <div class="ev-login-row">
                             <span class="ev-login-label">時刻</span>
-                            <span class="ev-login-value">@DateTime.Now.ToString("HH:mm:ss")</span>
+                            <span class="ev-login-value">@serverNow.ToString("HH:mm:ss")</span>
                         </div>
                     </div>
                 </div>
