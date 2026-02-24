@@ -50,7 +50,7 @@ namespace QRAttendMvc.Controllers
                 jStrat: null,
                 jMaisu: null,
                 tResart: null,
-                uTantoCd: HttpContext.Session.GetString("BRANCH_CD"),
+                uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
                 uTimeStamp: DateTime.Now
             );
 

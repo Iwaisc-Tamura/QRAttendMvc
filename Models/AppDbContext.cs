@@ -4,39 +4,39 @@ namespace QRAttendMvc.Models
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        public AppDbContext(DbContextOptions<AppDbContext> options)
+            : base(options)
+        {
+        }
 
-        // 開催イベント
+        // =========================
+        // 通常テーブル
+        // =========================
+
         public DbSet<Gt01KaisaiEvent> KaisaiEvents => Set<Gt01KaisaiEvent>();
-
-        // 従業員（旧 Participants）
         public DbSet<Gm01Employee> Employees => Set<Gm01Employee>();
-
-        // 協力会社 （追加 2026.0216 takada）
         public DbSet<Gm02Cooperate> Cooperates => Set<Gm02Cooperate>();
-
-        // 入退場ログ（旧 EventLogs）
         public DbSet<Tt02EntryExit> EntryExitLogs => Set<Tt02EntryExit>();
-
-        // 対象イベント
         public DbSet<TargetEvent> TargetEvents => Set<TargetEvent>();
-
-        // 操作ログ
         public DbSet<Tx01Log> OperationLogs => Set<Tx01Log>();
 
-        // 入退場照会データ検索
-        public DbSet<EntryExitInquiryDto> EntryExitInquiry => Set<EntryExitInquiryDto>();
+        // =========================
+        // ストアドプロシージャ結果用（キーなし）
+        // =========================
+        public DbSet<AttendeeSearchSpRow> AttendeeSearchSpRows => Set<AttendeeSearchSpRow>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
+            // =========================
+            // GT01_KAISAI_EVENT
+            // =========================
             modelBuilder.Entity<Gt01KaisaiEvent>(e =>
             {
                 e.ToTable("GT01_KAISAI_EVENT");
                 e.HasKey(x => x.KaisaiCd);
 
-                // DB column names are UPPER_SNAKE. Map explicitly.
                 e.Property(x => x.KaisaiCd).HasColumnName("KAISAI_CD");
                 e.Property(x => x.EventKbn).HasColumnName("EVENT_KBN");
                 e.Property(x => x.PartnerCd).HasColumnName("PARTNER_CD");
@@ -55,6 +55,9 @@ namespace QRAttendMvc.Models
                 e.Property(x => x.GroupCd).HasColumnName("GROUP_CD");
             });
 
+            // =========================
+            // GM01_EMPLOYEE
+            // =========================
             modelBuilder.Entity<Gm01Employee>(e =>
             {
                 e.ToTable("GM01_EMPLOYEE");
@@ -64,13 +67,15 @@ namespace QRAttendMvc.Models
                 e.Property(x => x.EmployeeCd).HasColumnName("EMPLOYEE_CD");
                 e.Property(x => x.FamilyName).HasColumnName("FAMILY_NAME");
                 e.Property(x => x.FirstName).HasColumnName("FIRST_NAME");
-                /* 追加 2026.02.16 Takada */
                 e.Property(x => x.FamilyNameKana).HasColumnName("FAMILY_NAME_KANA");
                 e.Property(x => x.FirstNameKana).HasColumnName("FIRST_NAME_KANA");
                 e.Property(x => x.BirthYmd).HasColumnName("BIRTH_YMD");
                 e.Property(x => x.RetireYmd).HasColumnName("RETIRE_YMD");
             });
 
+            // =========================
+            // GM02_COOPERATE
+            // =========================
             modelBuilder.Entity<Gm02Cooperate>(e =>
             {
                 e.ToTable("GM02_COOPERATE");
@@ -83,6 +88,9 @@ namespace QRAttendMvc.Models
                 e.Property(x => x.ApplyEYmd).HasColumnName("APPLY_E_YMD");
             });
 
+            // =========================
+            // TT02_ENTRY_EXIT
+            // =========================
             modelBuilder.Entity<Tt02EntryExit>(e =>
             {
                 e.ToTable("TT02_ENTRY_EXIT");
@@ -103,10 +111,11 @@ namespace QRAttendMvc.Models
                 e.Property(x => x.ActionCd).HasColumnName("ACTION_CD");
                 e.Property(x => x.TensoFlg).HasColumnName("TENSO_FLG");
                 e.Property(x => x.TensoYmdTime).HasColumnName("TENSO_YMD_TIME");
-                e.Property(x => x.UTantoCd).HasColumnName("U_TANTO_CD");
-                e.Property(x => x.UTimeStamp).HasColumnName("U_TIME_STAMP");
             });
 
+            // =========================
+            // TT01_TARGET_EVENT
+            // =========================
             modelBuilder.Entity<TargetEvent>(e =>
             {
                 e.ToTable("TT01_TARGET_EVENT");
@@ -117,6 +126,9 @@ namespace QRAttendMvc.Models
                 e.Property(x => x.SelectYmdTime).HasColumnName("SELECT_YMD_TIME");
             });
 
+            // =========================
+            // TX01_LOG
+            // =========================
             modelBuilder.Entity<Tx01Log>(e =>
             {
                 e.ToTable("TX01_LOG");
@@ -134,33 +146,14 @@ namespace QRAttendMvc.Models
                 e.Property(x => x.EntryTime).HasColumnName("ENTRY_TIME");
                 e.Property(x => x.ExitTime).HasColumnName("EXIT_TIME");
                 e.Property(x => x.ReasonCd).HasColumnName("REASON_CD");
-
-                e.Property(x => x.SCooperateKana).HasColumnName("S_COOPERATE_KANA");
-                e.Property(x => x.SCooperateName).HasColumnName("S_COOPERATE_NAME");
-                e.Property(x => x.SEmployeeKanas).HasColumnName("S_EMPLOYEE_KANAS");
-                e.Property(x => x.SEmployeeKanan).HasColumnName("S_EMPLOYEE_KANAN");
-                e.Property(x => x.SEmployeeKanjis).HasColumnName("S_EMPLOYEE_KANJIS");
-                e.Property(x => x.SEmployeeKanjin).HasColumnName("S_EMPLOYEE_KANJIN");
-                e.Property(x => x.SBirthYmd).HasColumnName("S_BIRTH_YMD");
-                e.Property(x => x.SEmployeeCd).HasColumnName("S_EMPLOYEE_CD");
-                e.Property(x => x.SSelect).HasColumnName("S_SELECT");
-
-                e.Property(x => x.JStrat).HasColumnName("J_STRAT");
-                e.Property(x => x.JMaisu).HasColumnName("J_MAISU");
-                e.Property(x => x.TResart).HasColumnName("T_RESART");
-
                 e.Property(x => x.UTantoCd).HasColumnName("U_TANTO_CD");
                 e.Property(x => x.UTimeStamp).HasColumnName("U_TIME_STAMP");
             });
 
-            // ★ここは OnModelCreating の中に置く（Tx01Log の直後）
-            modelBuilder.Entity<EntryExitInquiryDto>(e =>
-            {
-                e.HasNoKey();
-                e.ToView(null);
-            });
-
+            // =========================
+            // ストアドプロシージャ結果（キーなし）
+            // =========================
+            modelBuilder.Entity<AttendeeSearchSpRow>().HasNoKey();
         }
-
     }
 }

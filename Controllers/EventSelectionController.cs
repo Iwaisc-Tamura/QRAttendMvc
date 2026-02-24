@@ -1,8 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 using QRAttendMvc.Models;
 using QRAttendMvc.Services;
+using System;
 using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace QRAttendMvc.Controllers
 {
@@ -19,7 +23,10 @@ namespace QRAttendMvc.Controllers
     public class EventSelectionController : BaseController
     {
         private readonly AppDbContext _db;
+        private readonly IActionLogService _logService;
+
         private const string SessionKeyCurrentKaisaiCd = "CurrentKaisaiCd";
+
         /* 追加 2026.02.16 Takada */
         private const string SessionKeyEventDate = "SelectedEventDate";
         private const string SessionKeyKubun = "SelectedKubun";
@@ -32,7 +39,47 @@ namespace QRAttendMvc.Controllers
         public EventSelectionController(IActionLogService logService, AppDbContext db)
                 : base(logService)
         {
+            _logService = logService;
             _db = db;
+        }
+
+        /// <summary>
+        /// プルダウン選択時ログ（区分/開始時刻の選択で呼ぶ）
+        /// eventCd は「選択したときの CurrentKaisaiCd」を入れる想定
+        /// </summary>
+        private async Task WritePullDownLogAsync()
+        {
+            // 「選択したときの CurrentKaisaiCd」
+            var currentKaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
+
+            await _logService.ActionLogSaveAsync(
+                screenId: "G20",
+                actionCd: "A03",
+                eventCd: currentKaisaiCd,
+                employeeCd: null,
+                cooperateCd: null,
+                familyName: null,
+                firstName: null,
+                birthYmd: null,
+                entryTime: null,
+                exitTime: null,
+                reasonCd: null,
+                sCooperateKana: null,
+                sCooperateName: null,
+                sEmployeeKanas: null,
+                sEmployeeKanan: null,
+                sEmployeeKanjis: null,
+                sEmployeeKanjin: null,
+                sBirthYmd: null,
+                sEmployeeCd: null,
+                sSelect: null,
+                jStrat: null,
+                jMaisu: null,
+                tResart: null,
+                // ご指定どおり：EMPLOYEE_CD を uTantoCd に入れる
+                uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                uTimeStamp: DateTime.Now
+            );
         }
 
         [HttpGet]
@@ -150,10 +197,16 @@ namespace QRAttendMvc.Controllers
             return Json(list);
         }
 
-        /// <summary>開始時刻一覧（区分で絞り込み）</summary>
+        /// <summary>
+        /// 開始時刻一覧（区分で絞り込み）
+        /// ★ここが「1つ目のプルダウン（区分）を選択したタイミング」で呼ばれる想定なのでログ出力
+        /// </summary>
         [HttpGet]
-        public IActionResult GetStartTimes(string divisionCode)
+        public async Task<IActionResult> GetStartTimes(string divisionCode)
         {
+            // 区分プルダウン選択ログ
+            await WritePullDownLogAsync();
+
             var userBranch = HttpContext.Session.GetString("BRANCH_CD") ?? string.Empty;
             var today = DateTime.Today;
 
@@ -172,10 +225,14 @@ namespace QRAttendMvc.Controllers
 
         /// <summary>
         /// 区分＋開始時刻でイベント確定（一意前提）
+        /// ★ここが「2つ目のプルダウン（開始時刻）を選択したタイミング」で呼ばれる想定なのでログ出力
         /// </summary>
         [HttpPost]
         public async Task<IActionResult> Decide(string divisionCode, string startTime)
         {
+            // 開始時刻プルダウン選択ログ
+            await WritePullDownLogAsync();
+
             var userBranch = HttpContext.Session.GetString("BRANCH_CD") ?? string.Empty;
             var today = DateTime.Today;
             var st = NormalizeHm(startTime); // "HH:mm" -> "HHmm"
@@ -202,6 +259,7 @@ namespace QRAttendMvc.Controllers
             }
             return RedirectToAction("Batch", "Scan", new { kind = mode });
         }
+
         [HttpPost]
         public IActionResult GoToTemp(string kind)
         {
@@ -213,6 +271,7 @@ namespace QRAttendMvc.Controllers
 
             return RedirectToAction("TempInput", "Scan", new { kind = kind });
         }
+
         private async Task SetCurrentEventAsync(Gt01KaisaiEvent ev)
         {
             HttpContext.Session.SetString(SessionKeyCurrentKaisaiCd, ev.KaisaiCd ?? "");
@@ -250,6 +309,7 @@ namespace QRAttendMvc.Controllers
 
             await _db.SaveChangesAsync();
         }
+
         [HttpPost]
         public IActionResult GoToTempInput(string mode)
         {
