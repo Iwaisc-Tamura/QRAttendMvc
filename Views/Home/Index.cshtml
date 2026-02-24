@@ -33,7 +33,8 @@
 
             <!-- 2段目：左にテストボタン／右にログイン・日付・時刻 -->
             <section class="home-subbar">
-                <div class="home-sub-left">
+                
+                <div class="home-sub-left" style="visibility:hidden; ">
                     <form asp-controller="TestUtility"
                           asp-action="UpdateTodayEventDate"
                           method="post"

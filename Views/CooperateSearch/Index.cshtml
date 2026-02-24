@@ -30,49 +30,57 @@
         <div class="es-title">会社検索</div>
     </header>
 
-    <!-- ログイン情報 -->
-    <div class="ee-side">
-        <div class="ee-login" aria-label="ログイン情報">
-            <div class="ev-login-row">
-                <span class="ev-login-label">ログイン</span>
-                <span class="ev-login-value">@login</span>
-            </div>
-            <div class="ev-login-row">
-                <span class="ev-login-label">日付</span>
-                <span class="ev-login-value" id="layoutDate"></span>
-            </div>
-            <div class="ev-login-row">
-                <span class="ev-login-label">時刻</span>
-                <span class="ev-login-value" id="layoutTime"></span>
-            </div>
-        </div>
-    </div>
+
+
 
     <main class="es-container">
+        <div class="ee-top">
+            <div>
+                <form method="get" class="es-form" id="searchForm">
+                    <input type="hidden" name="searched" value="true" />
+                    <input type="hidden" name="sort" value="@currentSort" />
+                    <input type="hidden" name="dir" value="@currentDir" />
+                    <input type="hidden" name="returnUrl" value="@returnUrl" />
 
-        <form method="get" class="es-form" id="searchForm">
-            <input type="hidden" name="searched" value="true" />
-            <input type="hidden" name="sort" value="@currentSort" />
-            <input type="hidden" name="dir" value="@currentDir" />
-            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                    <div class="es-grid es-grid-1">
+                        <div class="es-field es-span2">
+                            <label class="es-label">会社名（カナ）</label>
+                            <input name="companyKana" value="@companyKana" class="es-input" />
+                        </div>
 
-            <div class="es-grid es-grid-1">
-                <div class="es-field es-span2">
-                    <label class="es-label">会社名（カナ）</label>
-                    <input name="companyKana" value="@companyKana" class="es-input" />
-                </div>
+                        <div class="es-field es-action">
+                            <button type="submit" class="es-btn es-btn-search">検索</button>
+                        </div>
 
-                <div class="es-field es-action">
-                    <button type="submit" class="es-btn es-btn-search">検索</button>
-                </div>
+                        <div class="es-field es-action">
+                            <a asp-action="Index"
+                               asp-route-returnUrl="@returnUrl"
+                               class="es-btn es-btn-search">クリア</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
 
-                <div class="es-field es-action">
-                    <a asp-action="Index"
-                       asp-route-returnUrl="@returnUrl"
-                       class="es-btn es-btn-search">クリア</a>
+            <!-- ログイン情報 -->
+            <div class="ee-side">
+                <div class="ee-login" aria-label="ログイン情報">
+                    <div class="ev-login-row">
+                        <span class="ev-login-label">ログイン</span>
+                        <span class="ev-login-value">@login</span>
+                    </div>
+                    <div class="ev-login-row">
+                        <span class="ev-login-label">日付</span>
+                        <span class="ev-login-value" id="layoutDate"></span>
+                    </div>
+                    <div class="ev-login-row">
+                        <span class="ev-login-label">時刻</span>
+                        <span class="ev-login-value" id="layoutTime"></span>
+                    </div>
                 </div>
             </div>
-        </form>
+        </div>
+
+
 
         <div class="es-hint">
             検索条件を入力して「検索」を押してください。（未入力のまま検索すると全件表示します）

@@ -361,6 +361,7 @@
 
         const data = await res.json();
         const t = data.time ? data.time.slice(0, 2) + ":" + data.time.slice(2, 4) : "";
+        const isNoMaster = (data.message || "").includes("作業員マスタに登録がありません");
 
         showReadResult(data.code || workerCd || raw, data.name || (data.result === "NG" ? data.message : "－"), t);
 
@@ -372,7 +373,7 @@
             return;
         }
 
-        if (data.result === "WARN") {
+        if (data.result === "WARN" || isNoMaster) {
             setIcon("WARN");
             playBeep("WARN");
             appendLog(`${data.code ?? workerCd} ${data.name ?? ""} ${t} ${data.message}`);
