@@ -469,7 +469,7 @@ body {
     /* =====================================================
     index（AttendeeSearch） : body.index-attende
     ===================================================== */
-
+/*2026/02/25 追加 Takada start*/
     body.index-attende {
     height: 100vh;
     overflow: hidden; 
@@ -686,9 +686,13 @@ body {
 
     /* 一覧テーブル */
     body.index-attende .as-tablewrap {
-        height: 42vh; 
-        max-height: 440px;
-        min-height: unset; 
+        margin-top: 6px;
+        border: 1px solid #d7d7d7;
+        height: 55vh; /* ←固定（画面の55%） */
+        overflow-y: auto;
+        min-height: 320px; /* 小さすぎ防止（任意） */
+        max-height: 620px; /* 大きすぎ防止（任意） */
+        padding-bottom: 0;
     }
 
     body.index-attende .as-table {
@@ -786,14 +790,6 @@ body {
         text-align: left;
     }
 
-    body.index-attende .as-tablewrap {
-        margin-top: 6px;
-        max-height: 520px;
-        min-height: 520px;
-        overflow-y: auto;
-        border: 1px solid #d7d7d7; 
-    }
-
     body.index-attende .as-table thead th {
         position: sticky;
         top: 0;
@@ -836,7 +832,6 @@ body {
         background: #fff;
         padding: 10px 0;
         z-index: 3;
-        border-top: 1px solid #d7d7d7;
     }
 
     body.index-attende .as-hint {
@@ -867,6 +862,22 @@ body {
     body.index-attende .as-btn {
         border-radius: 10px; 
     }
+
+    body.index-attende {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    body.index-attende .as-container {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+/*2026/02/25 追加 Takada end  */
 
     /* =====================================================
     index（mployeeSearch ） : body.index-employee

@@ -7,6 +7,8 @@ using System.Data;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
+
 
 namespace QRAttendMvc.Controllers
 {
@@ -93,12 +95,21 @@ namespace QRAttendMvc.Controllers
             // -------------------------
             var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd) ?? "";
 
-            // filter / filterCondition 両方を吸収（Viewは filter）
+            // filterは '1','2','3' が来る前提。未指定は '1'
             var filterKey = !string.IsNullOrWhiteSpace(filter)
                 ? filter
                 : (!string.IsNullOrWhiteSpace(filterCondition)
                     ? filterCondition
-                    : "no_log");  // ← Viewと合わせる
+                    : "1");
+
+            // 想定外は '1' に丸める（安全策）
+            if (filterKey != "1" && filterKey != "2" && filterKey != "3")
+            {
+                filterKey = "1";
+            }
+
+            // ★SPに渡す値はそのまま
+            var spFilterCondition = filterKey;
 
             // primeOffice は Viewの includeSecond からも生成
             // includeSecond は "true"/"on" を想定
@@ -115,11 +126,6 @@ namespace QRAttendMvc.Controllers
 
             // workerKana：全角寄せ（必要なら）
             var kana = NormalizeKanaToWide(workerKana ?? "");
-
-            // filterCondition：あなたの現行画面値(no_log/partial_log/no_log_active)を吸収
-            // ※SPが char(1)想定の可能性があるので、ここは「1文字コード」へ変換して送る
-            //   仕様が違う場合はここだけ差し替えればOKです。
-            var spFilterCondition = MapFilterToSpChar(filterKey);
 
             // -------------------------
             // SP実行（DbSet<AttendeeSearchSpRow>）
@@ -199,7 +205,20 @@ namespace QRAttendMvc.Controllers
 
             var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd) ?? "";
 
-            var filterKey = !string.IsNullOrWhiteSpace(filter) ? filter : filterCondition;
+            var filterKey = !string.IsNullOrWhiteSpace(filter)
+                ? filter
+                : (!string.IsNullOrWhiteSpace(filterCondition)
+                    ? filterCondition
+                    : "1");
+
+            // 想定外は '1' に丸める（安全策）
+            if (filterKey != "1" && filterKey != "2" && filterKey != "3")
+            {
+                filterKey = "1";
+            }
+
+            // ★SPに渡す値はそのまま
+            var spFilterCondition = filterKey;
 
             bool includeSecondChecked =
                 string.Equals(includeSecond, "true", StringComparison.OrdinalIgnoreCase) ||
@@ -211,7 +230,6 @@ namespace QRAttendMvc.Controllers
 
             var birthYmd = NormalizeBirthDateToYmd8(birthDate) ?? "";
             var kana = NormalizeKanaToWide(workerKana ?? "");
-            var spFilterCondition = MapFilterToSpChar(filterKey);
 
             var list = await _db.AttendeeSearchSpRows
                 .FromSqlRaw(
@@ -297,35 +315,6 @@ namespace QRAttendMvc.Controllers
         ///
         /// ※SPが "both_log" 等の文字列を受ける設計なら、ここは string に戻して SQLParam型も変えてください。
         /// </summary>
-        private static string MapFilterToSpChar(string? filter)
-        {
-            var key = (filter ?? "").Trim().ToLowerInvariant();
-
-            // 仕様が未確定なので「暫定」でマップ
-            // - no_log           : 入退場記録あり   (現Viewの表記と値名が逆っぽいので、運用に合わせて後で調整)
-            // - partial_log      : 入場のみあり
-            // - no_log_active    : マスタ登録あり
-            //
-            // ここでは、別実装のデフォルト "3" に寄せつつ:
-            //  1: 入退場あり
-            //  2: 入場のみ
-            //  3: マスタ
-            // のような 1文字コードを仮定して割当。
-            return key switch
-            {
-                "no_log" => "1",
-                "partial_log" => "2",
-                "no_log_active" => "3",
-
-                // もし将来 both_log/entry_only/master_only が来ても吸収
-                "both_log" => "1",
-                "entry_only" => "2",
-                "master_only" => "3",
-
-                // 未指定は既存コードのデフォルトに寄せる
-                _ => "1"
-            };
-        }
 
         /// <summary>
         /// "yyyy/mm/dd" / "yyyy-mm-dd" / "yyyymmdd" を "yyyyMMdd" へ正規化
