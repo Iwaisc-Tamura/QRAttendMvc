@@ -469,7 +469,7 @@ body {
     /* =====================================================
     index（AttendeeSearch） : body.index-attende
     ===================================================== */
-
+/*2026/02/25 追加 Takada start*/
     body.index-attende {
     height: 100vh;
     overflow: hidden; 
@@ -686,9 +686,13 @@ body {
 
     /* 一覧テーブル */
     body.index-attende .as-tablewrap {
-        height: 42vh; 
-        max-height: 440px;
-        min-height: unset; 
+        margin-top: 6px;
+        border: 1px solid #d7d7d7;
+        height: 55vh; /* ←固定（画面の55%） */
+        overflow-y: auto;
+        min-height: 320px; /* 小さすぎ防止（任意） */
+        max-height: 620px; /* 大きすぎ防止（任意） */
+        padding-bottom: 0;
     }
 
     body.index-attende .as-table {
@@ -786,14 +790,6 @@ body {
         text-align: left;
     }
 
-    body.index-attende .as-tablewrap {
-        margin-top: 6px;
-        max-height: 520px;
-        min-height: 520px;
-        overflow-y: auto;
-        border: 1px solid #d7d7d7; 
-    }
-
     body.index-attende .as-table thead th {
         position: sticky;
         top: 0;
@@ -836,7 +832,6 @@ body {
         background: #fff;
         padding: 10px 0;
         z-index: 3;
-        border-top: 1px solid #d7d7d7;
     }
 
     body.index-attende .as-hint {
@@ -867,6 +862,22 @@ body {
     body.index-attende .as-btn {
         border-radius: 10px; 
     }
+
+    body.index-attende {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    body.index-attende .as-container {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+/*2026/02/25 追加 Takada end  */
 
     /* =====================================================
     index（mployeeSearch ） : body.index-employee
@@ -1157,6 +1168,75 @@ body {
     body.index-employee .es-btn {
         border-radius: 10px;
     }
+/*2026/02/25 追加 Takada stert*/
+    /* EmployeeSearch：テーブルを固定レイアウトにして省略を効かせる */
+    body.index-employee table.es-table {
+        table-layout: fixed;
+    }
+
+    /* 1行固定＋省略表示 */
+    body.index-employee table.es-table th,
+    body.index-employee table.es-table td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* 行の高さを安定させたい場合（任意） */
+    body.index-employee table.es-table tbody td {
+        height: 34px;
+    }
+
+    /* 列幅（必要に応じて調整） */
+    /* 1:作業員ID, 2:会社名, 3:会社名カナ, 4:作業員名, 5:作業員名カナ, 6:生年月日, 7:除外日 */
+    body.index-employee table.es-table th:nth-child(1),
+    body.index-employee table.es-table td:nth-child(1) {
+        width: 110px;
+    }
+
+    body.index-employee table.es-table th:nth-child(2),
+    body.index-employee table.es-table td:nth-child(2) {
+        width: 220px;
+    }
+
+    body.index-employee table.es-table th:nth-child(3),
+    body.index-employee table.es-table td:nth-child(3) {
+        width: 180px;
+    }
+
+    body.index-employee table.es-table th:nth-child(4),
+    body.index-employee table.es-table td:nth-child(4) {
+        width: 170px;
+    }
+
+    body.index-employee table.es-table th:nth-child(5),
+    body.index-employee table.es-table td:nth-child(5) {
+        width: 200px;
+    }
+
+    body.index-employee table.es-table th:nth-child(6),
+    body.index-employee table.es-table td:nth-child(6) {
+        width: 120px;
+    }
+
+    body.index-employee table.es-table th:nth-child(7),
+    body.index-employee table.es-table td:nth-child(7) {
+        width: 140px;
+    }
+
+    /* EmployeeSearch：ヘッダー（項目行）を固定する */
+    body.index-employee .es-tablewrap {
+        overflow-y: auto; /* これは今のままでOK */
+    }
+
+    /* sticky を効かせるため、th 側に指定 */
+    body.index-employee table.es-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 5; /* 行より前面に */
+        background-color: #e6e6e6; /* 透け防止（お好みで） */
+    }
+/*2026/02/25 追加 Takada end  */
 
 /* =====================================================
    index(Company/Cooperate Search) : body.index-cooprete
@@ -1389,3 +1469,67 @@ body.index-cooprete {
         height: 74px;
         border-radius: 10px;
     }
+/*2026/02/25 追加 Takada start*/
+    /* テーブルを固定レイアウトにして列幅を安定させる */
+    body.index-cooprete table.es-table {
+        table-layout: fixed;
+        width: 100%;
+    }
+
+        /* ヘッダをスクロール固定 */
+        body.index-cooprete table.es-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2; /* 行より前面に */
+            background: #e5e5e5; /* 透け防止（既存色に合わせる） */
+        }
+
+        /* ヘッダ・明細とも1行固定＋省略 */
+        body.index-cooprete table.es-table th,
+        body.index-cooprete table.es-table td {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap; /* ★改行させない（協力会社コード対策） */
+        }
+
+        /* クリック用のaが幅を持つように（省略やクリック領域が安定） */
+        body.index-cooprete table.es-table thead th a {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: inherit;
+            text-decoration: none;
+        }
+
+            body.index-cooprete table.es-table thead th a:hover {
+                text-decoration: underline;
+            }
+
+        /* 行の高さを安定させたい場合（任意） */
+        body.index-cooprete table.es-table tbody td {
+            height: 34px;
+        }
+
+        /* 列幅（バランス調整：必要なら数値を微調整してください） */
+        body.index-cooprete table.es-table th:nth-child(1),
+        body.index-cooprete table.es-table td:nth-child(1) {
+            width: 150px; /* 協力会社コード：改行しない幅を確保 */
+        }
+
+        body.index-cooprete table.es-table th:nth-child(2),
+        body.index-cooprete table.es-table td:nth-child(2) {
+            width: 240px; /* 会社名 */
+        }
+
+        body.index-cooprete table.es-table th:nth-child(3),
+        body.index-cooprete table.es-table td:nth-child(3) {
+            width: 240px; /* 会社名カナ */
+        }
+
+        /* 住所は残り幅を使う（固定したいならここも width 指定） */
+        body.index-cooprete table.es-table th:nth-child(4),
+        body.index-cooprete table.es-table td:nth-child(4) {
+            width: auto;
+        }
+/*2026/02/25 追加 Takada end  */
