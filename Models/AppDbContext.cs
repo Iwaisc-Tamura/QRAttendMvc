@@ -111,6 +111,8 @@ namespace QRAttendMvc.Models
                 e.Property(x => x.ActionCd).HasColumnName("ACTION_CD");
                 e.Property(x => x.TensoFlg).HasColumnName("TENSO_FLG");
                 e.Property(x => x.TensoYmdTime).HasColumnName("TENSO_YMD_TIME");
+                e.Property(x => x.UTantoCd).HasColumnName("U_TANTO_CD");
+                e.Property(x => x.UTimeStamp).HasColumnName("U_TIME_STAMP");
             });
 
             // =========================
