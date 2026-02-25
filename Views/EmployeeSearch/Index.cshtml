@@ -107,14 +107,14 @@
 
                         <div class="es-field">
                             <label class="es-label">生年月日</label>
-                            <input name="birthDate" id="birthDate" type="text" inputmode="numeric" value="@birthDate" class="es-input" placeholder="yyyy/MM/dd" autocomplete="off" />
+                            <input name="birthDate" id="birthDate" type="text" inputmode="numeric" value="@birthDate" class="es-input" placeholder="yyyy/ｍｍ/dd" autocomplete="off" />
                         </div>
 
                         <div class="es-field">
                             <label class="es-label">&nbsp;</label>
                             <div class="es-checkline">
                                 <span>適用終了を含む</span>
-                                <input type="checkbox" name="includeExpired" @(includeExpired ? "checked" : "") />
+                                <input type="checkbox" name="includeExpired" value="true" @(includeExpired ? "checked" : "") />
                             </div>
                         </div>
                     </div>
@@ -201,8 +201,8 @@
                             <td>@r.CompanyKana</td>
                             <td>@r.WorkerName</td>
                             <td>@r.WorkerNameKana</td>
-                            <td>@(r.BirthDate?.ToString("yyyy/M/d") ?? "")</td>
-                            <td>@(r.ExcludeDate?.ToString("yyyy/M/d") ?? "")</td>
+                            <td>@(r.BirthDate?.ToString("yyyy/MM/dd") ?? "")</td>
+                            <td>@(r.ExcludeDate?.ToString("yyyy/MM/dd") ?? "")</td>
                         </tr>
                     }
                 </tbody>
