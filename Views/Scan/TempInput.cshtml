@@ -96,7 +96,7 @@
             font-size: 12px;
             line-height: 1;
             width: 120px;
-            min-width:120px;
+            min-width: 120px;
             height: 24px;
             min-height: 24px;
             display: inline-flex;
@@ -123,6 +123,7 @@
             display: flex;
             gap: .5rem;
         }
+
         .name-split .name-split-input {
             width: 30%;
             min-width: 6rem;
@@ -133,6 +134,7 @@
             .name-split {
                 flex-direction: column;
             }
+
             .name-split .name-split-input {
                 width: 100%;
             }
@@ -283,10 +285,10 @@
                         <div class="ev-field">
                             <select id="reason" class="form-control" style="height: 34px;">
                                 <option value="">(選択必須)</option>
-                                <option value="E1">従事者証忘れ</option>
-                                <option value="E2">従事者証未発行</option>
-                                <option value="E3">会社代表または、営業担当者</option>
-                                <option value="E4">QRコード読み取り不可</option>
+                                <option value="E1">E1：従事者証忘れ</option>
+                                <option value="E2">E2：従事者証未発行</option>
+                                <option value="E3">E3：会社代表または、営業担当者</option>
+                                <option value="E4">E4：QRコード読み取り不可</option>
                             </select>
                         </div>
                     </div>
@@ -671,7 +673,7 @@
                 setIcon("NG");
                 playBeep("NG");
                 const msg = parsed.reason === "no-comma" ? "QR形式不正（, が必要です）" :
-                            parsed.reason === "invalid-prefix" ? "QR種別不正" :
+                            parsed.reason === "invalid-prefix" ? "QR区分不正" :
                             parsed.reason === "invalid-parts-2" ? "仮QRは '2,作業員ID,イベントCD' の形式が必要です" :
                             "QR形式不正";
                 appendLog(`${raw} ${msg}`);
@@ -897,6 +899,9 @@
     // 検索画面から戻ってきた EMPLOYEE_CD があれば Lookup して反映
     document.addEventListener("DOMContentLoaded", async () => {
         restoreFormState();
+        if (qrInput && typeof qrInput.focus === "function") {
+            try { qrInput.focus(); } catch (e) {}
+        }
         if (selectedCooperateCd) {
             try {
                 const res = await fetch('@Url.Action("LookupCooperate", "Scan")' + `?cooperateCd=${encodeURIComponent(selectedCooperateCd)}`);
