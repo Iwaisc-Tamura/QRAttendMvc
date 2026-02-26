@@ -72,6 +72,9 @@
                     <!-- 戻り先保持（必須） -->
                     <input type="hidden" name="returnUrl" value="@returnUrl" />
 
+                    <!-- ログ出力 -->
+                    <input type="hidden" name="isSearchButton" id="isSearchButton" value="" />
+
                     <!-- 1段目：作業員ID／会社名（カナ）／検索／クリア -->
                     <div class="es-grid es-grid-1">
                         <div class="es-field">
@@ -85,7 +88,7 @@
                         </div>
 
                         <div class="es-field es-action">
-                            <button type="submit" class="es-btn es-btn-search">検索</button>
+                            <button type="submit" class="es-btn es-btn-search" onclick="document.getElementById('isSearchButton').value='1'">検索</button>
                         </div>
 
                         <div class="es-field es-action">
@@ -278,15 +281,30 @@
                 return;
             }
 
-            const ru = "@returnUrl";
-            if (!ru) {
-                alert("returnUrl が指定されていません。EMPLOYEE_CD=" + selectedEmpCd);
-                return;
-            }
+            const form = document.createElement("form");
+            form.method = "post";
+            form.action = "/EmployeeSearch/Select";
 
-            const u = new URL(ru, window.location.origin);
-            u.searchParams.set("EMPLOYEE_CD", selectedEmpCd);
-            window.location.href = u.toString();
+            const emp = document.createElement("input");
+            emp.type = "hidden";
+            emp.name = "employeeCd";
+            emp.value = selectedEmpCd;
+            form.appendChild(emp);
+
+            const coop = document.createElement("input");
+            coop.type = "hidden";
+            coop.name = "cooperateCd";
+            coop.value = ""; // 必要なら設定
+            form.appendChild(coop);
+
+            const ru = document.createElement("input");
+            ru.type = "hidden";
+            ru.name = "returnUrl";
+            ru.value = "@returnUrl";
+            form.appendChild(ru);
+
+            document.body.appendChild(form);
+            form.submit();
         }
 
         function goBack() {
@@ -297,6 +315,25 @@
             }
             history.back();
         }
+
+        e.preventDefault();
+        document.getElementById("isSearchButton").value = "1"; // ←追加
+        form.requestSubmit();
+
+        function addHidden(form, name, value) {
+            const i = document.createElement("input");
+            i.type = "hidden";
+            i.name = name;
+            i.value = value ?? "";
+            form.appendChild(i);
+        }
+
+        addHidden(form, "companyKana", document.querySelector("[name='companyKana']").value);
+        addHidden(form, "workerKanaLast", document.querySelector("[name='workerKanaLast']").value);
+        addHidden(form, "workerKanaFirst", document.querySelector("[name='workerKanaFirst']").value);
+        addHidden(form, "birthDate", document.querySelector("[name='birthDate']").value);
+        addHidden(form, "includeExpired", document.querySelector("[name='includeExpired']").checked);
+
     </script>
 
     @functions {

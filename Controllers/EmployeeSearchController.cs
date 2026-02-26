@@ -11,10 +11,13 @@ namespace QRAttendMvc.Controllers
     {
         private readonly AppDbContext _db;
 
+        private readonly IActionLogService _actionLogService;
+
         public EmployeeSearchController(IActionLogService logService, AppDbContext db)
             : base(logService)
         {
             _db = db;
+            _actionLogService = logService; 
         }
 
         [HttpGet]
@@ -28,7 +31,8 @@ namespace QRAttendMvc.Controllers
             string? returnUrl,
             bool? searched,
             string? sort,
-            string? dir)
+            string? dir,
+            string? isSearchButton)
         {
             // ログイン表示（Attendeeと同等）
             var userBranch = HttpContext.Session.GetString("BRANCH_CD") ?? string.Empty;
@@ -56,6 +60,21 @@ namespace QRAttendMvc.Controllers
             if (!hasSearched)
             {
                 return View(Enumerable.Empty<EmployeeSearchRow>());
+            }
+
+            // ★ 検索ボタン押下時のみログ
+            if (isSearchButton == "1")
+            {
+                string? sBirthYmd = null;
+
+                if (!string.IsNullOrWhiteSpace(birthDate))
+                {
+                    var s = birthDate.Trim().Replace("/", "").Replace("-", "");
+                    if (Regex.IsMatch(s, @"^\d{8}$"))
+                        sBirthYmd = s;
+                }
+
+                
             }
 
             // 検索（未入力なら全件）
@@ -94,19 +113,63 @@ namespace QRAttendMvc.Controllers
         }
 
         [HttpPost]
-        public IActionResult Select(string employeeCd, string cooperateCd, string returnUrl)
+        public async Task<IActionResult> Select(
+            string employeeCd,
+            string cooperateCd,
+            string returnUrl,
+            string? companyKana,
+            string? workerKanaLast,
+            string? workerKanaFirst,
+            string? birthDate,
+            bool includeExpired)
         {
-            // TempInput側で使うのでセッションに保存（必要なものだけでOK）
+            // 生年月日を yyyymmdd に変換
+            string? sBirthYmd = null;
+            if (!string.IsNullOrWhiteSpace(birthDate))
+            {
+                var s = birthDate.Trim().Replace("/", "").Replace("-", "");
+                if (Regex.IsMatch(s, @"^\d{8}$"))
+                    sBirthYmd = s;
+            }
+
+            // イベントコード取得（例：Session）
+            var currentKaisaiCd = HttpContext.Session.GetString("KAISAI_CD");
+
+            await _logService.ActionLogSaveAsync(
+                screenId: "G41",
+                actionCd: "A02",
+                eventCd: currentKaisaiCd,
+                employeeCd: employeeCd,
+                cooperateCd: null,
+                familyName: null,
+                firstName: null,
+                birthYmd: null,
+                entryTime: null,
+                exitTime: null,
+                reasonCd: null,
+                sCooperateKana: companyKana,
+                sCooperateName: null,
+                sEmployeeKanas: workerKanaLast,
+                sEmployeeKanan: workerKanaFirst,
+                sEmployeeKanjis: null,
+                sEmployeeKanjin: null,
+                sBirthYmd: sBirthYmd,
+                sEmployeeCd: null,
+                sSelect: includeExpired ? "1" : "0",
+                jStrat: null,
+                jMaisu: null,
+                tResart: null,
+                uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                uTimeStamp: DateTime.Now
+            );
+
+            // セッション保存
             HttpContext.Session.SetString("TEMP_WORKER_CD", employeeCd ?? "");
             HttpContext.Session.SetString("TEMP_COOPERATE_CD", cooperateCd ?? "");
 
-            // returnUrl があればそこへ戻る
             if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
-            {
                 return Redirect(returnUrl);
-            }
 
-            // 保険：returnUrlが無い/危険なURLなら既定に戻す
             return RedirectToAction("TempInput", "Scan", new { kind = "IN" });
         }
 
