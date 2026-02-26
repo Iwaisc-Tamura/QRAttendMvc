@@ -155,7 +155,7 @@ namespace QRAttendMvc.Controllers
             if (!string.IsNullOrWhiteSpace(employeeCd))
             {
                 var key = employeeCd.Trim();
-                q = q.Where(x => (x.Emp.EmployeeCd ?? "").Contains(key));
+                q = q.Where(x => (x.Emp.EmployeeCd ?? "").StartsWith(key));
             }
 
             if (!string.IsNullOrWhiteSpace(companyKana))
