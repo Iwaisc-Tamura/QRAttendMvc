@@ -293,7 +293,7 @@ namespace QRAttendMvc.Controllers
                 if (emp != null) return emp.DisplayName;
                 var name = string.Join(" ", new[] { entryRow?.FamilyName, entryRow?.FirstName }
                     .Where(s => !string.IsNullOrWhiteSpace(s)));
-                return string.IsNullOrWhiteSpace(name) ? workerCd : name;
+                return string.IsNullOrWhiteSpace(name) ? "-" : name;
             }
 
             // 協力会社マスタ（会社名などを補完） — emp が存在する場合のみ取得
@@ -321,6 +321,33 @@ namespace QRAttendMvc.Controllers
             // 退場で入場なしは受け付けない（既存の仕様）
             if (kind == "OUT" && (row == null || string.IsNullOrWhiteSpace(row.EntryTime)))
             {
+                await _logService.ActionLogSaveAsync(
+                    screenId: ScreenIdForKind(kind),
+                    actionCd: "A04",
+                    eventCd: string.IsNullOrWhiteSpace(kaisaiCd) ? null : kaisaiCd,
+                    employeeCd: workerCd,
+                    cooperateCd: emp?.CooperateCd,
+                    familyName: emp?.FamilyName,
+                    firstName: emp?.FirstName,
+                    birthYmd: emp?.BirthYmd,
+                    entryTime: null,
+                    exitTime: null,
+                    reasonCd: null,
+                    sCooperateKana: null,
+                    sCooperateName: null,
+                    sEmployeeKanas: null,
+                    sEmployeeKanan: null,
+                    sEmployeeKanjis: null,
+                    sEmployeeKanjin: null,
+                    sBirthYmd: null,
+                    sEmployeeCd: null,
+                    sSelect: null,
+                    jStrat: null,
+                    jMaisu: null,
+                    tResart: "T03",
+                    uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                    uTimeStamp: null
+                );
                 var display = ResolveDisplayName(row);
                 return (false, "WARN", "△", "入場記録がないため退場登録できません。", display);
             }
@@ -328,8 +355,7 @@ namespace QRAttendMvc.Controllers
             // 新規レコード作成時は可能な限りマスタ情報で埋める（IN の場合のみ）
             if (row == null)
             {
-                row = new Tt02EntryExit
-                {
+                row = new Tt02EntryExit{
                     KaisaiCd = kaisaiCd,
                     EmployeeCd = workerCd,
                     CooperateCd = emp?.CooperateCd,
@@ -342,7 +368,7 @@ namespace QRAttendMvc.Controllers
                     // 必要に応じて Type を設定してください（現状は null）
                     Type = newType,
                     // 一括画面ではNULL
-                    ActionCd = null,
+                    ActionCd = "OK",
                     // TENSO 関連は現時点では未転送としておく
                     TensoFlg = null,
                     TensoYmdTime = null,
@@ -790,6 +816,41 @@ namespace QRAttendMvc.Controllers
                     .FirstOrDefaultAsync(x => x.EmployeeCd == workerCd);
                 if (empCheck == null)
                 {
+                    try
+                    {
+                        await _logService.ActionLogSaveAsync(
+                            screenId: ScreenIdForKind(kind),
+                            actionCd: "A04",
+                            eventCd: HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd),
+                            employeeCd: workerCd,
+                            cooperateCd: null,
+                            familyName: null,
+                            firstName: null,
+                            birthYmd: null,
+                            entryTime: null,
+                            exitTime: null,
+                            reasonCd: null,
+                            sCooperateKana: null,
+                            sCooperateName: null,
+                            sEmployeeKanas: null,
+                            sEmployeeKanan: null,
+                            sEmployeeKanjis: null,
+                            sEmployeeKanjin: null,
+                            sBirthYmd: null,
+                            sEmployeeCd: null,
+                            sSelect: null,
+                            jStrat: null,
+                            jMaisu: null,
+                            tResart: "T03",
+                            uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                            uTimeStamp: null
+                        );
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+
                     return Json(new
                     {
                         ok = false,
@@ -1254,6 +1315,7 @@ namespace QRAttendMvc.Controllers
             }
             else if (kind == "OUT")
             {
+                entryTime = !string.IsNullOrWhiteSpace(req.EntryRecord) ? NormalizeTime(req.EntryRecord) : null;
                 exitTime = !string.IsNullOrWhiteSpace(req.ExitRecord) ? NormalizeTime(req.ExitRecord) : hhmm;
             }
 
@@ -1320,38 +1382,65 @@ namespace QRAttendMvc.Controllers
             }
             else
             {
-                if (row == null)
-                {
-                    return Json(new { ok = false, message = "入場記録がないため退場登録できません。", time = hhmm });
-                }
-
-                if (string.IsNullOrWhiteSpace(row.EntryTime))
+                entryTime = !string.IsNullOrWhiteSpace(req.EntryRecord) ? NormalizeTime(req.EntryRecord) : null;
+                if (string.IsNullOrWhiteSpace(entryTime))
                 {
                     return Json(new { ok = false, message = "入場時刻が登録されていないため退場登録できません。", time = hhmm });
                 }
 
-                row.ExitTime = exitTime;
-                _db.Entry(row).Property(r => r.ExitTime).IsModified = true;
+                if (row == null)
+                {
+                    string typeVal;
+                    if (req.QrPrefix == "1") typeVal = "1";
+                    else if (req.QrPrefix == "2") typeVal = "5";
+                    else if (!string.IsNullOrWhiteSpace(workerCd) && workerCd.StartsWith("T")) typeVal = "9";
+                    else typeVal = "9";
 
-                if (string.IsNullOrWhiteSpace(row.CooperateCd) && !string.IsNullOrWhiteSpace(req.CompanyCd))
-                    row.CooperateCd = req.CompanyCd;
-                if (string.IsNullOrWhiteSpace(row.CompanyName) && !string.IsNullOrWhiteSpace(req.CompanyName))
-                    row.CompanyName = req.CompanyName;
-                if (string.IsNullOrWhiteSpace(row.FamilyName) && !string.IsNullOrWhiteSpace(familyName))
-                    row.FamilyName = familyName;
-                if (string.IsNullOrWhiteSpace(row.FirstName) && !string.IsNullOrWhiteSpace(firstName))
-                    row.FirstName = firstName;
-                if (string.IsNullOrWhiteSpace(row.FamilyNameKana) && !string.IsNullOrWhiteSpace(familyKana))
-                    row.FamilyNameKana = familyKana;
-                if (string.IsNullOrWhiteSpace(row.FirstNameKana) && !string.IsNullOrWhiteSpace(firstKana))
-                    row.FirstNameKana = firstKana;
-                if (string.IsNullOrWhiteSpace(row.BirthYmd) && !string.IsNullOrWhiteSpace(birthYmd))
-                    row.BirthYmd = birthYmd;
-                if (!string.IsNullOrWhiteSpace(req.Reason))
-                    row.ActionCd = req.Reason;
+                    row = new Tt02EntryExit
+                    {
+                        KaisaiCd = kaisaiCd,
+                        EmployeeCd = workerCd,
+                        CooperateCd = req.CompanyCd,
+                        CompanyName = req.CompanyName,
+                        FamilyName = familyName,
+                        FirstName = firstName,
+                        FamilyNameKana = string.IsNullOrWhiteSpace(familyKana) ? null : familyKana,
+                        FirstNameKana = string.IsNullOrWhiteSpace(firstKana) ? null : firstKana,
+                        BirthYmd = birthYmd,
+                        Type = typeVal,
+                        EntryTime = entryTime,
+                        ExitTime = exitTime,
+                        ActionCd = string.IsNullOrWhiteSpace(req.Reason) ? null : req.Reason,
+                        TensoFlg = null,
+                        TensoYmdTime = null,
+                        UTantoCd = tantoCd,
+                        UTimeStamp = now
+                    };
+                    _db.EntryExitLogs.Add(row);
+                } else {
+                    row.ExitTime = exitTime;
+                    _db.Entry(row).Property(r => r.ExitTime).IsModified = true;
 
-                row.UTantoCd = tantoCd;
-                row.UTimeStamp = now;
+                    if (string.IsNullOrWhiteSpace(row.CooperateCd) && !string.IsNullOrWhiteSpace(req.CompanyCd))
+                        row.CooperateCd = req.CompanyCd;
+                    if (string.IsNullOrWhiteSpace(row.CompanyName) && !string.IsNullOrWhiteSpace(req.CompanyName))
+                        row.CompanyName = req.CompanyName;
+                    if (string.IsNullOrWhiteSpace(row.FamilyName) && !string.IsNullOrWhiteSpace(familyName))
+                        row.FamilyName = familyName;
+                    if (string.IsNullOrWhiteSpace(row.FirstName) && !string.IsNullOrWhiteSpace(firstName))
+                        row.FirstName = firstName;
+                    if (string.IsNullOrWhiteSpace(row.FamilyNameKana) && !string.IsNullOrWhiteSpace(familyKana))
+                        row.FamilyNameKana = familyKana;
+                    if (string.IsNullOrWhiteSpace(row.FirstNameKana) && !string.IsNullOrWhiteSpace(firstKana))
+                        row.FirstNameKana = firstKana;
+                    if (string.IsNullOrWhiteSpace(row.BirthYmd) && !string.IsNullOrWhiteSpace(birthYmd))
+                        row.BirthYmd = birthYmd;
+                    if (!string.IsNullOrWhiteSpace(req.Reason))
+                        row.ActionCd = req.Reason;
+
+                    row.UTantoCd = tantoCd;
+                    row.UTimeStamp = now;
+                }
             }
 
             try
