@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using QRAttendMvc.Models;
 using QRAttendMvc.Services;
@@ -625,6 +626,55 @@ namespace QRAttendMvc.Controllers
                     mark = "×",
                     message = "QRコードが読めません。係員に相談して下さい。（QR形式不正）",
                     code = raw,
+                    time = hhmm
+                });
+            }
+
+            // 作業員ID形式チェック（仮QRは除外）
+            if (qrPrefix != "2" && !IsEmployeeCode(workerCd))
+            {
+                try
+                {
+                    await _logService.ActionLogSaveAsync(
+                        screenId: ScreenIdForKind(kind),
+                        actionCd: "A04",
+                        eventCd: HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd),
+                        employeeCd: null,
+                        cooperateCd: null,
+                        familyName: null,
+                        firstName: null,
+                        birthYmd: null,
+                        entryTime: null,
+                        exitTime: null,
+                        reasonCd: null,
+                        sCooperateKana: null,
+                        sCooperateName: null,
+                        sEmployeeKanas: null,
+                        sEmployeeKanan: null,
+                        sEmployeeKanjis: null,
+                        sEmployeeKanjin: null,
+                        sBirthYmd: null,
+                        sEmployeeCd: null,
+                        sSelect: null,
+                        jStrat: null,
+                        jMaisu: null,
+                        tResart: "T03",
+                        uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                        uTimeStamp: null
+                    );
+                }
+                catch
+                {
+                    // ログ失敗は無視
+                }
+
+                return Json(new
+                {
+                    ok = false,
+                    result = "NG",
+                    mark = "×",
+                    message = "作業員ID形式が不正です",
+                    code = workerCd,
                     time = hhmm
                 });
             }
@@ -1369,6 +1419,11 @@ namespace QRAttendMvc.Controllers
             }
 
             return time;
+        }
+
+        public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        {
+            await next().ConfigureAwait(false);
         }
     }
 }
