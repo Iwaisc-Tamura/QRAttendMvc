@@ -20,8 +20,14 @@
         filter = "1"; // ★デフォルトは@FILTERCONDITION = '1'
     }
     string login = ViewBag.LoginText as string ?? "";
+
     string includeSecond = Context.Request.Query["includeSecond"].ToString();
-    bool includeSecondChecked = includeSecond == "true" || includeSecond == "on";
+
+    // includeSecond が未指定（初期表示やクリア直後）ならデフォルトON
+    bool includeSecondChecked =
+        string.IsNullOrEmpty(includeSecond) ||
+        includeSecond == "true" ||
+        includeSecond == "on";
 
     bool hasSearched =
     Context.Request.Query.ContainsKey("searched") &&
