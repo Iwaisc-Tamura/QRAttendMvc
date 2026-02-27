@@ -879,6 +879,15 @@ body {
 
 /*2026/02/25 追加 Takada end  */
 
+/*2026/02/27 追加 Takada start  */
+
+        body.index-attende .as-hint-right {
+            text-align: right;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+/*2026/02/27 追加 Takada end  */
+
     /* =====================================================
     index（mployeeSearch ） : body.index-employee
     ===================================================== */

@@ -176,19 +176,37 @@
                 <div class="as-field">
                     <label class="as-label">絞り込み条件</label>
                     <select name="filter" class="as-input">
-                        <option value="1" selected="@(filter=="1")">入場・退場記録あり</option>
-                        <option value="2" selected="@(filter=="2")">入場記録のみあり（退場記録なし）</option>
-                        <option value="3" selected="@(filter=="3")">従業員情報マスタに登録あり</option>
+                        <option value="1" selected="@(filter=="1")">入場のみ、又は入退場記録あり</option>
+                        <option value="2" selected="@(filter=="2")">入場・退場記録あり</option>
+                        <option value="3" selected="@(filter=="3")">入場記録のみあり（退場記録なし）</option>
+                        <option value="4" selected="@(filter=="4")">従業員情報マスタに登録あり</option>
                     </select>
                 </div>
             </div>
         </form>
 
 
-        @if (!Context.Request.Query.ContainsKey("searched"))
+        @if (!hasSearched)
         {
             <div class="as-hint">
                 検索条件を入力して「検索」を押してください。（未入力のまま検索すると全件表示します）
+            </div>
+        }
+        else
+        {
+            <div class="as-hint as-hint-right">
+                @{
+                    var count = (int)(ViewBag.ResultCount ?? 0);
+                }
+
+                @if (count > 0)
+                {
+                    <text>対象件数：@count.ToString("#,0")</text>
+                }
+                else
+                {
+                    <text>対象ありません。</text>
+                }
             </div>
         }
         <!-- ===== 一覧 ===== -->
@@ -339,7 +357,20 @@
             });
         });
 
+
+
      </script>
+
+    @if (hasSearched && (ViewBag.NoResult ?? false))
+    {
+        <text>
+            <script>
+                window.addEventListener("DOMContentLoaded", function () {
+                    alert("検索対象がありませんでした。");
+                });
+            </script>
+        </text>
+    }
 
     @functions {
 

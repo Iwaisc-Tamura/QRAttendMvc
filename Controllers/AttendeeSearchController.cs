@@ -103,7 +103,7 @@ namespace QRAttendMvc.Controllers
                     : "1");
 
             // 想定外は '1' に丸める（安全策）
-            if (filterKey != "1" && filterKey != "2" && filterKey != "3")
+            if (filterKey != "1" && filterKey != "2" && filterKey != "3" && filterKey != "4")
             {
                 filterKey = "1";
             }
@@ -167,11 +167,19 @@ namespace QRAttendMvc.Controllers
                 PrimeOffice = x.PRIMEOFFICE ?? ""
             }).ToList();
 
+            if (rows.Count == 0)
+            {
+                ViewBag.NoResult = true;
+            }
+
             // -------------------------
             // ソート（SP結果をメモリソート）
             // Viewのヘッダ sort/dir と整合させる
             // -------------------------
             rows = ApplyRowSort(rows, sort, dir);
+
+            ViewBag.ResultCount = rows.Count;
+            ViewBag.NoResult = rows.Count == 0;
 
             return View(rows);
         }
@@ -212,7 +220,7 @@ namespace QRAttendMvc.Controllers
                     : "1");
 
             // 想定外は '1' に丸める（安全策）
-            if (filterKey != "1" && filterKey != "2" && filterKey != "3")
+            if (filterKey != "1" && filterKey != "2" && filterKey != "3" && filterKey != "4")
             {
                 filterKey = "1";
             }

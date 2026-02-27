@@ -16,7 +16,6 @@ namespace QRAttendMvc.Controllers
         : BaseController(logService)
     {
         private readonly AppDbContext _db = db;
-        private readonly IActionLogService _logService = logService;
         // EventSelectionで確定した開催コード（KAISAI_CD）
         private const string SessionKeyCurrentKaisaiCd = "CurrentKaisaiCd";
         // 作業員ID（GM01_EMPLOYEE.EMPLOYEE_CD）は 10桁固定（数字のみ）
