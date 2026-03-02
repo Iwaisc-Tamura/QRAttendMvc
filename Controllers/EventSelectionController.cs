@@ -23,7 +23,6 @@ namespace QRAttendMvc.Controllers
     public class EventSelectionController : BaseController
     {
         private readonly AppDbContext _db;
-        private readonly IActionLogService _logService;
 
         private const string SessionKeyCurrentKaisaiCd = "CurrentKaisaiCd";
 
@@ -39,7 +38,6 @@ namespace QRAttendMvc.Controllers
         public EventSelectionController(IActionLogService logService, AppDbContext db)
                 : base(logService)
         {
-            _logService = logService;
             _db = db;
         }
 

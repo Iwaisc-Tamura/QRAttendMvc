@@ -11,11 +11,9 @@ namespace QRAttendMvc.Controllers
 {
     public class HomeController : BaseController
     {
-        private readonly IActionLogService _logService;
 
         public HomeController(IActionLogService logService) : base(logService)
         {
-            _logService = logService;
         }
 
         public IActionResult Index()
@@ -30,7 +28,7 @@ namespace QRAttendMvc.Controllers
                 screenId: "G10",
                 actionCd: "A02",
                 eventCd: null,
-                employeeCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                employeeCd: null,
                 cooperateCd: null,
                 familyName: null,
                 firstName: null,

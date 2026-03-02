@@ -879,6 +879,15 @@ body {
 
 /*2026/02/25 追加 Takada end  */
 
+/*2026/02/27 追加 Takada start  */
+
+        body.index-attende .as-hint-right {
+            text-align: right;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+/*2026/02/27 追加 Takada end  */
+
     /* =====================================================
     index（mployeeSearch ） : body.index-employee
     ===================================================== */
@@ -1238,6 +1247,32 @@ body {
     }
 /*2026/02/25 追加 Takada end  */
 
+/*2026/03/02 追加 Takada start */
+        /* ===== EmployeeSearch 余白を詰める調整 ===== */
+
+        /* 上段(検索フォーム＋ログイン表示)～区切り線までの余白 */
+        body.index-employee .ee-top {
+            padding-bottom: 6px; /* 元: 12px（共通で効いてる） */
+            margin-bottom: 6px; /* 元: 12px（共通で効いてる） */
+        }
+
+        /* フォーム自体の上下余白＋下余白 */
+        body.index-employee .es-form {
+            padding-top: 6px; /* 元: 10px */
+            padding-bottom: 6px; /* 元: 12px */
+            margin-bottom: 4px; /* 元: 10px */
+        }
+
+        /* 1段目・2段目グリッド間の余白 */
+        body.index-employee .es-grid {
+            margin-bottom: 6px; /* 元: 10px */
+        }
+
+        /* 件数表示（es-hint）の上下余白 */
+        body.index-employee .es-hint {
+            margin: 4px 0 6px 0; /* 元: 10px 0 14px 0 */
+        }
+/*2026/03/02 追加 Takada end  */
 /* =====================================================
    index(Company/Cooperate Search) : body.index-cooprete
    ===================================================== */
