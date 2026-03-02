@@ -24,8 +24,8 @@ namespace QRAttendMvc.Controllers
         public async Task<IActionResult> Index(
             string? employeeCd,
             string? companyKana,
-            string? workerKanaLast,
-            string? workerKanaFirst,
+            string? workerNameKana,
+            string? workerName,
             string? birthDate,
             bool includeExpired,
             string? returnUrl,
@@ -48,8 +48,10 @@ namespace QRAttendMvc.Controllers
             // 検索条件保持
             ViewBag.EmployeeCd = employeeCd ?? "";
             ViewBag.CompanyKana = companyKana ?? "";
-            ViewBag.WorkerKanaLast = workerKanaLast ?? "";
-            ViewBag.WorkerKanaFirst = workerKanaFirst ?? "";
+            ViewBag.WorkerNameKana = workerNameKana ?? "";
+            ViewBag.WorkerName = workerName ?? "";
+            ViewBag.WorkerNameKana = workerNameKana ?? "";
+            ViewBag.WorkerName = workerName ?? "";
             ViewBag.BirthDate = birthDate ?? "";
             ViewBag.IncludeExpired = includeExpired;
             ViewBag.ReturnUrl = returnUrl ?? "";
@@ -78,7 +80,7 @@ namespace QRAttendMvc.Controllers
             }
 
             // 検索（未入力なら全件）
-            var q = BuildEmployeeQuery(employeeCd, companyKana, workerKanaLast, workerKanaFirst, birthDate, includeExpired);
+            var q = BuildEmployeeQuery(employeeCd, companyKana, workerNameKana, workerName, birthDate, includeExpired);
 
             // ソート適用
             q = ApplySort(q, sort, dir);
@@ -109,6 +111,8 @@ namespace QRAttendMvc.Controllers
                 });
             }
 
+            ViewBag.ResultCount = rows.Count;
+
             return View(rows);
         }
 
@@ -118,8 +122,8 @@ namespace QRAttendMvc.Controllers
             string cooperateCd,
             string returnUrl,
             string? companyKana,
-            string? workerKanaLast,
-            string? workerKanaFirst,
+            string? workerNameKana,
+            string? workerName,
             string? birthDate,
             bool includeExpired)
         {
@@ -148,13 +152,9 @@ namespace QRAttendMvc.Controllers
                 exitTime: null,
                 reasonCd: null,
                 sCooperateKana: companyKana,
-                sCooperateName: null,
-                sEmployeeKanas: workerKanaLast,
-                sEmployeeKanan: workerKanaFirst,
-                sEmployeeKanjis: null,
-                sEmployeeKanjin: null,
+                sEmployeeKanas: workerNameKana,
+                sEmployeeKanjis: workerName,
                 sBirthYmd: sBirthYmd,
-                sEmployeeCd: null,
                 sSelect: includeExpired ? "1" : "0",
                 jStrat: null,
                 jMaisu: null,
@@ -176,8 +176,8 @@ namespace QRAttendMvc.Controllers
         private IQueryable<EmployeeJoined> BuildEmployeeQuery(
             string? employeeCd,
             string? companyKana,
-            string? workerKanaLast,
-            string? workerKanaFirst,
+            string? workerNameKana,
+            string? workerName,
             string? birthDate,
             bool includeExpired)
         {
@@ -227,16 +227,22 @@ namespace QRAttendMvc.Controllers
                 q = q.Where(x => (x.CompanyKana ?? "").Contains(key));
             }
 
-            if (!string.IsNullOrWhiteSpace(workerKanaLast))
+            if (!string.IsNullOrWhiteSpace(workerNameKana))
             {
-                var key = NormalizeKanaToWide(workerKanaLast);
-                q = q.Where(x => (x.Emp.FamilyNameKana ?? "").Contains(key));
+                // カナは既存のNormalizeKanaToWideでOK（全角/半角・スペースも整形される）
+                var key = NormalizeKanaToWide(workerNameKana);
+
+                q = q.Where(x =>
+                    (((x.Emp.FamilyNameKana ?? "") + "　" + (x.Emp.FirstNameKana ?? ""))).Contains(key));
             }
 
-            if (!string.IsNullOrWhiteSpace(workerKanaFirst))
+            if (!string.IsNullOrWhiteSpace(workerName))
             {
-                var key = NormalizeKanaToWide(workerKanaFirst);
-                q = q.Where(x => (x.Emp.FirstNameKana ?? "").Contains(key));
+                // 漢字側：全角スペース混在を“1つの全角スペース”に寄せる
+                var key = NormalizeNameWithWideSpace(workerName);
+
+                q = q.Where(x =>
+                    (((x.Emp.FamilyName ?? "") + "　" + (x.Emp.FirstName ?? ""))).Contains(key));
             }
 
             if (!string.IsNullOrWhiteSpace(birthDate))
@@ -344,6 +350,16 @@ namespace QRAttendMvc.Controllers
 
                 _ => q.OrderBy(x => x.Emp.EmployeeCd)
             };
+        }
+
+        private static string NormalizeNameWithWideSpace(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s)) return "";
+            s = s.Trim();
+            s = s.Replace('\u3000', ' ');          // 全角スペース→半角
+            s = Regex.Replace(s, @"\s+", " ");     // 連続空白→1つ
+            s = s.Replace(' ', '\u3000');          // 半角→全角
+            return s;
         }
     }
 }
