@@ -9,6 +9,8 @@
     string companyKana = Context.Request.Query["companyKana"].ToString();
     string workerKanaLast = Context.Request.Query["workerKanaLast"].ToString();
     string workerKanaFirst = Context.Request.Query["workerKanaFirst"].ToString();
+    string workerNameKana = Context.Request.Query["workerNameKana"].ToString();
+    string workerName = Context.Request.Query["workerName"].ToString();
     string birthDate = Context.Request.Query["birthDate"].ToString();
 
     bool includeExpired =
@@ -72,6 +74,9 @@
                     <!-- 戻り先保持（必須） -->
                     <input type="hidden" name="returnUrl" value="@returnUrl" />
 
+                    <!-- ログ出力 -->
+                    <input type="hidden" name="isSearchButton" id="isSearchButton" value="" />
+
                     <!-- 1段目：作業員ID／会社名（カナ）／検索／クリア -->
                     <div class="es-grid es-grid-1">
                         <div class="es-field">
@@ -85,7 +90,7 @@
                         </div>
 
                         <div class="es-field es-action">
-                            <button type="submit" class="es-btn es-btn-search">検索</button>
+                            <button type="submit" class="es-btn es-btn-search" onclick="document.getElementById('isSearchButton').value='1'">検索</button>
                         </div>
 
                         <div class="es-field es-action">
@@ -96,13 +101,13 @@
                     <!-- 2段目：作業員名（カナ）姓／名／生年月日／適用終了含む -->
                     <div class="es-grid es-grid-2">
                         <div class="es-field">
-                            <label class="es-label">作業員名（カナ） 姓</label>
-                            <input name="workerKanaLast" value="@workerKanaLast" class="es-input" />
+                            <label class="es-label">作業員名（カナ）</label>
+                            <input name="workerNameKana" value="@workerNameKana" class="es-input" />
                         </div>
 
                         <div class="es-field">
-                            <label class="es-label">名</label>
-                            <input name="workerKanaFirst" value="@workerKanaFirst" class="es-input" />
+                            <label class="es-label">作業員名</label>
+                            <input name="workerName" value="@workerName" class="es-input" />
                         </div>
 
                         <div class="es-field">
@@ -139,10 +144,27 @@
         </div>
 
 
-        @if (!Context.Request.Query.ContainsKey("searched"))
+        @{
+            var resultCount = (int)(ViewBag.ResultCount ?? 0);
+        }
+
+        @if (!hasSearched)
         {
             <div class="es-hint">
                 検索条件を入力して「検索」を押してください。（未入力のまま検索すると全件表示します）
+            </div>
+        }
+        else
+        {
+            <div class="es-hint" style="text-align:right; font-weight:700;">
+                @if (resultCount > 0)
+                {
+                    <text>対象件数：@resultCount.ToString("#,0")</text>
+                }
+                else
+                {
+                    <text>対象ありません。</text>
+                }
             </div>
         }
 
@@ -272,23 +294,6 @@
             selectedEmpCd = tr.getAttribute("data-emp") || "";
         }
 
-        function commitSelect() {
-            if (!selectedEmpCd) {
-                alert("一覧から作業員を選択してください。");
-                return;
-            }
-
-            const ru = "@returnUrl";
-            if (!ru) {
-                alert("returnUrl が指定されていません。EMPLOYEE_CD=" + selectedEmpCd);
-                return;
-            }
-
-            const u = new URL(ru, window.location.origin);
-            u.searchParams.set("EMPLOYEE_CD", selectedEmpCd);
-            window.location.href = u.toString();
-        }
-
         function goBack() {
             const ru = "@returnUrl";
             if (ru) {
@@ -297,7 +302,50 @@
             }
             history.back();
         }
+
+        function addHidden(form, name, value) {
+            const i = document.createElement("input");
+            i.type = "hidden";
+            i.name = name;
+            i.value = value ?? "";
+            form.appendChild(i);
+        }
+
+        function commitSelect() {
+            if (!selectedEmpCd) {
+                alert("一覧から作業員を選択してください。");
+                return;
+            }
+
+            const form = document.createElement("form");
+            form.method = "post";
+            form.action = "/EmployeeSearch/Select";
+
+            addHidden(form, "employeeCd", selectedEmpCd);
+            addHidden(form, "cooperateCd", ""); // 必要なら設定
+            addHidden(form, "returnUrl", "@returnUrl");
+
+            // ★検索条件も送る（ログ用）
+            addHidden(form, "companyKana", document.querySelector("[name='companyKana']")?.value);
+            addHidden(form, "workerNameKana", document.querySelector("[name='workerNameKana']")?.value);
+            addHidden(form, "workerName", document.querySelector("[name='workerName']")?.value);
+            addHidden(form, "birthDate", document.querySelector("[name='birthDate']")?.value);
+            addHidden(form, "includeExpired",
+                document.querySelector("[name='includeExpired']")?.checked ? "true" : "false");
+
+            document.body.appendChild(form);
+            form.submit();
+        }
     </script>
+
+    @if (hasSearched && resultCount == 0)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                alert("検索対象がありませんでした。");
+            });
+        </script>
+    }
 
     @functions {
 

@@ -3,13 +3,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using QRAttendMvc.Services;
 using System;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Globalization;
 
 namespace QRAttendMvc.Controllers
 {
     public class BaseController : Controller
     {
-        private readonly IActionLogService _logService;
+        protected readonly IActionLogService _logService;
 
         public BaseController(IActionLogService logService)
         {
@@ -33,20 +35,95 @@ namespace QRAttendMvc.Controllers
             // 3) screenId 判定（指定条件）
             string screenId = ResolveScreenId(controller, action, kind);
 
-            // 4) actionCd は固定
-            const string actionCd = "A01";
+            // ★検索ボタン押下判定（EmployeeSearch/Index のときだけ）
+            bool isEmployeeSearchIndex =
+                string.Equals(controller, "EmployeeSearch", StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(action, "Index", StringComparison.OrdinalIgnoreCase);
 
-            // 5) ログ保存（必要なものだけ埋める：他は既定引数で null）
-            //    セッション値が無い場合は null のまま入ります。
+            // isSearchButton=1 のときだけ「検索ボタン押下」とみなす
+            var isSearchButton = context.HttpContext.Request.Query["isSearchButton"].ToString();
+            bool isSearchClick = isEmployeeSearchIndex && isSearchButton == "1";
+
             try
             {
-                await _logService.ActionLogSaveAsync(
-                    screenId: screenId,
-                    actionCd: actionCd,
-                    employeeCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
-                    uTantoCd: HttpContext.Session.GetString("BRANCH_CD"),
-                    uTimeStamp: DateTime.Now
-                ).ConfigureAwait(false);
+                if (isSearchClick)
+                {
+                    // ===== A03（検索）ログ：A01は出さない =====
+
+                    // 検索条件を QueryString から取得
+                    var sCooperateKana = context.HttpContext.Request.Query["companyKana"].ToString();
+                    var sEmployeeKanas = context.HttpContext.Request.Query["workerKanaLast"].ToString();
+                    var sEmployeeKanan = context.HttpContext.Request.Query["workerKanaFirst"].ToString();
+                    var birthDate = context.HttpContext.Request.Query["birthDate"].ToString();
+
+                    string? sBirthYmd = null;
+                    if (!string.IsNullOrWhiteSpace(birthDate))
+                    {
+                        // まず DateTime として解釈（2025/2/6 でもOK）
+                        if (DateTime.TryParse(birthDate, CultureInfo.GetCultureInfo("ja-JP"),
+                                              DateTimeStyles.None, out var dt))
+                        {
+                            sBirthYmd = dt.ToString("yyyyMMdd");
+                        }
+                        else
+                        {
+                            // 最後の保険：数字だけ抜き出して8桁ならOK
+                            var digits = Regex.Replace(birthDate, @"\D", "");
+                            if (Regex.IsMatch(digits, @"^\d{8}$"))
+                                sBirthYmd = digits;
+                        }
+                    }
+
+                    var sSelect = context.HttpContext.Request.Query.ContainsKey("includeExpired") ? "1" : "0";
+
+                    var currentKaisaiCd = context.HttpContext.Session.GetString("KAISAI_CD");
+
+                    var sEmployeeCd = context.HttpContext.Request.Query["employeeCd"].ToString();
+
+                    currentKaisaiCd = await TryGetEventCdAsync(context.HttpContext).ConfigureAwait(false);
+
+                    await _logService.ActionLogSaveAsync(
+                        screenId: "G41",
+                        actionCd: "A03",
+                        eventCd: currentKaisaiCd,
+
+                        employeeCd: null,
+                        cooperateCd: null,
+                        familyName: null,
+                        firstName: null,
+                        birthYmd: null,
+                        entryTime: null,
+                        exitTime: null,
+                        reasonCd: null,
+
+                        sCooperateKana: sCooperateKana,
+                        sCooperateName: null,
+                        sEmployeeKanas: sEmployeeKanas,
+                        sEmployeeKanan: sEmployeeKanan,
+                        sEmployeeKanjis: null,
+                        sEmployeeKanjin: null,
+                        sBirthYmd: sBirthYmd,
+                        sEmployeeCd: string.IsNullOrWhiteSpace(sEmployeeCd) ? null : sEmployeeCd.Trim(),
+                        sSelect: sSelect,
+
+                        jStrat: null,
+                        jMaisu: null,
+                        tResart: null,
+
+                        uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                        uTimeStamp: DateTime.Now
+                    ).ConfigureAwait(false);
+                }
+                else
+                {
+                    // ===== 従来通り A01（画面アクセス）ログ =====
+                    await _logService.ActionLogSaveAsync(
+                        screenId: screenId,
+                        actionCd: "A01",
+                        uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                        uTimeStamp: DateTime.Now
+                    ).ConfigureAwait(false);
+                }
             }
             catch
             {
@@ -112,20 +189,46 @@ namespace QRAttendMvc.Controllers
             if (controller == "CooperateSearch") return "G42";
             if (controller == "AttendeeSearch") return "G70";
 
-            // Scan + action単位（タイトル別（入/退）で分離）
-            if (controller == "Scan" && action == "Batch")
-            {
-                // 入場: G30 / 退場: G50
-                return isOut ? "G50" : "G30";
-            }
+            //// Scan + action単位（タイトル別（入/退）で分離）
+            //if (controller == "Scan" && action == "Batch")
+            //{
+            //    // 入場: G30 / 退場: G50
+            //    return isOut ? "G50" : "G30";
+            //}
 
-            if (controller == "Scan" && action == "TempInput")
-            {
-                // 入場: G40 / 退場: G60
-                return isOut ? "G60" : "G40";
-            }
+            //if (controller == "Scan" && action == "TempInput")
+            //{
+            //    // 入場: G40 / 退場: G60
+            //    return isOut ? "G60" : "G40";
+            //}
 
             return "UNK";
         }
+
+        private static async Task<string?> TryGetEventCdAsync(HttpContext http)
+        {
+            try
+            {
+                // 1) Query（GET）
+                var v = http.Request.Query["eventCd"].ToString();
+                if (!string.IsNullOrWhiteSpace(v)) return v.Trim();
+
+                // 2) Form（POST）
+                if (HttpMethods.IsPost(http.Request.Method) && http.Request.HasFormContentType)
+                {
+                    var form = await http.Request.ReadFormAsync().ConfigureAwait(false);
+                    v = form["eventCd"].ToString();
+                    if (!string.IsNullOrWhiteSpace(v)) return v.Trim();
+                }
+
+                // 3) Session
+                v = http.Session?.GetString("KAISAI_CD");
+                if (!string.IsNullOrWhiteSpace(v)) return v.Trim();
+
+                return null;
+            }
+            catch { return null; }
+        }
+
     }
 }

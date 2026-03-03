@@ -20,8 +20,14 @@
         filter = "1"; // ★デフォルトは@FILTERCONDITION = '1'
     }
     string login = ViewBag.LoginText as string ?? "";
+
     string includeSecond = Context.Request.Query["includeSecond"].ToString();
-    bool includeSecondChecked = includeSecond == "true" || includeSecond == "on";
+
+    // includeSecond が未指定（初期表示やクリア直後）ならデフォルトON
+    bool includeSecondChecked =
+        string.IsNullOrEmpty(includeSecond) ||
+        includeSecond == "true" ||
+        includeSecond == "on";
 
     bool hasSearched =
     Context.Request.Query.ContainsKey("searched") &&
@@ -176,19 +182,37 @@
                 <div class="as-field">
                     <label class="as-label">絞り込み条件</label>
                     <select name="filter" class="as-input">
-                        <option value="1" selected="@(filter=="1")">入場・退場記録あり</option>
-                        <option value="2" selected="@(filter=="2")">入場記録のみあり（退場記録なし）</option>
-                        <option value="3" selected="@(filter=="3")">従業員情報マスタに登録あり</option>
+                        <option value="1" selected="@(filter=="1")">入場のみ、又は入退場記録あり</option>
+                        <option value="2" selected="@(filter=="2")">入場・退場記録あり</option>
+                        <option value="3" selected="@(filter=="3")">入場記録のみあり（退場記録なし）</option>
+                        <option value="4" selected="@(filter=="4")">従業員情報マスタに登録あり</option>
                     </select>
                 </div>
             </div>
         </form>
 
 
-        @if (!Context.Request.Query.ContainsKey("searched"))
+        @if (!hasSearched)
         {
             <div class="as-hint">
                 検索条件を入力して「検索」を押してください。（未入力のまま検索すると全件表示します）
+            </div>
+        }
+        else
+        {
+            <div class="as-hint as-hint-right">
+                @{
+                    var count = (int)(ViewBag.ResultCount ?? 0);
+                }
+
+                @if (count > 0)
+                {
+                    <text>対象件数：@count.ToString("#,0")</text>
+                }
+                else
+                {
+                    <text>対象ありません。</text>
+                }
             </div>
         }
         <!-- ===== 一覧 ===== -->
@@ -272,13 +296,13 @@
                 k => k.Key,
                 v => v.Value.ToString()))"
                    class="as-btn as-btn-primary">
-                    CSV出力<br>（タブ区切り）
+                    CSV出力<br>（カンマ区切り）
                 </a>
             }
             else
             {
                 <span class="as-btn as-btn-primary as-btn-disabled" aria-disabled="true">
-                    CSV出力<br>（タブ区切り）
+                    CSV出力<br>（カンマ区切り）
                 </span>
             }
 
@@ -339,7 +363,20 @@
             });
         });
 
+
+
      </script>
+
+    @if (hasSearched && (ViewBag.NoResult ?? false))
+    {
+        <text>
+            <script>
+                window.addEventListener("DOMContentLoaded", function () {
+                    alert("検索対象がありませんでした。");
+                });
+            </script>
+        </text>
+    }
 
     @functions {
 

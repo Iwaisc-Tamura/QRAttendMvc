@@ -103,7 +103,7 @@ namespace QRAttendMvc.Controllers
                     : "1");
 
             // 想定外は '1' に丸める（安全策）
-            if (filterKey != "1" && filterKey != "2" && filterKey != "3")
+            if (filterKey != "1" && filterKey != "2" && filterKey != "3" && filterKey != "4")
             {
                 filterKey = "1";
             }
@@ -167,11 +167,19 @@ namespace QRAttendMvc.Controllers
                 PrimeOffice = x.PRIMEOFFICE ?? ""
             }).ToList();
 
+            if (rows.Count == 0)
+            {
+                ViewBag.NoResult = true;
+            }
+
             // -------------------------
             // ソート（SP結果をメモリソート）
             // Viewのヘッダ sort/dir と整合させる
             // -------------------------
             rows = ApplyRowSort(rows, sort, dir);
+
+            ViewBag.ResultCount = rows.Count;
+            ViewBag.NoResult = rows.Count == 0;
 
             return View(rows);
         }
@@ -212,7 +220,7 @@ namespace QRAttendMvc.Controllers
                     : "1");
 
             // 想定外は '1' に丸める（安全策）
-            if (filterKey != "1" && filterKey != "2" && filterKey != "3")
+            if (filterKey != "1" && filterKey != "2" && filterKey != "3" && filterKey != "4")
             {
                 filterKey = "1";
             }
@@ -269,13 +277,26 @@ namespace QRAttendMvc.Controllers
 
             // TSV作成（画面と同じ列構成に寄せる）
             var sb = new StringBuilder();
-            sb.AppendLine("会社名\t作業員ID\t作業員名\t生年月日\t名簿対象除外日\t入場記録\t退場記録");
+            sb.AppendLine("会社名,作業員ID,作業員名,生年月日,名簿対象除外日,入場記録,退場記録");
 
-            string Esc(string? v) => (v ?? "").Replace("\t", " ");
+            string Esc(string? v)
+            {
+                if (string.IsNullOrEmpty(v)) return "";
+
+                var value = v.Replace("\"", "\"\""); // " → ""
+
+                // カンマ・改行・ダブルクォートが含まれる場合は囲む
+                if (value.Contains(",") || value.Contains("\n") || value.Contains("\""))
+                {
+                    value = $"\"{value}\"";
+                }
+
+                return value;
+            }
 
             foreach (var r in rows)
             {
-                sb.AppendLine(string.Join("\t", new[]
+                sb.AppendLine(string.Join(",", new[]
                 {
                     Esc(r.CompanyName),
                     Esc(r.WorkerId),
@@ -291,8 +312,8 @@ namespace QRAttendMvc.Controllers
                 .Concat(Encoding.UTF8.GetBytes(sb.ToString()))
                 .ToArray();
 
-            var fileName = $"attendee_{DateTime.Now:yyyyMMdd_HHmmss}.tsv";
-            return File(bytes, "text/tab-separated-values", fileName);
+            var fileName = $"attendee_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+            return File(bytes, "text/csv", fileName);
         }
 
         // =====================================================
