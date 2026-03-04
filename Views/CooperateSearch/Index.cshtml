@@ -11,6 +11,12 @@
 
     var currentSort = Context.Request.Query["sort"].ToString();
     var currentDir = Context.Request.Query["dir"].ToString(); // "asc" or "desc"
+
+    bool hasSearched =
+    Context.Request.Query.ContainsKey("searched") &&
+    !string.IsNullOrWhiteSpace(Context.Request.Query["searched"]);
+
+    var resultCount = (int)(ViewBag.ResultCount ?? 0);
 }
 
 <!doctype html>
@@ -36,11 +42,12 @@
     <main class="es-container">
         <div class="ee-top">
             <div>
-                <form method="get" class="es-form" id="searchForm">
+                <form method="get" class="es-form" id="searchForm" onsubmit="document.getElementById('isSearchButton').value='1';">
                     <input type="hidden" name="searched" value="true" />
                     <input type="hidden" name="sort" value="@currentSort" />
                     <input type="hidden" name="dir" value="@currentDir" />
                     <input type="hidden" name="returnUrl" value="@returnUrl" />
+                    <input type="hidden" name="isSearchButton" id="isSearchButton" value="" />
 
                     <div class="es-grid es-grid-1">
                         <div class="es-field es-span2">
@@ -49,7 +56,10 @@
                         </div>
 
                         <div class="es-field es-action">
-                            <button type="submit" class="es-btn es-btn-search">検索</button>
+                            <button type="submit" class="es-btn es-btn-search"
+                                    onclick="document.getElementById('isSearchButton').value='1'">
+                                検索
+                            </button>
                         </div>
 
                         <div class="es-field es-action">
@@ -80,11 +90,25 @@
             </div>
         </div>
 
-
-
-        <div class="es-hint">
-            検索条件を入力して「検索」を押してください。（未入力のまま検索すると全件表示します）
-        </div>
+             @if (!hasSearched)
+            {
+                <div class="es-hint">
+                    検索条件を入力して「検索」を押してください。（未入力のまま検索すると全件表示します）
+                </div>
+            }
+            else
+            {
+                <div class="es-hint" style="text-align:right; font-weight:700;">
+                    @if (resultCount > 0)
+                    {
+                        <text>対象件数：@resultCount.ToString("#,0")</text>
+                    }
+                    else
+                    {
+                        <text>対象ありません。</text>
+                    }
+                </div>
+            }
 
         <section class="es-tablewrap">
             <table class="es-table">
@@ -221,6 +245,15 @@
             });
         });
     </script>
+
+    @if (hasSearched && resultCount == 0)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                alert("検索対象がありませんでした。");
+            });
+        </script>
+    }
 
     @functions {
 
