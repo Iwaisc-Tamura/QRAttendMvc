@@ -150,6 +150,8 @@
     const btnRelease = document.getElementById("btnRelease");
 
     const kind = "@kind";
+    const serverStart = new Date("@serverNow.ToString("yyyy-MM-ddTHH:mm:ss")");
+    const clientStart = Date.now();
     let locked = false;
     let buzzerCtx = null;
     let buzzerOsc = null;
@@ -392,15 +394,15 @@
     });
 
     function updateLayoutClock() {
-        const d = new Date();
-        const pad = (n) => String(n).padStart(2, "0");
-        const time = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        const d = new Date(serverStart.getTime() + (Date.now() - clientStart));
+         const pad = (n) => String(n).padStart(2, "0");
+         const time = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
 
-        const elTime = document.getElementById("layoutTime");
-        if (elTime) elTime.textContent = time;
+         const elTime = document.getElementById("layoutTime");
+         if (elTime) elTime.textContent = time;
 
-    }
+     }
 
     updateLayoutClock();
     setInterval(updateLayoutClock, 1000);

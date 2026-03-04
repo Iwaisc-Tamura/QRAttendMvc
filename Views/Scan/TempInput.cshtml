@@ -364,6 +364,8 @@
     const kind = "@kind";
     const kaisaiCd = "@kaisaiCd";
     const evKaisaiCd = "@kaisaiCd";
+    const serverStart = new Date("@serverNow.ToString("yyyy-MM-ddTHH:mm:ss")");
+    const clientStart = Date.now();
 
     //追加 2026.02.20 Takada start:作業員検索からのデータ保持
     const selectedEmployeeCd = "@selectedEmployeeCd";
@@ -807,8 +809,12 @@
             const reason = (reasonEl?.value || "").trim();
             const workerCd = (input?.value || "").trim();
 
-            if (!workerCd || !workerName || !workerKana || !birthDateRaw || !reason) {
-                alert("作業員ID・作業員名・作業員名カナ・生年月日・事由は必須です。");
+            const reasonRequired = !(workerFamilyKanaEl && workerFamilyKanaEl.readOnly);
+
+            if (!workerCd || !workerName || !workerKana || !birthDateRaw || (reasonRequired && !reason)) {
+                alert(reasonRequired
+                    ? "作業員ID・作業員名・作業員名カナ・生年月日・事由は必須です。"
+                    : "作業員ID・作業員名・作業員名カナ・生年月日は必須です。");
                 return;
             }
 
@@ -885,7 +891,7 @@
 
     // 受付開始時間の右に現在時刻を表示（Batch と同等の更新）
     function updateLayoutClock() {
-        const d = new Date();
+        const d = new Date(serverStart.getTime() + (Date.now() - clientStart));
         const pad = n => String(n).padStart(2, '0');
         const time = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
@@ -990,8 +996,7 @@
         btnWorkerSearch.addEventListener("click", function () {
             saveFormState();
             window.location.href =
-                '@Url.Action("Index", "EmployeeSearch",
-        new { returnUrl = Url.Action("TempInput", "Scan", new { kind = kind }) })';
+                '@Url.Action("Index", "EmployeeSearch", new { returnUrl = Url.Action("TempInput", "Scan", new { kind = kind }) })';
         });
     }
 
@@ -999,8 +1004,7 @@
         btnCompanySearch.addEventListener("click", function () {
             saveFormState();
             window.location.href =
-                '@Url.Action("Index", "CooperateSearch",
-            new { returnUrl = Url.Action("TempInput", "Scan", new { kind = kind }) })';
+                '@Url.Action("Index", "CooperateSearch", new { returnUrl = Url.Action("TempInput", "Scan", new { kind = kind }) })';
         });
     }
 
