@@ -996,8 +996,7 @@
         btnWorkerSearch.addEventListener("click", function () {
             saveFormState();
             window.location.href =
-                '@Url.Action("Index", "EmployeeSearch",
-        new { returnUrl = Url.Action("TempInput", "Scan", new { kind = kind }) })';
+                '@Url.Action("Index", "EmployeeSearch", new { returnUrl = Url.Action("TempInput", "Scan", new { kind = kind }) })';
         });
     }
 
@@ -1005,8 +1004,7 @@
         btnCompanySearch.addEventListener("click", function () {
             saveFormState();
             window.location.href =
-                '@Url.Action("Index", "CooperateSearch",
-            new { returnUrl = Url.Action("TempInput", "Scan", new { kind = kind }) })';
+                '@Url.Action("Index", "CooperateSearch", new { returnUrl = Url.Action("TempInput", "Scan", new { kind = kind }) })';
         });
     }
 
