@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using QRAttendMvc.Models;
 using QRAttendMvc.Services;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -401,13 +402,15 @@ namespace QRAttendMvc.Controllers
                 if (string.IsNullOrWhiteSpace(row.Type) && !string.IsNullOrWhiteSpace(newType))
                     row.Type = newType;
                 
-                row.ActionCd = "OK";
+                if (string.IsNullOrWhiteSpace(row.ActionCd))
+                    row.ActionCd = "OK";
 
                 // 更新時は常にU_TANTO_CDとU_TIME_STAMPを更新
                 row.UTantoCd = tantoCd;
                 row.UTimeStamp = now;
             }
 
+            var isDuplicateEntry = false;
             if (kind == "IN")
             {
                 // 入場は何度でも OK（既存の EntryTime を保持する方針）
@@ -416,10 +419,45 @@ namespace QRAttendMvc.Controllers
                     row.EntryTime = hhmm;
                     // 明示的に変更フラグを立てる（安全策）
                     _db.Entry(row).Property(r => r.EntryTime).IsModified = true;
+                } else {
+                    isDuplicateEntry = true;
                 }
             }
             else
             {
+                if (!string.IsNullOrWhiteSpace(row.EntryTime) && string.Compare(hhmm, row.EntryTime, StringComparison.Ordinal) < 0)
+                {
+                    await _logService.ActionLogSaveAsync(
+                        screenId: ScreenIdForKind(kind),
+                        actionCd: "A04",
+                        eventCd: string.IsNullOrWhiteSpace(kaisaiCd) ? null : kaisaiCd,
+                        employeeCd: workerCd,
+                        cooperateCd: emp?.CooperateCd,
+                        familyName: emp?.FamilyName,
+                        firstName: emp?.FirstName,
+                        birthYmd: emp?.BirthYmd,
+                        entryTime: null,
+                        exitTime: null,
+                        reasonCd: null,
+                        sCooperateKana: null,
+                        sCooperateName: null,
+                        sEmployeeKanas: null,
+                        sEmployeeKanan: null,
+                        sEmployeeKanjis: null,
+                        sEmployeeKanjin: null,
+                        sBirthYmd: null,
+                        sEmployeeCd: null,
+                        sSelect: null,
+                        jStrat: null,
+                        jMaisu: null,
+                        tResart: "T03",
+                        uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                        uTimeStamp: null
+                    );
+                    var display = ResolveDisplayName(row);
+                    return (false, "NG", "×", $"退場時刻が入場時刻より前です（入場:{ToHHmm(row.EntryTime)}）", display);
+                }
+
                 // 退場時は時間を毎回更新
                 row.ExitTime = hhmm;
                 // 明示的に変更フラグを立てる（更新が反映されない問題を回避）
@@ -518,7 +556,11 @@ namespace QRAttendMvc.Controllers
                 var display = ResolveDisplayName(row);
                 return (false, "NG", "×", "DB書き込みエラーが発生しました。係員に問い合わせてください。", display);
             }
-
+            if (isDuplicateEntry) {
+                return (true, "OK", "〇",
+                    kind == "IN" ? $"既に入場済みです。({ToHHmm(row.EntryTime)})" : "退場記録OK",
+                    ResolveDisplayName(row));
+            }
             return (true, "OK", "〇",
                 kind == "IN" ? "入場記録OK" : "退場記録OK",
                 ResolveDisplayName(row));
@@ -1387,6 +1429,11 @@ namespace QRAttendMvc.Controllers
                     return Json(new { ok = false, message = "入場時刻が登録されていないため退場登録できません。", time = hhmm });
                 }
 
+                if (!string.IsNullOrWhiteSpace(exitTime) && string.Compare(exitTime, entryTime, StringComparison.Ordinal) < 0)
+                {
+                    return Json(new { ok = false, message = $"退場時刻が入場時刻より前です（入場:{ToHHmm(entryTime)}）", time = hhmm });
+                }
+
                 if (row == null)
                 {
                     string typeVal;
@@ -1490,6 +1537,18 @@ namespace QRAttendMvc.Controllers
             {
                 return Json(new { ok = false, message = "DB書き込みエラーが発生しました。係員に問い合わせてください。", time = hhmm });
             }
+        }
+
+        static string ToHHmm(string? entryTime)
+        {
+            if (string.IsNullOrWhiteSpace(entryTime)) return "";
+
+            entryTime = entryTime.Trim();
+
+            // 念のため4桁未満でも動くようにゼロ埋め（"930" → "0930"）
+            entryTime = entryTime.PadLeft(4, '0');
+
+            return $"{entryTime.Substring(0, 2)}:{entryTime.Substring(2, 2)}";
         }
 
         private static string NormalizeTime(string? time)
