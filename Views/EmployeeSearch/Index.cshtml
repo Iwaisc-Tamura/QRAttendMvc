@@ -319,7 +319,7 @@
 
             const form = document.createElement("form");
             form.method = "post";
-            form.action = "/EmployeeSearch/Select";
+            form.action = "@Url.Action("Select", "EmployeeSearch")";
 
             addHidden(form, "employeeCd", selectedEmpCd);
             addHidden(form, "cooperateCd", ""); // 必要なら設定
