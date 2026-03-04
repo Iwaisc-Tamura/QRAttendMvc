@@ -169,7 +169,10 @@ namespace QRAttendMvc.Controllers
             HttpContext.Session.SetString("TEMP_COOPERATE_CD", cooperateCd ?? "");
 
             if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
-                return Redirect(returnUrl);
+            {
+                var url = $"{returnUrl}&EMPLOYEE_CD={employeeCd}&COOPERATE_CD={cooperateCd}";
+                return Redirect(url);
+            }
 
             return RedirectToAction("TempInput", "Scan", new { kind = "IN" });
         }
