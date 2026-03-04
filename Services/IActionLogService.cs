@@ -19,16 +19,12 @@ namespace QRAttendMvc.Services
             string? reasonCd = null,
             string? sCooperateKana = null,
             string? sCooperateName = null,
-            string? sEmployeeKanas = null,
-            string? sEmployeeKanan = null,
-            string? sEmployeeKanjis = null,
-            string? sEmployeeKanjin = null,
+            string? sEmployeeKana = null,   // ★DB列に合わせる
+            string? sEmployeeKanji = null,  // ★DB列に合わせる
             string? sBirthYmd = null,
             string? sEmployeeCd = null,
             string? sSelect = null,
-            int? jStrat = null,
-            int? jMaisu = null,
-            string? tResart = null,
+            string? tResult = null,         // ★DB列に合わせる
             string? uTantoCd = null,
             DateTime? uTimeStamp = null
         );

@@ -38,19 +38,15 @@ namespace QRAttendMvc.Controllers
                 reasonCd: null,
                 sCooperateKana: null,
                 sCooperateName: null,
-                sEmployeeKanas: null,
-                sEmployeeKanan: null,
-                sEmployeeKanjis: null,
-                sEmployeeKanjin: null,
+                sEmployeeKana: null, 
+                sEmployeeKanji: null, 
                 sBirthYmd: null,
                 sEmployeeCd: null,
                 sSelect: null,
-                jStrat: null,
-                jMaisu: null,
-                tResart: null,
+                tResult: null,
                 uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
                 uTimeStamp: DateTime.Now
-            );
+              );
 
             return RedirectToAction("Index", "EventSelection");
         }

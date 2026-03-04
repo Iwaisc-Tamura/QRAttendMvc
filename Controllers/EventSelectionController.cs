@@ -10,16 +10,6 @@ using System.Threading.Tasks;
 
 namespace QRAttendMvc.Controllers
 {
-    /// <summary>
-    /// イベント選択画面仕様.xlsx 準拠
-    /// - GT01_KAISAI_EVENT を事前読込
-    /// - 抽出条件：支店コード(パラメータ/セッション) + 開催日(本日)
-    /// - 前提：支店コード・開催日・区分(EventCd)・開始時刻(StartTime)で一意
-    /// - ①上記条件で1件なら「表示のみ」（自動確定）
-    /// - ②複数なら「区分 → 開始時刻」の順で絞り込み
-    ///   ※区分が1件の場合は区分は表示のみで開始時刻を選択
-    ///   ※区分選択後、開始時刻が1件の場合は開始時刻は表示のみ（自動確定）
-    /// </summary>
     public class EventSelectionController : BaseController
     {
         private readonly AppDbContext _db;
@@ -42,39 +32,14 @@ namespace QRAttendMvc.Controllers
         }
 
         /// <summary>
-        /// プルダウン選択時ログ（区分/開始時刻の選択で呼ぶ）
-        /// eventCd は「選択したときの CurrentKaisaiCd」を入れる想定
+        /// A03（選択）ログ：EVENT_CD には必ず KaisaiCd（開催コード）を入れる
         /// </summary>
-        private async Task WritePullDownLogAsync()
+        private async Task WriteSelectLogAsync(string? kaisaiCd)
         {
-            // 「選択したときの CurrentKaisaiCd」
-            var currentKaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
-
             await _logService.ActionLogSaveAsync(
                 screenId: "G20",
                 actionCd: "A03",
-                eventCd: currentKaisaiCd,
-                employeeCd: null,
-                cooperateCd: null,
-                familyName: null,
-                firstName: null,
-                birthYmd: null,
-                entryTime: null,
-                exitTime: null,
-                reasonCd: null,
-                sCooperateKana: null,
-                sCooperateName: null,
-                sEmployeeKanas: null,
-                sEmployeeKanan: null,
-                sEmployeeKanjis: null,
-                sEmployeeKanjin: null,
-                sBirthYmd: null,
-                sEmployeeCd: null,
-                sSelect: null,
-                jStrat: null,
-                jMaisu: null,
-                tResart: null,
-                // ご指定どおり：EMPLOYEE_CD を uTantoCd に入れる
+                eventCd: string.IsNullOrWhiteSpace(kaisaiCd) ? null : kaisaiCd.Trim(),
                 uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
                 uTimeStamp: DateTime.Now
             );
@@ -92,9 +57,6 @@ namespace QRAttendMvc.Controllers
 
             var today = DateTime.Today;
 
-            // 支店のイベントを事前読込 → KAISAI_YMD は "2026/1/30" のようにゼロ埋め無しが混在するため
-            // SQL側で yyyyMMdd 文字列比較すると一致しないケースがある。
-            // ここでは支店で絞って取得し、日付はメモリ上で DateTime にパースして当日比較する。
             var events = (await _db.KaisaiEvents
                     .Where(e => e.BranchCd == userBranch && e.KaisaiYmd != null)
                     .OrderBy(e => e.EventCd)
@@ -103,31 +65,69 @@ namespace QRAttendMvc.Controllers
                 .Where(e => TryParseKaisaiDate(e.KaisaiYmd!, out var d) && d.Date == today)
                 .ToList();
 
-            // 0件メッセージ
+            // 0件
             if (events.Count == 0)
             {
                 ViewData["BusinessMessage"] =
                     "本日、該当する開催イベントがありません。\n" +
                     "支店コード・開催日・イベント登録状況をご確認ください。";
                 ViewBag.PreloadedEvents = Array.Empty<object>();
+
+                // A01（画面アクセス）：未確定なので EVENT_CD=null
+                await _logService.ActionLogSaveAsync(
+                    screenId: "G20",
+                    actionCd: "A01",
+                    eventCd: null,
+                    uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                    uTimeStamp: DateTime.Now
+                );
+
                 return View();
             }
 
-            // 1件なら自動確定（表示のみ）
+            // ★ 当日の「最後に選んだ開催コード（KAISAI_CD）」を TT01_TARGET_EVENT から取得
+            var todayKey = DateTime.Today.ToString("yyyyMMdd");
+
+            var latestTargetToday = await _db.TargetEvents
+                .Where(x => x.BranchCd == userBranch
+                         && x.SelectYmdTime != null
+                         && x.SelectYmdTime.Substring(0, 8) == todayKey)
+                .OrderByDescending(x => x.SelectYmdTime)
+                .FirstOrDefaultAsync();
+
+            // TT01は KaisaiCd（開催コード）を持つので、events から一致イベントを探す
+            Gt01KaisaiEvent? defaultEv = null;
+            if (!string.IsNullOrWhiteSpace(latestTargetToday?.KaisaiCd))
+            {
+                var kaisaiCd = latestTargetToday!.KaisaiCd.Trim();
+                defaultEv = events.FirstOrDefault(e => (e.KaisaiCd ?? "").Trim() == kaisaiCd);
+            }
+
+            // 1件なら自動確定
             if (events.Count == 1)
             {
                 await SetCurrentEventAsync(events[0]);
+
+                // A01：EVENT_CD=KaisaiCd
+                await _logService.ActionLogSaveAsync(
+                    screenId: "G20",
+                    actionCd: "A01",
+                    eventCd: string.IsNullOrWhiteSpace(events[0].KaisaiCd) ? null : events[0].KaisaiCd.Trim(),
+                    uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                    uTimeStamp: DateTime.Now
+                );
+
                 ViewBag.AutoSelected = true;
                 ViewBag.Selected = ToDetailVm(events[0]);
-                ViewBag.PreloadedEvents = Array.Empty<object>(); // JS不要
+                ViewBag.PreloadedEvents = Array.Empty<object>();
                 return View();
             }
 
-            // 複数件：JSで絞り込みするため一覧を渡す（必要項目のみ）
+            // 複数件：JSに渡す
             ViewBag.AutoSelected = false;
             ViewBag.PreloadedEvents = events.Select(e => new
             {
-                e.KaisaiCd,
+                e.KaisaiCd,    // ※保持（ログ用・将来拡張用）
                 e.EventCd,
                 e.EventName,
                 StartTime = FormatHm(e.StartTime),
@@ -143,34 +143,33 @@ namespace QRAttendMvc.Controllers
                 e.QrKbn
             }).ToList();
 
-            // ★ 当日の「最後に選んだ区分（KAISAI_CD）」を TT01_TARGET_EVENT から取得
-            var todayKey = DateTime.Today.ToString("yyyyMMdd"); // サーバー当日
-
-            var latestTargetToday = await _db.TargetEvents
-                .Where(x => x.BranchCd == userBranch
-                         && x.SelectYmdTime != null
-                         && x.SelectYmdTime.Substring(0, 8) == todayKey) // 当日分だけ
-                .OrderByDescending(x => x.SelectYmdTime)
-                .FirstOrDefaultAsync();
-
-            // ★ TT01はKAISAI_CD（開催コード）なので、events から一致イベントを特定
-            Gt01KaisaiEvent? defaultEv = null;
-
-            if (!string.IsNullOrWhiteSpace(latestTargetToday?.KaisaiCd))
-            {
-                var kaisaiCd = latestTargetToday!.KaisaiCd.Trim();
-                defaultEv = events.FirstOrDefault(e => (e.KaisaiCd ?? "").Trim() == kaisaiCd);
-            }
-
-            // ★ TT01 に該当があれば「常に選択済み（確定状態）」にする
+            // defaultEv があれば「確定状態」にする
             if (defaultEv != null)
             {
-                await SetCurrentEventAsync(defaultEv);               // ←これで戻っても確定が維持される
-                ViewBag.DefaultKaisaiCd = (defaultEv.EventCd ?? "").Trim(); // 区分も選択済みに
+                await SetCurrentEventAsync(defaultEv);
+                ViewBag.DefaultKaisaiCd = (defaultEv.EventCd ?? "").Trim(); // 画面は区分(EventCd)を選択済みに見せる
+
+                // A01：EVENT_CD=KaisaiCd
+                await _logService.ActionLogSaveAsync(
+                    screenId: "G20",
+                    actionCd: "A01",
+                    eventCd: string.IsNullOrWhiteSpace(defaultEv.KaisaiCd) ? null : defaultEv.KaisaiCd.Trim(),
+                    uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                    uTimeStamp: DateTime.Now
+                );
             }
             else
             {
                 ViewBag.DefaultKaisaiCd = "";
+
+                // A01：未確定なので EVENT_CD=null
+                await _logService.ActionLogSaveAsync(
+                    screenId: "G20",
+                    actionCd: "A01",
+                    eventCd: null,
+                    uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                    uTimeStamp: DateTime.Now
+                );
             }
 
             return View();
@@ -197,14 +196,11 @@ namespace QRAttendMvc.Controllers
 
         /// <summary>
         /// 開始時刻一覧（区分で絞り込み）
-        /// ★ここが「1つ目のプルダウン（区分）を選択したタイミング」で呼ばれる想定なのでログ出力
+        /// ※仕様変更により「ここでA03ログ」は出さない（KaisaiCdが確定しない可能性があるため）
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> GetStartTimes(string divisionCode)
+        public IActionResult GetStartTimes(string divisionCode)
         {
-            // 区分プルダウン選択ログ
-            await WritePullDownLogAsync();
-
             var userBranch = HttpContext.Session.GetString("BRANCH_CD") ?? string.Empty;
             var today = DateTime.Today;
 
@@ -223,20 +219,20 @@ namespace QRAttendMvc.Controllers
 
         /// <summary>
         /// 区分＋開始時刻でイベント確定（一意前提）
-        /// ★ここが「2つ目のプルダウン（開始時刻）を選択したタイミング」で呼ばれる想定なのでログ出力
+        /// A03ログ：EVENT_CD=確定した ev.KaisaiCd を入れる
         /// </summary>
         [HttpPost]
         public async Task<IActionResult> Decide(string divisionCode, string startTime)
         {
-            // 開始時刻プルダウン選択ログ
-            await WritePullDownLogAsync();
-
             var userBranch = HttpContext.Session.GetString("BRANCH_CD") ?? string.Empty;
             var today = DateTime.Today;
-            var st = NormalizeHm(startTime); // "HH:mm" -> "HHmm"
+            var st = NormalizeHm(startTime);
 
             var ev = (await _db.KaisaiEvents
-                    .Where(e => e.BranchCd == userBranch && e.KaisaiYmd != null && e.EventCd == divisionCode && (e.StartTime ?? "") == st)
+                    .Where(e => e.BranchCd == userBranch
+                             && e.KaisaiYmd != null
+                             && e.EventCd == divisionCode
+                             && (e.StartTime ?? "") == st)
                     .ToListAsync())
                 .FirstOrDefault(e => TryParseKaisaiDate(e.KaisaiYmd!, out var d) && d.Date == today);
 
@@ -244,37 +240,97 @@ namespace QRAttendMvc.Controllers
                 return NotFound("該当するイベントが存在しません。");
 
             await SetCurrentEventAsync(ev);
+
+            // ★A03：EVENT_CD=KaisaiCd
+            await WriteSelectLogAsync(ev.KaisaiCd);
+
             return Json(ToDetailVm(ev));
         }
 
         [HttpPost]
-        public IActionResult GoToBatch(string mode)
+        public async Task<IActionResult> GoToBatch(string mode)
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd)))
+            var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
+
+            if (string.IsNullOrEmpty(kaisaiCd))
             {
                 TempData["Error"] = "イベントが確定していません。";
                 return RedirectToAction("Index");
             }
+
+            // ★追加：ボタン押下ログ（A02）
+            await _logService.ActionLogSaveAsync(
+                screenId: "G20",
+                actionCd: "A02",
+                eventCd: string.IsNullOrWhiteSpace(kaisaiCd) ? null : kaisaiCd.Trim(),
+                uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                uTimeStamp: DateTime.Now
+            );
+
             return RedirectToAction("Batch", "Scan", new { kind = mode });
         }
 
         [HttpPost]
-        public IActionResult GoToTemp(string kind)
+        public async Task<IActionResult> GoToTemp(string kind)
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd)))
+            var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
+
+            if (string.IsNullOrEmpty(kaisaiCd))
             {
                 TempData["Error"] = "イベントが確定していません。";
                 return RedirectToAction("Index");
             }
 
+            // ★追加：ボタン押下ログ（A02）
+            await _logService.ActionLogSaveAsync(
+                screenId: "G20",
+                actionCd: "A02",
+                eventCd: string.IsNullOrWhiteSpace(kaisaiCd) ? null : kaisaiCd.Trim(),
+                uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                uTimeStamp: DateTime.Now
+            );
+
             return RedirectToAction("TempInput", "Scan", new { kind = kind });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GoToAttendeeSearch()
+        {
+            var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
+
+            await _logService.ActionLogSaveAsync(
+                screenId: "G20",
+                actionCd: "A02",
+                eventCd: string.IsNullOrWhiteSpace(kaisaiCd) ? null : kaisaiCd.Trim(),
+                uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                uTimeStamp: DateTime.Now
+            );
+
+            return RedirectToAction("Index", "AttendeeSearch");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GoToHome()
+        {
+            var kaisaiCd = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
+
+            await _logService.ActionLogSaveAsync(
+                screenId: "G20",
+                actionCd: "A02",
+                eventCd: string.IsNullOrWhiteSpace(kaisaiCd) ? null : kaisaiCd.Trim(),
+                uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                uTimeStamp: DateTime.Now
+            );
+
+            return RedirectToAction("Index", "Home");
         }
 
         private async Task SetCurrentEventAsync(Gt01KaisaiEvent ev)
         {
+            // セッションには「開催コード（KaisaiCd）」を保持（※名前は CurrentKaisaiCd のまま）
             HttpContext.Session.SetString(SessionKeyCurrentKaisaiCd, ev.KaisaiCd ?? "");
 
-            // 追加2026.02.16 Takada 表示用イベント情報を Session に保存
+            // 表示用イベント情報
             HttpContext.Session.SetString(SessionKeyEventDate,
                 (TryParseKaisaiDate(ev.KaisaiYmd ?? "", out var d) ? d.ToString("yyyy/MM/dd") : ""));
 
@@ -308,21 +364,11 @@ namespace QRAttendMvc.Controllers
             await _db.SaveChangesAsync();
         }
 
-        [HttpPost]
-        public IActionResult GoToTempInput(string mode)
-        {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd)))
-            {
-                TempData["Error"] = "イベントが確定していません。";
-                return RedirectToAction("Index");
-            }
-            return RedirectToAction("Batch", "Scan", new { kind = mode });
-        }
-
         private static object ToDetailVm(Gt01KaisaiEvent ev)
         {
             return new
             {
+                // 画面表示用：eventCode=区分(EventCd)
                 eventCode = ev.EventCd,
                 eventName = ev.EventName ?? "",
                 fiscalYear = ev.Nendo,
@@ -344,7 +390,6 @@ namespace QRAttendMvc.Controllers
             if (string.IsNullOrWhiteSpace(ymd)) return false;
             ymd = ymd.Trim();
 
-            // DBは "yyyy/M/d" のようにゼロ埋め無しが混在
             var formats = new[]
             {
                 "yyyy/M/d", "yyyy/MM/dd", "yyyy/M/dd", "yyyy/MM/d",
@@ -354,23 +399,8 @@ namespace QRAttendMvc.Controllers
             if (DateTime.TryParseExact(ymd, formats, CultureInfo.InvariantCulture,
                     DateTimeStyles.None, out date)) return true;
 
-            // 念のため通常パース（ja-JP）
             return DateTime.TryParse(ymd, CultureInfo.GetCultureInfo("ja-JP"),
                 DateTimeStyles.None, out date);
-        }
-
-        private static string NormalizeYmd(string? ymd)
-        {
-            if (string.IsNullOrWhiteSpace(ymd)) return "";
-            return ymd.Replace("/", "").Replace("-", "").Trim();
-        }
-
-        private static string FormatYmd(string ymd)
-        {
-            if (string.IsNullOrWhiteSpace(ymd)) return string.Empty;
-            if (ymd.Length == 8)
-                return $"{ymd.Substring(0, 4)}/{ymd.Substring(4, 2)}/{ymd.Substring(6, 2)}";
-            return ymd;
         }
 
         private static string FormatHm(string? hhmm)

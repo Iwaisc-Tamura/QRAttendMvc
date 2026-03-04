@@ -135,6 +135,7 @@
                         </div>
                     </div>
                 </div>
+
                 <!-- ログイン情報（位置・スタイル維持のため独立） -->
                 <div class="ee-side">
                     <div class="ee-login" aria-label="ログイン情報">
@@ -153,9 +154,6 @@
                     </div>
                 </div>
             </div>
-
-
-
 
             <!-- イベント情報 -->
             <div class="ev-info">
@@ -196,38 +194,29 @@
                 </button>
             </form>
 
-            <form asp-controller="AttendeeSearch" asp-action="Index" method="get">
+            <form asp-controller="EventSelection" asp-action="GoToAttendeeSearch" method="post">
                 <button type="submit" id="btnAttendeeSearch" class="btn ev-btn ev-btn-green">
                     入退場照会
                 </button>
             </form>
 
-            <a asp-controller="Home" asp-action="Index" class="btn ev-btn ev-btn-sky ev-btn-link">
-                メインメニューに<br />戻る
-            </a>
+            <form asp-controller="EventSelection" asp-action="GoToHome" method="post">
+                <button type="submit" class="btn ev-btn ev-btn-sky ev-btn-link">
+                    メインメニューに<br />戻る
+                </button>
+            </form>
         </div>
     </div>
 
     <script>
-        setInterval(function () {
-            const d = new Date();
-            const pad = n => n.toString().padStart(2, '0');
-
-            const dateText = `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}`;
-            const timeText = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-
-            const dispDate = document.getElementById('dispDate');
-            const clock = document.getElementById('clock');
-            if (dispDate) dispDate.textContent = dateText;
-            if (clock) clock.textContent = timeText;
-        }, 1000);
-
         const autoSelected = @((autoSelected) ? "true" : "false");
         const preloaded = @Html.Raw(preloadedJson);
         const selected = @Html.Raw(selectedJson);
+
         const branchDisplay = document.getElementById('branchDisplay');
         const divisionSelect = document.getElementById('divisionSelect');
         const startSelect = document.getElementById('startSelect');
+
         const evCode = document.getElementById('evCode');
         const evName = document.getElementById('evName');
         const evYear = document.getElementById('evYear');
@@ -235,17 +224,18 @@
         const evRecept = document.getElementById('evRecept');
         const evStart = document.getElementById('evStart');
         const evEnd = document.getElementById('evEnd');
+
         const btnIn = document.getElementById('btnBatchIn');
         const btnOut = document.getElementById('btnBatchOut');
         const btnTempIn = document.getElementById('btnTempIn');
         const btnTempOut = document.getElementById('btnTempOut');
+
         const defaultKaisaiCd = "@(ViewBag.DefaultKaisaiCd ?? "")";
 
         function clearDetail() {
             evCode.textContent = "";
             evName.textContent = "";
             if (evYear) evYear.textContent = "";
-            evYear.textContent = "";
             evLoc.textContent = "";
             evRecept.textContent = "";
             evStart.textContent = "";
@@ -272,10 +262,10 @@
 
             branchDisplay.textContent = (d.branchCd ? d.branchCd : "") + (d.branchName ? " " + d.branchName : "");
 
+            // 表示は区分(EventCd)のまま
             evCode.textContent = d.eventCode ?? "－";
             evName.textContent = d.eventName ?? "－";
             if (evYear) evYear.textContent = d.fiscalYear ?? "－";
-            evYear.textContent = d.fiscalYear ?? "－";
             evLoc.textContent = d.location ?? "－";
             evRecept.textContent = d.receptTime ?? "－";
             evStart.textContent = d.startTime ?? "－";
@@ -453,7 +443,6 @@
             if (elDate) elDate.textContent = date;
             if (elTime) elTime.textContent = time;
         });
-
     </script>
 </body>
 </html>

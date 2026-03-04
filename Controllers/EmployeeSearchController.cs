@@ -152,13 +152,12 @@ namespace QRAttendMvc.Controllers
                 exitTime: null,
                 reasonCd: null,
                 sCooperateKana: companyKana,
-                sEmployeeKanas: workerNameKana,
-                sEmployeeKanjis: workerName,
+                sEmployeeKana: workerNameKana, 
+                sEmployeeKanji: workerName,
                 sBirthYmd: sBirthYmd,
+                sEmployeeCd: null, 
                 sSelect: includeExpired ? "1" : "0",
-                jStrat: null,
-                jMaisu: null,
-                tResart: null,
+                tResult: null,
                 uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
                 uTimeStamp: DateTime.Now
             );
