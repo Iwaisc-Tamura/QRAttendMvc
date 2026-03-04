@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /appsettings.Development.json
 /Controllers/AttendeeSearchController.cs
+/Controllers/ScanController.cs

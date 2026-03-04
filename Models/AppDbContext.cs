@@ -148,6 +148,25 @@ namespace QRAttendMvc.Models
                 e.Property(x => x.EntryTime).HasColumnName("ENTRY_TIME");
                 e.Property(x => x.ExitTime).HasColumnName("EXIT_TIME");
                 e.Property(x => x.ReasonCd).HasColumnName("REASON_CD");
+
+                // ★追加列（検索ワード系）
+                e.Property(x => x.SCooperateKana).HasColumnName("S_COOPERATE_KANA");
+                e.Property(x => x.SCooperateName).HasColumnName("S_COOPERATE_NAME");
+                e.Property(x => x.SEmployeeKanas).HasColumnName("S_EMPLOYEE_KANAS");
+                e.Property(x => x.SEmployeeKanan).HasColumnName("S_EMPLOYEE_KANAN");
+                e.Property(x => x.SEmployeeKanjis).HasColumnName("S_EMPLOYEE_KANJIS");
+                e.Property(x => x.SEmployeeKanjin).HasColumnName("S_EMPLOYEE_KANJIN");
+                e.Property(x => x.SBirthYmd).HasColumnName("S_BIRTH_YMD");
+                e.Property(x => x.SEmployeeCd).HasColumnName("S_EMPLOYEE_CD");
+                e.Property(x => x.SSelect).HasColumnName("S_SELECT");
+
+                // ★追加列（帳票系）
+                e.Property(x => x.JStrat).HasColumnName("J_STRAT");
+                e.Property(x => x.JMaisu).HasColumnName("J_MAISU");
+
+                // ★追加列（登録結果）
+                e.Property(x => x.TResart).HasColumnName("T_RESART");
+
                 e.Property(x => x.UTantoCd).HasColumnName("U_TANTO_CD");
                 e.Property(x => x.UTimeStamp).HasColumnName("U_TIME_STAMP");
             });
