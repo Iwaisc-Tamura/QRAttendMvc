@@ -439,5 +439,29 @@ namespace QRAttendMvc.Controllers
                 _ => rows
             };
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BackToEventSelection()
+        {
+            try
+            {
+                var currentKaisaiCd =
+                    HttpContext.Session.GetString("CurrentKaisaiCd")
+                    ?? HttpContext.Session.GetString("KAISAI_CD");
+
+                await _logService.ActionLogSaveAsync(
+                    screenId: "G70",
+                    actionCd: "A02",
+                    eventCd: string.IsNullOrWhiteSpace(currentKaisaiCd) ? null : currentKaisaiCd.Trim(),
+                    uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                    uTimeStamp: DateTime.Now
+                );
+            }
+            catch { }
+
+            return RedirectToAction("Index", "EventSelection");
+        }
+
     }
 }

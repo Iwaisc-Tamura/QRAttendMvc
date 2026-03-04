@@ -18,6 +18,7 @@ namespace QRAttendMvc.Controllers
             _logService = logService;
         }
 
+
         public override async Task OnActionExecutionAsync(
             ActionExecutingContext context,
             ActionExecutionDelegate next)
@@ -36,13 +37,31 @@ namespace QRAttendMvc.Controllers
             var isSearchButton = context.HttpContext.Request.Query["isSearchButton"].ToString();
             bool isSearchClick = isEmployeeSearchIndex && isSearchButton == "1";
 
+            bool isCooperateSearchIndex =
+            string.Equals(controller, "CooperateSearch", StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(action, "Index", StringComparison.OrdinalIgnoreCase);
+
+            bool isEmployeeSearchClick = isEmployeeSearchIndex && isSearchButton == "1";
+            bool isCooperateSearchClick = isCooperateSearchIndex && isSearchButton == "1";
+
+            bool isAttendeeSearchIndex =
+            string.Equals(controller, "AttendeeSearch", StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(action, "Index", StringComparison.OrdinalIgnoreCase);
+
+            bool isAttendeeSearchClick = isAttendeeSearchIndex && isSearchButton == "1";
+
+            bool isAttendeeExport =
+            string.Equals(controller, "AttendeeSearch", StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(action, "Export", StringComparison.OrdinalIgnoreCase);
+
             try
             {
-                if (isSearchClick)
+                if (isEmployeeSearchClick)
                 {
                     var sCooperateKana = context.HttpContext.Request.Query["companyKana"].ToString();
                     var sEmployeeKanas = context.HttpContext.Request.Query["workerKanaLast"].ToString();
                     var sEmployeeKanan = context.HttpContext.Request.Query["workerKanaFirst"].ToString();
+                    var sEmployeeKanji = context.HttpContext.Request.Query["workerName"].ToString();
                     var birthDate = context.HttpContext.Request.Query["birthDate"].ToString();
 
                     string? sBirthYmd = null;
@@ -61,16 +80,15 @@ namespace QRAttendMvc.Controllers
                         }
                     }
 
-                    var sSelect = context.HttpContext.Request.Query.ContainsKey("includeExpired") ? "1" : "0";
+                    var sSelect = context.HttpContext.Request.Query.ContainsKey("includeExpired") ? "21" : "0";
                     var sEmployeeCd = context.HttpContext.Request.Query["employeeCd"].ToString();
 
-                    // ★開催コード（KaisaiCd）を取る
                     var currentKaisaiCd = await TryGetEventCdAsync(context.HttpContext).ConfigureAwait(false);
 
                     await _logService.ActionLogSaveAsync(
                         screenId: "G41",
                         actionCd: "A03",
-                        eventCd: currentKaisaiCd,
+                        eventCd: string.IsNullOrWhiteSpace(currentKaisaiCd) ? null : currentKaisaiCd.Trim(),
                         employeeCd: null,
                         cooperateCd: null,
                         familyName: null,
@@ -82,7 +100,7 @@ namespace QRAttendMvc.Controllers
                         sCooperateKana: sCooperateKana,
                         sCooperateName: null,
                         sEmployeeKana: $"{sEmployeeKanas} {sEmployeeKanan}".Trim(),
-                        sEmployeeKanji: null,
+                        sEmployeeKanji: sEmployeeKanji,
                         sBirthYmd: sBirthYmd,
                         sEmployeeCd: string.IsNullOrWhiteSpace(sEmployeeCd) ? null : sEmployeeCd.Trim(),
                         sSelect: sSelect,
@@ -92,6 +110,85 @@ namespace QRAttendMvc.Controllers
                     );
 
                 }
+                else if (isCooperateSearchClick)
+                {
+                    var sCooperateKana = context.HttpContext.Request.Query["companyKana"].ToString();
+                    var currentKaisaiCd = await TryGetEventCdAsync(context.HttpContext).ConfigureAwait(false);
+
+                    await _logService.ActionLogSaveAsync(
+                        screenId: "G42",
+                        actionCd: "A03",
+                        eventCd: string.IsNullOrWhiteSpace(currentKaisaiCd) ? null : currentKaisaiCd.Trim(),
+                        // 仕様②：S_COOPERATE に会社名カナ
+                        sCooperateKana: string.IsNullOrWhiteSpace(sCooperateKana) ? null : sCooperateKana.Trim(),
+                        uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                        uTimeStamp: DateTime.Now
+                    );
+                }
+                else if (isAttendeeSearchClick)
+                {
+                    var sCooperateKana = context.HttpContext.Request.Query["companyKana"].ToString();
+                    var sCooperateName = context.HttpContext.Request.Query["companyName"].ToString();
+                    var sEmployeeKana = context.HttpContext.Request.Query["workerKana"].ToString();
+                    var sEmployeeKanji = context.HttpContext.Request.Query["workerName"].ToString();
+                    var birthDate = context.HttpContext.Request.Query["birthDate"].ToString();
+                    var sEmployeeCd = context.HttpContext.Request.Query["workerId"].ToString();
+
+                    // birth yyyyMMdd
+                    string? sBirthYmd = null;
+                    if (!string.IsNullOrWhiteSpace(birthDate))
+                    {
+                        if (DateTime.TryParse(birthDate, CultureInfo.GetCultureInfo("ja-JP"),
+                                              DateTimeStyles.None, out var dt))
+                            sBirthYmd = dt.ToString("yyyyMMdd");
+                        else
+                        {
+                            var digits = Regex.Replace(birthDate, @"\D", "");
+                            if (Regex.IsMatch(digits, @"^\d{8}$")) sBirthYmd = digits;
+                        }
+                    }
+
+                    // S_SELECT 生成（filter × includeSecond）
+                    var filter = context.HttpContext.Request.Query["filter"].ToString();
+                    if (string.IsNullOrWhiteSpace(filter))
+                        filter = context.HttpContext.Request.Query["filterCondition"].ToString();
+                    if (string.IsNullOrWhiteSpace(filter)) filter = "1";
+
+                    var includeSecond = context.HttpContext.Request.Query["includeSecond"].ToString();
+                    bool includeSecondChecked =
+                        string.Equals(includeSecond, "true", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(includeSecond, "on", StringComparison.OrdinalIgnoreCase);
+
+                    string sSelect = MapAttendeeSelect(filter, includeSecondChecked);
+
+                    var currentKaisaiCd = await TryGetEventCdAsync(context.HttpContext).ConfigureAwait(false);
+
+                    await _logService.ActionLogSaveAsync(
+                        screenId: "G70",
+                        actionCd: "A03",
+                        eventCd: string.IsNullOrWhiteSpace(currentKaisaiCd) ? null : currentKaisaiCd.Trim(),
+                        sCooperateKana: string.IsNullOrWhiteSpace(sCooperateKana) ? null : sCooperateKana.Trim(),
+                        sCooperateName: string.IsNullOrWhiteSpace(sCooperateName) ? null : sCooperateName.Trim(),
+                        sEmployeeKana: string.IsNullOrWhiteSpace(sEmployeeKana) ? null : sEmployeeKana.Trim(),
+                        sEmployeeKanji: string.IsNullOrWhiteSpace(sEmployeeKanji) ? null : sEmployeeKanji.Trim(),
+                        sBirthYmd: sBirthYmd,
+                        sEmployeeCd: string.IsNullOrWhiteSpace(sEmployeeCd) ? null : sEmployeeCd.Trim(),
+                        sSelect: sSelect,
+                        uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                        uTimeStamp: DateTime.Now
+                    );
+                }
+                else if (isAttendeeExport)
+                {
+                    var currentKaisaiCd = await TryGetEventCdAsync(context.HttpContext).ConfigureAwait(false);
+                    await _logService.ActionLogSaveAsync(
+                        screenId: "G70",
+                        actionCd: "A05",
+                        eventCd: string.IsNullOrWhiteSpace(currentKaisaiCd) ? null : currentKaisaiCd.Trim(),
+                        uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                        uTimeStamp: DateTime.Now
+                    );
+                }
                 else
                 {
                     bool isEventSelectionIndex =
@@ -100,12 +197,15 @@ namespace QRAttendMvc.Controllers
 
                     if (!isEventSelectionIndex)
                     {
+                        var currentKaisaiCd = await TryGetEventCdAsync(context.HttpContext).ConfigureAwait(false);
+
                         await _logService.ActionLogSaveAsync(
                             screenId: screenId,
                             actionCd: "A01",
+                            eventCd: string.IsNullOrWhiteSpace(currentKaisaiCd) ? null : currentKaisaiCd.Trim(),
                             uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
                             uTimeStamp: DateTime.Now
-                        ).ConfigureAwait(false);
+                        ).ConfigureAwait(false); ;
                     }
                 }
             }
@@ -193,6 +293,36 @@ namespace QRAttendMvc.Controllers
             catch
             {
                 return null;
+            }
+        }
+
+        private static string MapAttendeeSelect(string filter, bool includeSecondChecked)
+        {
+            // filter は "1"～"4" 想定、違うのが来たら "1"
+            if (filter != "1" && filter != "2" && filter != "3" && filter != "4")
+                filter = "1";
+
+            if (includeSecondChecked)
+            {
+                return filter switch
+                {
+                    "1" => "01",
+                    "2" => "02",
+                    "3" => "03",
+                    "4" => "04",
+                    _ => "01"
+                };
+            }
+            else
+            {
+                return filter switch
+                {
+                    "1" => "11",
+                    "2" => "12",
+                    "3" => "13",
+                    "4" => "14",
+                    _ => "11"
+                };
             }
         }
     }

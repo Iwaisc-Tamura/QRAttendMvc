@@ -120,12 +120,10 @@
         <!-- ===== 検索条件 ===== -->
         <form method="get" class="as-form" id="searchForm">
 
-            <!-- 追加 2026.02.17 Takada ：検索ボタンを押したかどうか -->
             <input type="hidden" name="searched" value="true" />
-
-            <!-- 追加 2026.02.17 Takada ：ソート結果を残す -->
             <input type="hidden" name="sort" value="@currentSort" />
             <input type="hidden" name="dir" value="@currentDir" />
+            <input type="hidden" name="isSearchButton" id="isSearchButton" value="" />
 
             <!-- 1段目：会社名（カナ）／会社名／2次店以下含む／検索 -->
             <div class="as-grid as-grid-1">
@@ -147,7 +145,10 @@
                 </div>
 
                 <div class="as-field as-action">
-                    <button type="submit" class="as-btn as-btn-search">検索</button>
+                    <button type="submit" class="as-btn as-btn-search"
+                            onclick="document.getElementById('isSearchButton').value='1'">
+                        検索
+                    </button>
                 </div>
 
 
@@ -306,9 +307,12 @@
                 </span>
             }
 
-            <a asp-controller="EventSelection" asp-action="Index" class="as-btn as-btn-secondary">
-                イベント選択<br>画面に戻る
-            </a>
+            <form method="post" asp-action="BackToEventSelection" class="as-footer-form">
+                  @Html.AntiForgeryToken()
+                     <button type="submit" class="as-btn as-btn-secondary">
+                             イベント選択<br>画面に戻る
+                </button>
+            </form>
         </section>
 
     </main>
