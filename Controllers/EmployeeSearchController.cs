@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using QRAttendMvc.Models;
 using QRAttendMvc.Services;
+using System;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -136,13 +137,14 @@ namespace QRAttendMvc.Controllers
                     sBirthYmd = s;
             }
 
-            // イベントコード取得（例：Session）
-            var currentKaisaiCd = HttpContext.Session.GetString("KAISAI_CD");
+            var currentKaisaiCd =
+                HttpContext.Session.GetString("CurrentKaisaiCd")
+                ?? HttpContext.Session.GetString("KAISAI_CD");
 
             await _logService.ActionLogSaveAsync(
                 screenId: "G41",
-                actionCd: "A02",
-                eventCd: currentKaisaiCd,
+                actionCd: "A04",
+                eventCd: string.IsNullOrWhiteSpace(currentKaisaiCd) ? null : currentKaisaiCd.Trim(),
                 employeeCd: employeeCd,
                 cooperateCd: null,
                 familyName: null,
@@ -155,8 +157,8 @@ namespace QRAttendMvc.Controllers
                 sEmployeeKana: workerNameKana, 
                 sEmployeeKanji: workerName,
                 sBirthYmd: sBirthYmd,
-                sEmployeeCd: null, 
-                sSelect: includeExpired ? "1" : "0",
+                sEmployeeCd: null,
+                sSelect: includeExpired ? "21" : "0",
                 tResult: null,
                 uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
                 uTimeStamp: DateTime.Now
@@ -167,7 +169,10 @@ namespace QRAttendMvc.Controllers
             HttpContext.Session.SetString("TEMP_COOPERATE_CD", cooperateCd ?? "");
 
             if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
-                return Redirect(returnUrl);
+            {
+                var url = $"{returnUrl}&EMPLOYEE_CD={employeeCd}&COOPERATE_CD={cooperateCd}";
+                return Redirect(url);
+            }
 
             return RedirectToAction("TempInput", "Scan", new { kind = "IN" });
         }

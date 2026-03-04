@@ -42,11 +42,16 @@ namespace QRAttendMvc.Controllers
             var hasSearched = searched.GetValueOrDefault();
             if (!hasSearched)
             {
+                ViewBag.ResultCount = 0;
                 return View(Enumerable.Empty<CooperateSearchRow>());
             }
 
             // 検索
             var rows = await SearchAsync(companyKana, sort, dir);
+
+            // 件数
+            ViewBag.ResultCount = rows.Count;
+
             return View(rows);
         }
 
@@ -55,22 +60,33 @@ namespace QRAttendMvc.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Back(string? selectedCooperateCd, string? returnUrl)
+        public async Task<IActionResult> Back(string? selectedCooperateCd, string? returnUrl)
         {
-            if (string.IsNullOrWhiteSpace(returnUrl))
-            {
-                // returnUrl が無い場合の保険（プロジェクトに合わせて変更可）
-                returnUrl = Url.Action("Index", "TempInput") ?? "/";
-            }
-
             var cd = (selectedCooperateCd ?? "").Trim();
 
-            // 要求仕様：セッションで受け渡し
+            // ★追加：選択ログ（G42/A02）
+            try
+            {
+                var currentKaisaiCd = HttpContext.Session.GetString("CurrentKaisaiCd")
+                                    ?? HttpContext.Session.GetString("KAISAI_CD");
+
+                await _logService.ActionLogSaveAsync(
+                    screenId: "G42",
+                    actionCd: "A04",
+                    eventCd: string.IsNullOrWhiteSpace(currentKaisaiCd) ? null : currentKaisaiCd.Trim(),
+                    cooperateCd: string.IsNullOrWhiteSpace(cd) ? null : cd,
+                    uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
+                    uTimeStamp: DateTime.Now
+                );
+            }
+            catch { }
+
+            // 既存処理（セッション格納して戻す）
+            if (string.IsNullOrWhiteSpace(returnUrl))
+                returnUrl = Url.Action("Index", "TempInput") ?? "/";
+
             HttpContext.Session.SetString("COOPERATE_CD", cd);
-
-            // ついでに QueryString でも渡す（TempInput 側で扱いやすい）
             var backUrl = AppendQuery(returnUrl, "COOPERATE_CD", cd);
-
             return Redirect(backUrl);
         }
 
