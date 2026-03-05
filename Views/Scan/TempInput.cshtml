@@ -811,10 +811,10 @@
 
             const reasonRequired = !(workerFamilyKanaEl && workerFamilyKanaEl.readOnly);
 
-            if (!workerCd || !workerName || !workerKana || !birthDateRaw || (reasonRequired && !reason)) {
+            if (!workerCd || !workerName || !workerKana || !companyCd || !birthDateRaw || (reasonRequired && !reason)) {
                 alert(reasonRequired
-                    ? "作業員ID・作業員名・作業員名カナ・生年月日・事由は必須です。"
-                    : "作業員ID・作業員名・作業員名カナ・生年月日は必須です。");
+                    ? "作業員ID・協力会社コード・作業員名・作業員名カナ・生年月日・事由は必須です。"
+                    : "作業員ID・協力会社コード・作業員名・作業員名カナ・生年月日は必須です。");
                 return;
             }
 
@@ -855,7 +855,8 @@
                 showReadResult(data.code || "TEMP", workerName, time);
                 setIcon(data.ok ? "OK" : "WARN");
                 playBeep(data.ok ? "OK" : "WARN");
-                appendLog(`${data.time ?? ""} ${data.message ?? ""}`);
+                const logLine = [data.time ?? "", data.message ?? ""].filter(v => v && v.trim()).join(" ");
+                appendLog(logLine);
 
                 if (data.ok) {
                     try {
