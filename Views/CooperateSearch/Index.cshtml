@@ -101,7 +101,7 @@
                 <div class="es-hint" style="text-align:right; font-weight:700;">
                     @if (resultCount > 0)
                     {
-                        <text>対象件数：@resultCount.ToString("#,0")</text>
+                        <text>対象件数：@resultCount.ToString("#,0")件</text>
                     }
                     else
                     {
@@ -144,9 +144,9 @@
                             data-cd="@r.CooperateCd"
                             onclick="selectCooperate(this)">
                             <td>@r.CooperateCd</td>
-                            <td>@r.CompanyName</td>
-                            <td>@r.CompanyNameKana</td>
-                            <td>@r.Address</td>
+                            <td title="@r.CompanyName">@r.CompanyName</td>
+                            <td title="@r.CompanyNameKana">@r.CompanyNameKana</td>
+                            <td title="@r.Address">@r.Address</td>
                         </tr>
                     }
                 </tbody>

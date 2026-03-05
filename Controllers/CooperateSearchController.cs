@@ -72,7 +72,7 @@ namespace QRAttendMvc.Controllers
 
                 await _logService.ActionLogSaveAsync(
                     screenId: "G42",
-                    actionCd: "A04",
+                    actionCd: "A06",
                     eventCd: string.IsNullOrWhiteSpace(currentKaisaiCd) ? null : currentKaisaiCd.Trim(),
                     cooperateCd: string.IsNullOrWhiteSpace(cd) ? null : cd,
                     uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
