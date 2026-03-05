@@ -1218,6 +1218,7 @@ namespace QRAttendMvc.Controllers
             if (req == null || string.IsNullOrWhiteSpace(req.WorkerCd)
                 || string.IsNullOrWhiteSpace(req.WorkerName)
                 || string.IsNullOrWhiteSpace(req.WorkerKana)
+                || string.IsNullOrWhiteSpace(req.CompanyCd)
                 || string.IsNullOrWhiteSpace(req.BirthDate))
             {
                 return Json(new { ok = false, message = "必須項目が未入力です", time = hhmm });
@@ -1292,6 +1293,14 @@ namespace QRAttendMvc.Controllers
 
             if (kind == "IN")
             {
+                if (row != null && !string.IsNullOrWhiteSpace(row.ExitTime)
+                    && !string.IsNullOrWhiteSpace(entryTime)
+                    && string.Compare(entryTime, row.ExitTime, StringComparison.Ordinal) > 0)
+                {
+                    var displayName = string.Join(" ", new[] { familyName, firstName }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                    return Json(new { ok = false, message = $"{workerCd} {displayName} 入場時刻が退場時刻よりも後です（退場：{ToHHmm(row.ExitTime)}）" });
+                }
+
                 if (row == null)
                 {
                     string typeVal;
@@ -1354,12 +1363,14 @@ namespace QRAttendMvc.Controllers
                 entryTime = !string.IsNullOrWhiteSpace(req.EntryRecord) ? NormalizeTime(req.EntryRecord) : null;
                 if (string.IsNullOrWhiteSpace(entryTime))
                 {
-                    return Json(new { ok = false, message = "入場時刻が登録されていないため退場登録できません。", time = hhmm });
+                    var displayName = string.Join(" ", new[] { familyName, firstName }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                    return Json(new { ok = false, message = $"{workerCd} {displayName} 入場時刻が登録されていないため退場登録できません。" });
                 }
 
                 if (!string.IsNullOrWhiteSpace(exitTime) && string.Compare(exitTime, entryTime, StringComparison.Ordinal) < 0)
                 {
-                    return Json(new { ok = false, message = $"退場時刻が入場時刻より前です（入場:{ToHHmm(entryTime)}）", time = hhmm });
+                    var displayName = string.Join(" ", new[] { familyName, firstName }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                    return Json(new { ok = false, message = $"{workerCd} {displayName} 退場時刻が入場時刻より前です（入場:{ToHHmm(entryTime)}）" });
                 }
 
                 if (row == null)
@@ -1454,8 +1465,8 @@ namespace QRAttendMvc.Controllers
                     );
                 }
                 catch { }
-
-                return Json(new { ok = true, message = kind == "IN" ? "入場登録しました" : "退場登録しました", time = kind == "IN" ? row.EntryTime ?? hhmm : row.ExitTime ?? hhmm, code = workerCd });
+                var displayName = string.Join(" ", new[] { familyName, firstName }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                return Json(new { ok = true, message = kind == "IN" ? $"{workerCd} {displayName} 入場登録しました" : $"{workerCd} {displayName} 退場登録しました", time = kind == "IN" ? row.EntryTime ?? hhmm : row.ExitTime ?? hhmm, code = workerCd });
             }
             catch (Exception)
             {
