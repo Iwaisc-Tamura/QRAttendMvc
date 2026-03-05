@@ -1,46 +1,60 @@
 @model IEnumerable<QRAttendMvc.Models.AttendeeSearchRow>
-@using QRAttendMvc.Models
+
 @using System.Globalization
+@using Microsoft.Extensions.Primitives
+@using System.Linq
 
 @{
-    Layout = null; 
+    Layout = null;
     ViewData["Title"] = "入退場照会";
 
     string currentKaisaiCd = ViewBag.CurrentKaisaiCd as string ?? "";
 
     string companyKana = Context.Request.Query["companyKana"].ToString();
     string companyName = Context.Request.Query["companyName"].ToString();
-    string workerKana = Context.Request.Query["workerKana"].ToString(); // 使うなら定義
-    string workerName = Context.Request.Query["workerName"].ToString(); // ★不足してたので追加
+    string workerKana = Context.Request.Query["workerKana"].ToString();
+    string workerName = Context.Request.Query["workerName"].ToString();
     string workerId = Context.Request.Query["workerId"].ToString();
     string birthDate = Context.Request.Query["birthDate"].ToString();
     string filter = Context.Request.Query["filter"].ToString();
+
     if (string.IsNullOrEmpty(filter))
     {
-        filter = "1"; // ★デフォルトは@FILTERCONDITION = '1'
+        filter = "1";
     }
+
     string login = ViewBag.LoginText as string ?? "";
 
-    string includeSecond = Context.Request.Query["includeSecond"].ToString();
-
-    // includeSecond が未指定（初期表示やクリア直後）ならデフォルトON
-    bool includeSecondChecked =
-        string.IsNullOrEmpty(includeSecond) ||
-        includeSecond == "true" ||
-        includeSecond == "on";
-
+    // 検索実行判定
     bool hasSearched =
-    Context.Request.Query.ContainsKey("searched") &&
-    !string.IsNullOrWhiteSpace(Context.Request.Query["searched"]);
+        Context.Request.Query.ContainsKey("searched") &&
+        !string.IsNullOrWhiteSpace(Context.Request.Query["searched"]);
+
+    // includeSecond の値取得（checkbox + hidden 対応）
+    StringValues includeSecondValues = Context.Request.Query["includeSecond"];
+
+    // チェック状態判定
+    bool includeSecondChecked;
+
+    if (!hasSearched)
+    {
+        includeSecondChecked = true;
+    }
+    else
+    {
+        includeSecondChecked = includeSecondValues
+            .Any(v => string.Equals(v, "true", StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(v, "on", StringComparison.OrdinalIgnoreCase));
+    }
 
     var ja = new CultureInfo("ja-JP");
-    var serverNow = DateTime.Now; // サーバ現在日時（ページを開いた瞬間）
+    var serverNow = DateTime.Now;
+
     var serverDateText = serverNow.ToString("yyyy/MM/dd (ddd)", ja);
-    var serverTimeText = serverNow.ToString("hh:mm:ss", ja); // 要望通り hh
+    var serverTimeText = serverNow.ToString("hh:mm:ss", ja);
 
     var currentSort = Context.Request.Query["sort"].ToString();
-    var currentDir = Context.Request.Query["dir"].ToString(); // "asc" or "desc"
-
+    var currentDir = Context.Request.Query["dir"].ToString();
 }
 
 <!doctype html>
@@ -139,6 +153,7 @@
 
                 <div class="as-field as-check">
                     <label class="as-checkline">
+                        <input type="hidden" name="includeSecond" value="false" />
                         <input type="checkbox" name="includeSecond" value="true" @(includeSecondChecked ? "checked" : "") />
                         2次店以下を含む
                     </label>
@@ -208,7 +223,7 @@
 
                 @if (count > 0)
                 {
-                    <text>対象件数：@count.ToString("#,0")</text>
+                    <text>対象件数：@count.ToString("#,0")件</text>
                 }
                 else
                 {
@@ -273,9 +288,9 @@
                     @foreach (var r in Model)
                     {
                         <tr>
-                            <td>@r.CompanyName</td>
+                            <td title="@r.CompanyName">@r.CompanyName</td>
                             <td>@r.WorkerId</td>
-                            <td>@r.WorkerName</td>
+                            <td title="@r.WorkerName">@r.WorkerName</td>
 
                             <td>@r.BirthDate</td>
                             <td>@r.ExcludeDate</td>
@@ -367,7 +382,17 @@
             });
         });
 
+        document.addEventListener("DOMContentLoaded", function () {
 
+            const form = document.getElementById("searchForm");
+            const isSearchButtonEl = document.getElementById("isSearchButton");
+
+            // ★どんな送信でも「検索フォーム送信＝検索扱い」にする
+            form?.addEventListener("submit", function () {
+                if (isSearchButtonEl) isSearchButtonEl.value = "1";
+            });
+
+        });
 
      </script>
 

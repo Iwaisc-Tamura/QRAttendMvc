@@ -6,6 +6,7 @@ using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Globalization;
+using System.Linq;
 
 namespace QRAttendMvc.Controllers
 {
@@ -59,8 +60,7 @@ namespace QRAttendMvc.Controllers
                 if (isEmployeeSearchClick)
                 {
                     var sCooperateKana = context.HttpContext.Request.Query["companyKana"].ToString();
-                    var sEmployeeKanas = context.HttpContext.Request.Query["workerKanaLast"].ToString();
-                    var sEmployeeKanan = context.HttpContext.Request.Query["workerKanaFirst"].ToString();
+                    var sEmployeeKana = context.HttpContext.Request.Query["workerNameKana"].ToString();
                     var sEmployeeKanji = context.HttpContext.Request.Query["workerName"].ToString();
                     var birthDate = context.HttpContext.Request.Query["birthDate"].ToString();
 
@@ -80,15 +80,17 @@ namespace QRAttendMvc.Controllers
                         }
                     }
 
-                    var sSelect = context.HttpContext.Request.Query.ContainsKey("includeExpired") ? "21" : "0";
+                    var sSelect = context.HttpContext.Request.Query.ContainsKey("includeExpired") ? "S21" : "S22";
                     var sEmployeeCd = context.HttpContext.Request.Query["employeeCd"].ToString();
 
                     var currentKaisaiCd = await TryGetEventCdAsync(context.HttpContext).ConfigureAwait(false);
 
+                    var eventCdForLog = NormalizeEventCdByScreen("G41", currentKaisaiCd);
+
                     await _logService.ActionLogSaveAsync(
                         screenId: "G41",
                         actionCd: "A03",
-                        eventCd: string.IsNullOrWhiteSpace(currentKaisaiCd) ? null : currentKaisaiCd.Trim(),
+                        eventCd: eventCdForLog,
                         employeeCd: null,
                         cooperateCd: null,
                         familyName: null,
@@ -99,7 +101,7 @@ namespace QRAttendMvc.Controllers
                         reasonCd: null,
                         sCooperateKana: sCooperateKana,
                         sCooperateName: null,
-                        sEmployeeKana: $"{sEmployeeKanas} {sEmployeeKanan}".Trim(),
+                        sEmployeeKana: string.IsNullOrWhiteSpace(sEmployeeKana) ? null : sEmployeeKana.Trim(),
                         sEmployeeKanji: sEmployeeKanji,
                         sBirthYmd: sBirthYmd,
                         sEmployeeCd: string.IsNullOrWhiteSpace(sEmployeeCd) ? null : sEmployeeCd.Trim(),
@@ -114,11 +116,13 @@ namespace QRAttendMvc.Controllers
                 {
                     var sCooperateKana = context.HttpContext.Request.Query["companyKana"].ToString();
                     var currentKaisaiCd = await TryGetEventCdAsync(context.HttpContext).ConfigureAwait(false);
+                    var eventCdForLog = NormalizeEventCdByScreen("G42", currentKaisaiCd);
+
 
                     await _logService.ActionLogSaveAsync(
                         screenId: "G42",
                         actionCd: "A03",
-                        eventCd: string.IsNullOrWhiteSpace(currentKaisaiCd) ? null : currentKaisaiCd.Trim(),
+                        eventCd: eventCdForLog,
                         // 仕様②：S_COOPERATE に会社名カナ
                         sCooperateKana: string.IsNullOrWhiteSpace(sCooperateKana) ? null : sCooperateKana.Trim(),
                         uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
@@ -154,19 +158,21 @@ namespace QRAttendMvc.Controllers
                         filter = context.HttpContext.Request.Query["filterCondition"].ToString();
                     if (string.IsNullOrWhiteSpace(filter)) filter = "1";
 
-                    var includeSecond = context.HttpContext.Request.Query["includeSecond"].ToString();
+                    var includeSecondValues = context.HttpContext.Request.Query["includeSecond"];
                     bool includeSecondChecked =
-                        string.Equals(includeSecond, "true", StringComparison.OrdinalIgnoreCase) ||
-                        string.Equals(includeSecond, "on", StringComparison.OrdinalIgnoreCase);
-
+                        includeSecondValues.Any(v =>
+                            string.Equals(v, "true", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(v, "on", StringComparison.OrdinalIgnoreCase));
                     string sSelect = MapAttendeeSelect(filter, includeSecondChecked);
 
                     var currentKaisaiCd = await TryGetEventCdAsync(context.HttpContext).ConfigureAwait(false);
+                    var eventCdForLog = NormalizeEventCdByScreen("G70", currentKaisaiCd);
+
 
                     await _logService.ActionLogSaveAsync(
                         screenId: "G70",
                         actionCd: "A03",
-                        eventCd: string.IsNullOrWhiteSpace(currentKaisaiCd) ? null : currentKaisaiCd.Trim(),
+                        eventCd: eventCdForLog,
                         sCooperateKana: string.IsNullOrWhiteSpace(sCooperateKana) ? null : sCooperateKana.Trim(),
                         sCooperateName: string.IsNullOrWhiteSpace(sCooperateName) ? null : sCooperateName.Trim(),
                         sEmployeeKana: string.IsNullOrWhiteSpace(sEmployeeKana) ? null : sEmployeeKana.Trim(),
@@ -181,10 +187,13 @@ namespace QRAttendMvc.Controllers
                 else if (isAttendeeExport)
                 {
                     var currentKaisaiCd = await TryGetEventCdAsync(context.HttpContext).ConfigureAwait(false);
+                    var eventCdForLog = NormalizeEventCdByScreen("G70", currentKaisaiCd);
+
+
                     await _logService.ActionLogSaveAsync(
                         screenId: "G70",
                         actionCd: "A05",
-                        eventCd: string.IsNullOrWhiteSpace(currentKaisaiCd) ? null : currentKaisaiCd.Trim(),
+                        eventCd: eventCdForLog,
                         uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
                         uTimeStamp: DateTime.Now
                     );
@@ -198,11 +207,12 @@ namespace QRAttendMvc.Controllers
                     if (!isEventSelectionIndex)
                     {
                         var currentKaisaiCd = await TryGetEventCdAsync(context.HttpContext).ConfigureAwait(false);
+                        var eventCdForLog = NormalizeEventCdByScreen(screenId, currentKaisaiCd);
 
                         await _logService.ActionLogSaveAsync(
                             screenId: screenId,
                             actionCd: "A01",
-                            eventCd: string.IsNullOrWhiteSpace(currentKaisaiCd) ? null : currentKaisaiCd.Trim(),
+                          　eventCd: eventCdForLog,
                             uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
                             uTimeStamp: DateTime.Now
                         ).ConfigureAwait(false); ;
@@ -258,6 +268,19 @@ namespace QRAttendMvc.Controllers
             return "UNK";
         }
 
+        private static string? NormalizeEventCdByScreen(string screenId, string? eventCd)
+        {
+            // ★要件：G10 / G20 は必ず NULL
+            if (string.Equals(screenId, "G10", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(screenId, "G20", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            // その他は従来どおり（空はNULL、あればTrim）
+            return string.IsNullOrWhiteSpace(eventCd) ? null : eventCd.Trim();
+        }
+
         /// <summary>
         /// 開催コード（KaisaiCd）を取る
         /// - Query/Form に eventCd があればそれ（画面によっては使う）
@@ -306,22 +329,22 @@ namespace QRAttendMvc.Controllers
             {
                 return filter switch
                 {
-                    "1" => "01",
-                    "2" => "02",
-                    "3" => "03",
-                    "4" => "04",
-                    _ => "01"
+                    "1" => "S01",
+                    "2" => "SD2",
+                    "3" => "S03",
+                    "4" => "S04",
+                    _ => "S01"
                 };
             }
             else
             {
                 return filter switch
                 {
-                    "1" => "11",
-                    "2" => "12",
-                    "3" => "13",
-                    "4" => "14",
-                    _ => "11"
+                    "1" => "S11",
+                    "2" => "S12",
+                    "3" => "S13",
+                    "4" => "S14",
+                    _ => "S11"
                 };
             }
         }

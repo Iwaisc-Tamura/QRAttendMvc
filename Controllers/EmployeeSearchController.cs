@@ -143,7 +143,7 @@ namespace QRAttendMvc.Controllers
 
             await _logService.ActionLogSaveAsync(
                 screenId: "G41",
-                actionCd: "A04",
+                actionCd: "A06",
                 eventCd: string.IsNullOrWhiteSpace(currentKaisaiCd) ? null : currentKaisaiCd.Trim(),
                 employeeCd: employeeCd,
                 cooperateCd: null,
@@ -158,7 +158,7 @@ namespace QRAttendMvc.Controllers
                 sEmployeeKanji: workerName,
                 sBirthYmd: sBirthYmd,
                 sEmployeeCd: null,
-                sSelect: includeExpired ? "21" : "0",
+                sSelect: includeExpired ? "S21" : "S22",
                 tResult: null,
                 uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
                 uTimeStamp: DateTime.Now

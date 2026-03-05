@@ -159,7 +159,7 @@
             <div class="es-hint" style="text-align:right; font-weight:700;">
                 @if (resultCount > 0)
                 {
-                    <text>対象件数：@resultCount.ToString("#,0")</text>
+                    <text>対象件数：@resultCount.ToString("#,0")件</text>
                 }
                 else
                 {
@@ -219,10 +219,10 @@
                             onclick="pickRow(this)"
                             ondblclick="pickRow(this); commitSelect();">
                             <td>@r.EmployeeCd</td>
-                            <td>@r.CompanyName</td>
-                            <td>@r.CompanyKana</td>
-                            <td>@r.WorkerName</td>
-                            <td>@r.WorkerNameKana</td>
+                            <td title="@r.CompanyName">@r.CompanyName</td>
+                            <td title="@r.CompanyKana">@r.CompanyKana</td>
+                            <td title="@r.WorkerName">@r.WorkerName</td>
+                            <td title="@r.WorkerNameKana">@r.WorkerNameKana</td>
                             <td>@(r.BirthDate?.ToString("yyyy/MM/dd") ?? "")</td>
                             <td>@(r.ExcludeDate?.ToString("yyyy/MM/dd") ?? "")</td>
                         </tr>

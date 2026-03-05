@@ -39,7 +39,7 @@ namespace QRAttendMvc.Controllers
             await _logService.ActionLogSaveAsync(
                 screenId: "G20",
                 actionCd: "A03",
-                eventCd: string.IsNullOrWhiteSpace(kaisaiCd) ? null : kaisaiCd.Trim(),
+                eventCd: null,
                 uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
                 uTimeStamp: DateTime.Now
             );
@@ -112,7 +112,7 @@ namespace QRAttendMvc.Controllers
                 await _logService.ActionLogSaveAsync(
                     screenId: "G20",
                     actionCd: "A01",
-                    eventCd: string.IsNullOrWhiteSpace(events[0].KaisaiCd) ? null : events[0].KaisaiCd.Trim(),
+                    eventCd: null,
                     uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
                     uTimeStamp: DateTime.Now
                 );
@@ -153,7 +153,7 @@ namespace QRAttendMvc.Controllers
                 await _logService.ActionLogSaveAsync(
                     screenId: "G20",
                     actionCd: "A01",
-                    eventCd: string.IsNullOrWhiteSpace(defaultEv.KaisaiCd) ? null : defaultEv.KaisaiCd.Trim(),
+                    eventCd: null,
                     uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
                     uTimeStamp: DateTime.Now
                 );
@@ -262,7 +262,7 @@ namespace QRAttendMvc.Controllers
             await _logService.ActionLogSaveAsync(
                 screenId: "G20",
                 actionCd: "A02",
-                eventCd: string.IsNullOrWhiteSpace(kaisaiCd) ? null : kaisaiCd.Trim(),
+                eventCd: null,
                 uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
                 uTimeStamp: DateTime.Now
             );
@@ -285,7 +285,7 @@ namespace QRAttendMvc.Controllers
             await _logService.ActionLogSaveAsync(
                 screenId: "G20",
                 actionCd: "A02",
-                eventCd: string.IsNullOrWhiteSpace(kaisaiCd) ? null : kaisaiCd.Trim(),
+                eventCd: null,
                 uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
                 uTimeStamp: DateTime.Now
             );
@@ -301,7 +301,7 @@ namespace QRAttendMvc.Controllers
             await _logService.ActionLogSaveAsync(
                 screenId: "G20",
                 actionCd: "A02",
-                eventCd: string.IsNullOrWhiteSpace(kaisaiCd) ? null : kaisaiCd.Trim(),
+                eventCd: null,
                 uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
                 uTimeStamp: DateTime.Now
             );
@@ -317,7 +317,7 @@ namespace QRAttendMvc.Controllers
             await _logService.ActionLogSaveAsync(
                 screenId: "G20",
                 actionCd: "A02",
-                eventCd: string.IsNullOrWhiteSpace(kaisaiCd) ? null : kaisaiCd.Trim(),
+                eventCd: null,
                 uTantoCd: HttpContext.Session.GetString("EMPLOYEE_CD"),
                 uTimeStamp: DateTime.Now
             );
