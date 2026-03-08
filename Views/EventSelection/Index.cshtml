@@ -54,16 +54,25 @@
 
     <div class="ev-container">
 
-        @if (TempData["Error"] != null)
-        {
-            <div class="ev-alert ev-alert-danger">@TempData["Error"]</div>
+        @{
+            var errorMessage = TempData["Error"]?.ToString();
+            var businessMessage = ViewData["BusinessMessage"] as string;
+            var displayMessage = !string.IsNullOrWhiteSpace(errorMessage)
+            ? errorMessage
+            : businessMessage;
+            var alertClass = !string.IsNullOrWhiteSpace(errorMessage)
+            ? "ev-alert-danger"
+            : "ev-alert-warn";
         }
-        @if (ViewData["BusinessMessage"] is string message)
-        {
-            <div class="ev-alert ev-alert-warn">
-                @Html.Raw(message.Replace("\n", "<br />"))
-            </div>
-        }
+
+        <div class="ev-message-area">
+            @if (!string.IsNullOrWhiteSpace(displayMessage))
+            {
+                <div class="ev-alert @alertClass">
+                    @Html.Raw(displayMessage.Replace("\n", "<br />"))
+                </div>
+            }
+        </div>
 
         <div class="ev-form">
             <div class="ee-top">
