@@ -52,7 +52,7 @@
             border-bottom: 2px solid #1d1d1d;
             background: transparent;
             box-shadow: none;
-            padding: .375rem .0rem;
+            padding: 2px 0px;
             padding-left: .25rem;
             padding-right: .25rem;
             line-height: 1.5;
@@ -93,12 +93,12 @@
         .ee-btn-small,
         .btn-search {
             padding: .25rem .5rem;
-            font-size: 12px;
+            font-size: 10px;
             line-height: 1;
             width: 120px;
             min-width: 120px;
-            height: 24px;
-            min-height: 24px;
+            height: 18px;
+            min-height: 18px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -233,16 +233,16 @@
                     <div class="ev-row">
                         <div class="ev-label">作業員名カナ</div>
                         <div class="ev-field name-split">
-                            <input id="workerFamilyKana" class="form-control name-split-input" placeholder="姓（カナ）" />
-                            <input id="workerFirstKana" class="form-control name-split-input" placeholder="名（カナ）" />
+                            <input id="workerFamilyKana" class="form-control name-split-input" placeholder="姓（カナ）" inputmode="kana" lang="ja" autocomplete="off" />
+                            <input id="workerFirstKana" class="form-control name-split-input" placeholder="名（カナ）" inputmode="kana" lang="ja" autocomplete="off" />
                         </div>
                     </div>
 
                     <div class="ev-row">
                         <div class="ev-label">作業員名</div>
                         <div class="ev-field name-split">
-                            <input id="workerFamilyName" class="form-control name-split-input" placeholder="姓" />
-                            <input id="workerFirstName" class="form-control name-split-input" placeholder="名" />
+                            <input id="workerFamilyName" class="form-control name-split-input" placeholder="姓" lang="ja" autocomplete="off" />
+                            <input id="workerFirstName" class="form-control name-split-input" placeholder="名" lang="ja" autocomplete="off" />
                         </div>
                     </div>
 
@@ -250,14 +250,14 @@
                         <div class="ev-label">生年月日</div>
                         <div class="ev-field">
                             <!-- 手入力で 8桁許容。画面表示は YYYY/MM/DD -->
-                            <input id="birthDate" type="text" class="form-control" style="width: 100px" placeholder="YYYY/MM/DD" autocomplete="bday" />
+                            <input id="birthDate" type="text" class="form-control" style="width: 94px" placeholder="YYYY/MM/DD" autocomplete="bday" inputmode="numeric" pattern="[0-9/]*" />
                         </div>
                     </div>
 
                     <div class="ev-row">
                         <div class="ev-label">名簿対象除外日</div>
                         <div class="ev-field">
-                            <input id="excludeDate" type="text" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" style="width: 100px !important" />
+                            <input id="excludeDate" type="text" class="ev-selectlike ev-readonly ev-underline" readonly tabindex="-1" aria-hidden="true" style="width: 94px !important" />
                         </div>
                     </div>
 
@@ -265,7 +265,7 @@
                         <div class="ev-label">入場記録</div>
                         <div class="ev-field">
                             <!-- 時刻（時:分）入力。step=60で分単位 -->
-                            <input id="entryRecord" type="time" step="60" class="form-control form-control-sm" style="width: 90px !important" />
+                            <input id="entryRecord" type="time" step="60" class="form-control form-control-sm" style="width: 80px !important" />
                         </div>
                     </div>
 
@@ -275,7 +275,7 @@
                         <div class="ev-row">
                             <div class="ev-label">退場記録</div>
                             <div class="ev-field">
-                                <input id="exitRecord" type="time" step="60" class="form-control form-control-sm" style="width: 90px !important" />
+                                <input id="exitRecord" type="time" step="60" class="form-control form-control-sm" style="width: 80px !important" />
                             </div>
                         </div>
                     }
@@ -283,7 +283,7 @@
                     <div class="ev-row">
                         <div class="ev-label">事由</div>
                         <div class="ev-field">
-                            <select id="reason" class="form-control" style="height: 34px;">
+                            <select id="reason" class="form-control" style="height: 18px;">
                                 <option value="">(選択必須)</option>
                                 <option value="E1">E1：従事者証忘れ</option>
                                 <option value="E2">E2：従事者証未発行</option>
@@ -295,7 +295,7 @@
                 </div>
 
                 <!-- 結果エリア：左に緑のアイコン、右に結果コメント（大きめのテキストエリア） -->
-                <div class="ev-row" style="margin-top:0.5rem;grid-template-columns: 140px 1fr !important;align-items: self-start;">
+                <div class="ev-row" style="grid-template-columns: 140px 1fr !important;align-items: self-start;">
                     <div class="ee-result-wrap">
                         <div class="ee-result-left">
                             <div class="ev-label ee-result-label">結果</div>
@@ -306,7 +306,7 @@
                     </div>
                     <div>
                         <div class="ee-result-comment">
-                            <div class="ee-section-title" style="margin-bottom:6px;">結果コメント</div>
+                            <div class="ee-section-title">結果コメント</div>
                             <div class="ee-log-box">
                                 <textarea id="logArea" class="ee-log" rows="6" readonly></textarea>
                             </div>
@@ -577,7 +577,7 @@
         document.addEventListener('touchstart', onPointerForFocus, { passive: true, capture: true });
     })();
 
-    // --- 生年月日：手入力 8桁許容、画面表示は YYYY/MM/DD に整形 ---
+    // --- 生年月日：手入力 8桁許容、画面表示は YYYY/MM/DD ---
     function formatToDisplayYmd(raw) {
         if (!raw) return "";
         const digits = String(raw).replace(/[^\d]/g, "");
@@ -617,10 +617,18 @@
         birthDateEl.addEventListener('input', (e) => {
             try {
                 const v = birthDateEl.value || "";
-                const onlyDigits = v.replace(/[^\d]/g, "");
+                if (hasNonNumeric(v)) {
+                    showNumericBalloon(birthDateEl);
+                }
+
+                const sanitized = v.replace(/[^\d/]/g, "");
+                const onlyDigits = sanitized.replace(/\//g, "");
+
                 if (onlyDigits.length === 8) {
                     const disp = formatToDisplayYmd(onlyDigits);
                     birthDateEl.value = disp;
+                } else if (v !== sanitized) {
+                    birthDateEl.value = sanitized;
                 }
             } catch (ex) {}
         });
@@ -633,6 +641,99 @@
             } catch (ex) {}
         });
     }
+
+    function normalizeToKatakana(value) {
+        if (!value) return "";
+
+        const nk = String(value).normalize("NFKC");
+
+        const kata = nk.replace(/[ぁ-ん]/g, ch =>
+            String.fromCharCode(ch.charCodeAt(0) + 0x60)
+        );
+
+        return kata.replace(/[^\u30A0-\u30FF\s　ー]/g, "");
+    }
+
+    function hasNonKana(value) {
+        if (!value) return false;
+        return /[^\u3040-\u309F\u30A0-\u30FF\s　ー]/.test(String(value));
+    }
+
+    function showKanaBalloon(el) {
+        if (!el || typeof el.setCustomValidity !== "function") return;
+        const message = "カタカナのみ入力できます。";
+        el.setCustomValidity(message);
+        try {
+            if (typeof el.reportValidity === "function") {
+                el.reportValidity();
+            }
+        } catch (e) {}
+        setTimeout(() => {
+            try { el.setCustomValidity(""); } catch (e) {}
+        }, 5000);
+    }
+
+    function hasNonNumeric(value) {
+        if (!value) return false;
+        return /[^\d/]/.test(String(value));
+    }
+
+    function showNumericBalloon(el) {
+        if (!el || typeof el.setCustomValidity !== "function") return;
+        const message = "数字と / のみ入力できます。";
+        el.setCustomValidity(message);
+        try {
+            if (typeof el.reportValidity === "function") {
+                el.reportValidity();
+            }
+        } catch (e) {}
+        setTimeout(() => {
+            try { el.setCustomValidity(""); } catch (e) {}
+        }, 5000);
+    }
+
+    function attachKanaOnlyHandler(el) {
+        if (!el) return;
+
+        let composing = false;
+
+        el.addEventListener("compositionstart", () => {
+            composing = true;
+        });
+
+        el.addEventListener("compositionend", () => {
+            composing = false;
+            if (!el.readOnly && hasNonKana(el.value)) {
+                showKanaBalloon(el);
+            }
+            el.value = normalizeToKatakana(el.value);
+        });
+
+        el.addEventListener("input", () => {
+            if (el.readOnly || composing) return;
+
+            if (hasNonKana(el.value)) {
+                showKanaBalloon(el);
+            }
+
+            const next = normalizeToKatakana(el.value);
+            if (el.value !== next) {
+                el.value = next;
+            }
+        });
+
+        el.addEventListener("blur", () => {
+            if (el.readOnly) return;
+            el.value = normalizeToKatakana(el.value);
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".js-kana-only").forEach(attachKanaOnlyHandler);
+    });
+
+    attachKanaOnlyHandler(workerFamilyKanaEl);
+    attachKanaOnlyHandler(workerFirstKanaEl);
 
     function parseQrString(raw) {
         if (!raw) return { ok: false, reason: "empty" };
@@ -811,10 +912,10 @@
 
             const reasonRequired = !(workerFamilyKanaEl && workerFamilyKanaEl.readOnly);
 
-            if (!workerCd || !workerName || !workerKana || !companyCd || !birthDateRaw || (reasonRequired && !reason)) {
+            if (!workerCd || !workerKana || !companyCd || !birthDateRaw || (reasonRequired && !reason)) {
                 alert(reasonRequired
-                    ? "作業員ID・協力会社コード・作業員名・作業員名カナ・生年月日・事由は必須です。"
-                    : "作業員ID・協力会社コード・作業員名・作業員名カナ・生年月日は必須です。");
+                    ? "作業員ID・協力会社コード・作業員名カナ・生年月日・事由は必須です。"
+                    : "作業員ID・協力会社コード・作業員名カナ・生年月日は必須です。");
                 return;
             }
 
@@ -1014,6 +1115,29 @@
             sessionStorage.removeItem(formStateKey);
         });
     }
+
+    // 追加: readonly フィールドのクリック時はQR入力へフォーカス
+    const readonlyFocusTargets = [
+        input,
+        companyCdEl,
+        companyKanaEl,
+        companyNameEl,
+        excludeDateEl,
+        workerFamilyKanaEl,
+        workerFirstKanaEl,
+        workerFamilyNameEl,
+        workerFirstNameEl,
+        birthDateEl,
+        logArea
+    ];
+    readonlyFocusTargets.forEach(el => {
+         if (!el) return;
+         el.addEventListener("click", () => {
+            if (el.readOnly && qrInput && typeof qrInput.focus === "function") {
+                 try { qrInput.focus(); } catch (e) {}
+             }
+         });
+     });
 </script>
 
 </body>
