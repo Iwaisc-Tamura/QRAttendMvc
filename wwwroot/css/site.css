@@ -154,6 +154,135 @@ body {
         padding-bottom: 0 !important; 
     }
 
+/*2026/03/06 追加 Takada start*/
+    body.index-home .card {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        border: 1px solid rgba(0,0,0,.15);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* 緑バー：横幅はそのまま、高さだけ半分 */
+    body.index-home .home-topbar {
+        width: 100% !important;
+        height: 45px;
+        min-height: 45px;
+        background: #129a3e !important;
+        color: #fff !important;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center !important;
+        box-sizing: border-box;
+    }
+
+    body.index-home .home-topbar-title {
+        width: 100% !important;
+        font-size: 20pt;
+        font-weight: 800;
+        margin: 0;
+        text-align: center !important;
+        line-height: 1;
+    }
+
+    /* ログイン欄 */
+    body.index-home .home-subbar {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        padding: 4px 24px 0 24px;
+        min-height: 72px;
+        box-sizing: border-box;
+    }
+
+    body.index-home .ee-top {
+        display: grid;
+        grid-template-columns: 1fr 220px;
+        gap: 0 24px;
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
+        border-bottom: none !important;
+        align-items: start;
+    }
+
+    body.index-home .ee-side {
+        justify-self: end;
+        text-align: right;
+        max-width: 260px;
+        margin-top: 12px;
+    }
+
+    body.index-home .ee-login {
+        font-size: 14px;
+        line-height: 1.45;
+    }
+
+    /* メイン領域 */
+    body.index-home .home-main {
+        flex: 1 1 auto;
+        width: 100%;
+        margin: 0;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+    }
+
+    /* タイトル＋ボタン配置 */
+    body.index-home .home-main-inner {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 56px;
+        width: 100%;
+        max-width: 1000px;
+        box-sizing: border-box;
+        /* 全体を少し上へ */
+        transform: translateY(-70px);
+    }
+
+    /* タイトル */
+    body.index-home .home-main-title {
+        width: auto;
+        margin: 0;
+        padding: 0;
+        font-size: 20pt !important;
+        font-weight: 800;
+        text-align: left;
+        white-space: nowrap;
+        order: 1;
+        /* ボタンより上へ移動 */
+        transform: translateY(-80px);
+    }
+
+    /* ボタン位置 */
+    body.index-home .text-center {
+        order: 2;
+        margin: 0;
+    }
+
+    /* イベント選択ボタン */
+    body.index-home .home-btn {
+        width: 315px !important;
+        height: 120px !important;
+        font-size: 32px !important;
+        font-weight: 800 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        /* 少し上に */
+        transform: translateY(-10px);
+    }
+/*2026/03/06 追加 Takada end  */
+
     /* ---------- テストボタン---------- */
 
     .home-sub-left {
@@ -172,10 +301,12 @@ body {
    index（EventSelection） : body.event-page
  ===================================================== */
 
-    body.event-page {
-        font-size: 11pt;
-        overflow-x: hidden;
-    }
+
+/*2026/03/06 追加 Takada start*/
+body.event-page {
+    font-size: 11pt;
+    overflow-x: hidden;
+}
 
     /* ---------- ヘッダー ---------- */
 
@@ -186,7 +317,7 @@ body {
 
     body.event-page .ev-tab {
         width: 140px;
-        height: 90px;
+        height: 45px;
         background: #e8b7e8;
         color: #fff;
         font-weight: 800;
@@ -198,7 +329,7 @@ body {
 
     body.event-page .ev-title {
         flex: 1;
-        height: 90px;
+        height: 45px;
         background: #129a3e;
         color: #fff;
         font-weight: 800;
@@ -214,7 +345,7 @@ body {
         width: 1000pt;
         max-width: 100%;
         margin: 0 auto;
-        padding: 18px 30px 10px 30px;
+        padding: 8px 30px 6px 30px;
         box-sizing: border-box;
     }
 
@@ -225,8 +356,8 @@ body {
         grid-template-columns: 140px 1fr auto;
         column-gap: 32px;
         align-items: center;
-        padding: 10px 0;
-        min-height: 48px;
+        padding: 6px 0;
+        min-height: 34px;
     }
 
     body.event-page .ev-label {
@@ -237,29 +368,29 @@ body {
 
     body.event-page .ev-select {
         width: 520px;
-        height: 36px;
+        height: 30px;
         border: 2px solid #1d1d1d;
-        padding: 4px 10px;
+        padding: 2px 10px;
         box-sizing: border-box;
         appearance: none;
         background-image: linear-gradient(45deg, transparent 50%, #2f9e44 50%), linear-gradient(135deg, #2f9e44 50%, transparent 50%);
-        background-position: calc(100% - 18px) 13px, calc(100% - 10px) 13px;
+        background-position: calc(100% - 18px) 10px, calc(100% - 10px) 10px;
         background-size: 8px 8px;
         background-repeat: no-repeat;
         padding-right: 34px;
     }
 
-    /* 固定表示時 */
-    body.event-page .ev-select.is-fixed {
-        border: 1px solid transparent;
-        border-bottom-color: #1d1d1d;
-        background-image: none;
-    }
+        /* 固定表示時 */
+        body.event-page .ev-select.is-fixed {
+            border: 1px solid transparent;
+            border-bottom-color: #1d1d1d;
+            background-image: none;
+        }
 
-    body.event-page .ev-select:disabled {
-        color: #000;
-        opacity: 1;
-    }
+        body.event-page .ev-select:disabled {
+            color: #000;
+            opacity: 1;
+        }
 
     /* 通常項目（長い下線） */
     body.event-page .ev-field .ev-underline {
@@ -271,17 +402,17 @@ body {
         width: 120px;
     }
 
-    body.event-page .ev-field-short .ev-underline {
-        width: 100px;
-    }
+        body.event-page .ev-field-short .ev-underline {
+            width: 100px;
+        }
 
     /* 共通下線 */
     body.event-page .ev-underline {
         display: inline-block;
         border-bottom: 1px solid #1d1d1d;
-        padding: 4px 10px;
-        min-height: 36px; 
-        line-height: 28px;
+        padding: 2px 10px;
+        min-height: 30px;
+        line-height: 24px;
         box-sizing: border-box;
     }
 
@@ -292,35 +423,35 @@ body {
         grid-template-columns: 500px 360px 1fr;
         column-gap: 40px;
         align-items: center;
-        padding: 30px 0;
+        padding: 10px 0;
     }
 
-    body.event-page .ev-row.ev-row-split .ev-split-left {
-        display: grid;
-        grid-template-columns: 140px 1fr; 
-        column-gap: 32px;
-        align-items: center;
-    }
+        body.event-page .ev-row.ev-row-split .ev-split-left {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            column-gap: 32px;
+            align-items: center;
+        }
 
-    body.event-page .ev-row.ev-row-split .ev-split-right {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
+        body.event-page .ev-row.ev-row-split .ev-split-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
     body.event-page .ev-yearbox {
         display: inline-flex;
         min-width: 72px;
         justify-content: center;
         border-bottom: 2px solid #1d1d1d;
-        padding: 4px 6px;
+        padding: 2px 6px;
         font-weight: 700;
     }
 
     body.event-page .ev-date {
         display: inline-block;
-        height: 36px;
-        line-height: 36px;
+        height: 30px;
+        line-height: 30px;
         padding: 0 10px;
         box-sizing: border-box;
     }
@@ -329,8 +460,8 @@ body {
         display: inline-block;
         min-width: 72px;
         text-align: center;
-        height: 36px;
-        line-height: 36px;
+        height: 30px;
+        line-height: 30px;
         padding: 0 6px;
         box-sizing: border-box;
     }
@@ -339,20 +470,20 @@ body {
     body.event-page .ev-date,
     body.event-page .ev-year {
         display: inline-block;
-        height: 36px;
-        line-height: 36px;
+        height: 30px;
+        line-height: 30px;
         box-sizing: border-box;
-        border-bottom: 1px solid #1d1d1d; 
+        border-bottom: 1px solid #1d1d1d;
         padding: 0 10px;
     }
 
     /* 開催日 */
     body.event-page .ev-date {
-        width: 160px; 
+        width: 160px;
         text-align: left;
     }
 
-    /* 年度：年の下線*/
+    /* 年度 */
     body.event-page .ev-year {
         width: 90px;
         text-align: center;
@@ -367,10 +498,10 @@ body {
     /* ---------- ログイン表示 ---------- */
 
     body.event-page .ee-side {
-        /*position: fixed;*/
-        top: 110px; /* 90pxヘッダ + 少し余白 */
-        right: 60px; /* ev-container の右余白に合わせる */
+        top: 60px;
+        right: 60px;
         z-index: 50;
+        margin-top: 4px;
     }
 
     body.event-page .ee-login .ev-login-row {
@@ -386,36 +517,47 @@ body {
     /* ---------- イベント情報 ---------- */
 
     body.event-page .ev-info {
-        /*border-top: 2px solid #cfcfcf;*/
-        margin-top: 14px;
-        padding-top: 12px;
-        min-height: 100px; /* ← 表示時にズレない */
+        margin-top: 6px;
+        padding-top: 4px;
+        min-height: 72px;
+    }
+
+    body.event-page .ev-info-title {
+        font-weight: 800;
+        margin-bottom: 2px;
+    }
+
+    body.event-page .ev-info-row {
+        line-height: 1.4;
+        margin-bottom: 2px;
     }
 
     /* ---------- ボタン ---------- */
 
     body.event-page .ev-actions {
-        margin-top: 18px;
+        margin-top: 10px;
         display: grid;
         grid-template-columns: repeat(6, 1fr);
-        gap: 12px;
+        gap: 10px;
     }
 
-    body.event-page .ev-actions form,
-    body.event-page .ev-actions a {
-        width: 100%;
-    }
+        body.event-page .ev-actions form,
+        body.event-page .ev-actions a {
+            width: 100%;
+        }
 
     body.event-page .ev-btn {
         width: 100%;
-        height: 84px;
-        font-size: 12pt;
+        height: 56px;
+        font-size: 11pt;
         font-weight: 800;
         border-radius: 10px;
         border: none;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        line-height: 1.2;
+        padding: 0 8px;
     }
 
     body.event-page .ev-btn-blue {
@@ -450,7 +592,7 @@ body {
 
     /* プルダウン未確定は区分と同等の幅に */
     body.event-page #startSelect:not(.is-fixed) {
-        width: 520px; 
+        width: 520px;
     }
 
     body.event-page #startArea .ev-field-short {
@@ -459,13 +601,13 @@ body {
 
     /* プルダウン確定は下線 */
     body.event-page #startSelect.is-fixed {
-        width: 100px !important; 
+        width: 100px !important;
         border: 1px solid transparent;
         border-bottom-color: #1d1d1d;
         background-image: none !important;
-        padding-right: 0; 
+        padding-right: 0;
     }
-
+/*2026/03/06 追加 Takada end  */
     /* =====================================================
     index（AttendeeSearch） : body.index-attende
     ===================================================== */
@@ -715,6 +857,56 @@ body {
         padding: 6px 8px;
         vertical-align: middle;
     }
+
+/*2026/03/06 追加 Takada start*/
+    /* 会社名 */
+    body.index-attende .as-table th:nth-child(1),
+    body.index-attende .as-table td:nth-child(1) {
+        width: 220px;
+    }
+
+    /* 作業員ID */
+    body.index-attende .as-table th:nth-child(2),
+    body.index-attende .as-table td:nth-child(2) {
+        width: 120px;
+    }
+
+    /* 作業員名 */
+    body.index-attende .as-table th:nth-child(3),
+    body.index-attende .as-table td:nth-child(3) {
+        width: 180px;
+    }
+
+    /* 作業員名（カナ） */
+    body.index-attende .as-table th:nth-child(4),
+    body.index-attende .as-table td:nth-child(4) {
+        width: 180px;
+    }
+
+    /* 生年月日 */
+    body.index-attende .as-table th:nth-child(5),
+    body.index-attende .as-table td:nth-child(5) {
+        width: 110px;
+    }
+
+    /* 名簿対象除外日 */
+    body.index-attende .as-table th:nth-child(6),
+    body.index-attende .as-table td:nth-child(6) {
+        width: 120px;
+    }
+
+    /* 入場記録 */
+    body.index-attende .as-table th:nth-child(7),
+    body.index-attende .as-table td:nth-child(7) {
+        width: 110px;
+    }
+
+    /* 退場記録 */
+    body.index-attende .as-table th:nth-child(8),
+    body.index-attende .as-table td:nth-child(8) {
+        width: 110px;
+    }
+/*2026/03/06 追加 Takada end  */
 
     body.index-attende .as-center {
         text-align: center;
