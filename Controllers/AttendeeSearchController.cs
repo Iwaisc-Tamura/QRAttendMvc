@@ -277,7 +277,7 @@ namespace QRAttendMvc.Controllers
 
             // TSV作成（画面と同じ列構成に寄せる）
             var sb = new StringBuilder();
-            sb.AppendLine("会社名,作業員ID,作業員名,生年月日,名簿対象除外日,入場記録,退場記録");
+            sb.AppendLine("会社名,作業員ID,作業員名,作業員名（カナ）,生年月日,名簿対象除外日,入場記録,退場記録");
 
             string Esc(string? v)
             {
@@ -301,6 +301,7 @@ namespace QRAttendMvc.Controllers
                     Esc(r.CompanyName),
                     Esc(r.WorkerId),
                     Esc(r.WorkerName),
+                    Esc(r.WorkerNameKana),
                     Esc(r.BirthDate),
                     Esc(r.ExcludeDate),
                     Esc(r.LastInTime),
@@ -376,7 +377,7 @@ namespace QRAttendMvc.Controllers
         // -------------------------
         // 行ソート（SP結果をメモリで並べ替え）
         // sortキーは View の RouteFor() と合わせる：
-        // "company","workerid","workername","birth","exclude","lastin","lastout"
+        // "company","workerid","workername","workernamekana","birth","exclude","lastin","lastout"
         // -------------------------
         private static List<AttendeeSearchRow> ApplyRowSort(List<AttendeeSearchRow> rows, string? sort, string? dir)
         {
@@ -417,6 +418,10 @@ namespace QRAttendMvc.Controllers
                     : rows.OrderBy(r => S(r.WorkerId)).ToList(),
 
                 "workername" => desc
+                    ? rows.OrderByDescending(r => S(r.WorkerNameKana)).ThenByDescending(r => S(r.WorkerId)).ToList()
+                    : rows.OrderBy(r => S(r.WorkerNameKana)).ThenBy(r => S(r.WorkerId)).ToList(),
+
+                "workernamekana" => desc
                     ? rows.OrderByDescending(r => S(r.WorkerNameKana)).ThenByDescending(r => S(r.WorkerId)).ToList()
                     : rows.OrderBy(r => S(r.WorkerNameKana)).ThenBy(r => S(r.WorkerId)).ToList(),
 
