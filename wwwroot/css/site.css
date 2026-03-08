@@ -364,6 +364,24 @@ body.event-page {
         font-weight: 800;
     }
 
+    body.event-page .ev-message-area {
+        min-height: 56px; /* 2行メッセージ想定。必要なら 48px / 64px に調整 */
+        margin-bottom: 4px;
+    }
+
+    body.event-page .ev-alert {
+        margin: 0;
+        line-height: 1.4;
+        padding: 4px 0;
+    }
+
+    body.event-page .ev-alert-danger,
+    body.event-page .ev-alert-warn {
+        color: #111;
+        background: transparent;
+        border: none;
+    }
+
     /* ---------- 入力・下線 ---------- */
 
     body.event-page .ev-select {
@@ -547,7 +565,7 @@ body.event-page {
         }
 
     body.event-page .ev-btn {
-        width: 100%;
+        width: 85%;
         height: 56px;
         font-size: 11pt;
         font-weight: 800;
@@ -611,26 +629,32 @@ body.event-page {
     /* =====================================================
     index（AttendeeSearch） : body.index-attende
     ===================================================== */
-/*2026/02/25 追加 Takada start*/
-    body.index-attende {
+
+body.index-attende {
+    font-size: 11pt;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
     height: 100vh;
-    overflow: hidden; 
-    }
+    overflow: hidden;
+}
 
     body.index-attende * {
         font-size: inherit;
+        box-sizing: border-box;
     }
 
     /* ヘッダー */
     body.index-attende .as-header {
         display: flex;
         width: 100%;
-        height: 90px;
+        height: 45px;
     }
 
     body.index-attende .as-tab {
         width: 140px;
-        background: #3cb371; 
+        height: 45px;
+        background: #3cb371;
         color: #fff;
         font-weight: 800;
         font-size: 18pt;
@@ -641,316 +665,91 @@ body.event-page {
 
     body.index-attende .as-title {
         flex: 1;
+        height: 45px;
         background: #129a3e;
         color: #fff;
         font-weight: 800;
         font-size: 18pt;
         display: flex;
         align-items: center;
-        padding-left: 36px; 
-    }
-
-    /* ログイン情報 */
-    body.index-attende .ee-side {
-        top: 100px; 
-        right: 120px; 
-        z-index: 50;
-    }
-
-    body.index-attende .ee-login {
-        min-width: 310px;
-        font-size: 12pt;
-        line-height: 1.6;
-    }
-
-    body.index-attende .ee-login .ev-login-row {
-        display: grid;
-        grid-template-columns: 70px 1fr;
-        column-gap: 10px;
-        align-items: center;
-    }
-
-    body.index-attende .ee-login .ev-login-label {
-        text-align: left;
-        font-weight: 700;
-    }
-
-    body.index-attende .ee-login .ev-login-value {
-        text-align: right;
-        white-space: nowrap;
-    }
-
-    body.index-attende .ev-login-row {
-        display: grid !important;
-            grid-template-columns: 70px 180px !important;
-        column-gap: 10px !important;
-        justify-content: start !important;
-        align-items: center !important;
-    }
-
-    body.index-attende .ev-login-label {
-        grid-template-columns: 300px 90px !important;
-        text-align: left !important;
-        font-weight: 700 !important;
-    }
-
-    body.index-attende .ev-login-value {
-        width: 120px;
-        text-align: right !important;
-        font-size: 12pt;
-        line-height: 1.6;
+        padding-left: 36px;
     }
 
     /* コンテンツ領域 */
     body.index-attende .as-container {
-        width: 80%;
-        min-width: 600pt;
+        flex: 1;
+        min-height: 0;
+        width: 96%;
+        max-width: 1640px;
+        min-width: 1000px;
         margin: 0 auto;
-        padding: 12px 0 12px 0;
+        padding: 4px 0 6px 0;
+        display: flex;
+        flex-direction: column;
         box-sizing: border-box;
     }
 
-    body .index-attende .as-eventinfo {
-        padding-top: 4px;
-        padding-right: 0;
-        margin-bottom: 12px;
-    }
-
-    body.index-attende .as-info-row {
+    /* 上段 */
+    body.index-attende .ee-top {
         display: grid;
-        grid-template-columns: 170px 1fr;
-        column-gap: 20px;
-        padding: 6px 0;
+        grid-template-columns: minmax(0, 1fr) 210px;
+        gap: 4px 12px;
+        padding-bottom: 2px;
+        margin-bottom: 2px;
+        border-bottom: 1px solid #d6d6d6;
+        align-items: start;
     }
 
-    body.index-attende .as-info-label {
-        width: 100pt;
-        font-weight: 800;
+    /* ログイン情報 */
+    body.index-attende .ee-side {
+        justify-self: end;
+        min-width: 210px;
+        max-width: 210px;
+        margin-top: 0;
     }
 
-    body.index-attende .as-info-value {
-        width: 60pt;
-        padding:0 6px;
-        border-bottom: 2px solid #1d1d1d;
-    }
-
-    body.index-attende .as-dashline {
-        border-bottom: 2px dashed #1d1d1d;
-        margin: 12px 0 14px 0;
-    }
-
-    /* フォーム */
-    body.index-attende .as-form {
-        border-bottom: none;
-        padding-right: 0; 
-    }
-
-    body.index-attende .as-grid {
-        display: grid;
+    body.index-attende .ee-login {
         width: 100%;
-        column-gap: 12px;
-        align-items: end;
-        margin-bottom: 10px;
-    }
-
-    body.index-attende .as-grid-1 {
-        grid-template-columns: 360px 520px 180px 100px 100px;
-    }
-
-    body.index-attende .as-grid-2 {
-        grid-template-columns: 360px 240px 220px 180px 1fr;
-    }
-
-    body.index-attende select[name="filter"] {
-    }
-
-    body.index-attende .as-grid-1 .as-field.as-action {
-        justify-self: start; 
-    }
-
-    body.index-attende .as-grid-1 .as-field.as-action + .as-field.as-action {
-        margin-left: 20px; /* 今より広げたい分（例：20px） */
-    }
-
-    body.index-attende .as-label {
-        display: block;
-        font-weight: 800;
-    }
-
-        body.index-attende .as-input {
-            width: 100%;
-            height: 26px;
-            border: 1px solid #d0d0d0;
-            padding: 4px 10px;
-            box-sizing: border-box;
-            background: #fff;
-            color: #000;
-            border-radius: 4px;
-        }
-
-    body.index-attende .as-check {
-        display: flex;
-        align-items: center;
-        padding-top: 24px; 
-    }
-
-    body.index-attende .as-checkline {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        font-weight: 700;
-    }
-
-    body.index-attende .as-action {
-        padding-top: 18px;
-    }
-
-    /* 検索ボタン */
-    body.index-attende .as-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border: none;
-        text-decoration: none;
-        cursor: pointer;
-        font-weight: 800;
-        height: 44px;
-        padding: 0 18px;
-        box-sizing: border-box;
-    }
-
-    body.index-attende .as-btn-search {
-        width: 100px;
-        height: 34px;
-        background: #3cb371;
-        color: #fff;
-    }
-
-    /* 一覧テーブル */
-    body.index-attende .as-tablewrap {
-        margin-top: 6px;
-        border: 1px solid #d7d7d7;
-        height: 55vh; /* ←固定（画面の55%） */
-        overflow-y: auto;
-        min-height: 320px; /* 小さすぎ防止（任意） */
-        max-height: 620px; /* 大きすぎ防止（任意） */
-        padding-bottom: 0;
-    }
-
-    body.index-attende .as-table {
-        width: 100%;
-        border-collapse: collapse;
-        table-layout: fixed;
         font-size: 11pt;
+        line-height: 1.25;
     }
 
-    body.index-attende .as-table thead th {
-        background: #e9e9e9;
-        border-bottom: 2px solid #bdbdbd;
-        padding: 6px 8px;
-        text-align: left;
-        font-weight: 800;
-    }
-
-    body.index-attende .as-table td {
-        border-bottom: 1px solid #d7d7d7;
-        padding: 6px 8px;
-        vertical-align: middle;
-    }
-
-/*2026/03/06 追加 Takada start*/
-    /* 会社名 */
-    body.index-attende .as-table th:nth-child(1),
-    body.index-attende .as-table td:nth-child(1) {
-        width: 220px;
-    }
-
-    /* 作業員ID */
-    body.index-attende .as-table th:nth-child(2),
-    body.index-attende .as-table td:nth-child(2) {
-        width: 120px;
-    }
-
-    /* 作業員名 */
-    body.index-attende .as-table th:nth-child(3),
-    body.index-attende .as-table td:nth-child(3) {
-        width: 180px;
-    }
-
-    /* 作業員名（カナ） */
-    body.index-attende .as-table th:nth-child(4),
-    body.index-attende .as-table td:nth-child(4) {
-        width: 180px;
-    }
-
-    /* 生年月日 */
-    body.index-attende .as-table th:nth-child(5),
-    body.index-attende .as-table td:nth-child(5) {
-        width: 110px;
-    }
-
-    /* 名簿対象除外日 */
-    body.index-attende .as-table th:nth-child(6),
-    body.index-attende .as-table td:nth-child(6) {
-        width: 120px;
-    }
-
-    /* 入場記録 */
-    body.index-attende .as-table th:nth-child(7),
-    body.index-attende .as-table td:nth-child(7) {
-        width: 110px;
-    }
-
-    /* 退場記録 */
-    body.index-attende .as-table th:nth-child(8),
-    body.index-attende .as-table td:nth-child(8) {
-        width: 110px;
-    }
-/*2026/03/06 追加 Takada end  */
-
-    body.index-attende .as-center {
-        text-align: center;
-    }
-
-    body.index-attende .as-footer {
-        position: sticky;
-        margin-top: 16px;
-        display: flex;
-        justify-content: flex-end;
-        gap: 16px;
-        margin-top: 8px; 
-        padding: 6px 0;
-    }
-
-    body.index-attende .as-btn-primary {
-        width: 150pt;
-        min-width: 150px;
-        height: 74px;
-        background: #3cb371; 
-        color: #fff;
-        text-align: center;
-    }
-
-    body.index-attende .as-btn-secondary {
-        width: 150pt;
-        min-width: 150px;
-        height: 74px;
-        background: #2a78c5; 
-        color: #fff;
-        line-height: 1.1;
-    }
-
-    body.index-attende .as-event-header {
-        margin-top: 20px;
-        margin-bottom: 10px;
-    }
-
-        body.index-attende .as-event-row {
-            display: grid;
-            grid-template-columns: 180px 1fr;
-            column-gap: 20px;
-            padding: 4px 0;
+        body.index-attende .ee-login .ev-login-row,
+        body.index-attende .ev-login-row {
+            display: grid !important;
+            grid-template-columns: 56px 148px !important;
+            column-gap: 6px !important;
+            align-items: center !important;
+            justify-content: end !important;
         }
+
+        body.index-attende .ee-login .ev-login-label,
+        body.index-attende .ev-login-label {
+            text-align: left !important;
+            font-weight: 700 !important;
+        }
+
+        body.index-attende .ee-login .ev-login-value,
+        body.index-attende .ev-login-value {
+            width: 148px;
+            text-align: right !important;
+            white-space: nowrap;
+            overflow: hidden;
+            line-height: 1.25;
+        }
+
+    /* イベント情報 */
+    body.index-attende .as-event-header {
+        margin-top: 0;
+        margin-bottom: 2px;
+    }
+
+    body.index-attende .as-event-row {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        column-gap: 16px;
+        padding: 1px 0;
+    }
 
     body.index-attende .as-ev-label {
         font-weight: 800;
@@ -958,18 +757,6 @@ body.event-page {
 
     body.index-attende .as-ev-value {
         font-weight: 400;
-    }
-
-    body.index-attende .as-grayline {
-        border-bottom: 2px solid #cfcfcf;
-        margin: 14px 0 18px 0;
-    }
-
-    body.index-attende .as-event-row-time {
-        display: grid;
-        grid-template-columns: 180px 220px 140px 160px 140px 1fr;
-        column-gap: 20px;
-        align-items: center;
     }
 
     body.index-attende .as-ev-label-inline {
@@ -982,51 +769,286 @@ body.event-page {
         text-align: left;
     }
 
-    body.index-attende .as-table thead th {
-        position: sticky;
-        top: 0;
-        z-index: 2;
+    /* 開催拠点 + 講習場所を同一行にする
+   講習場所のラベル左端 = 受付開始時刻ラベル左端
+   講習場所データ左端 = 受付開始時刻データ左端
+*/
+    body.index-attende .as-event-row-place {
+        display: grid;
+        grid-template-columns: 150px 220px 120px 1fr;
+        column-gap: 16px;
+        align-items: center;
+        padding: 1px 0;
     }
 
-    body.index-attende .as-table {
-        table-layout: fixed;
+    /* 開催時刻行 */
+    body.index-attende .as-event-row-time {
+        display: grid;
+        grid-template-columns: 150px 220px 120px 140px 100px 1fr;
+        column-gap: 16px;
+        align-items: center;
+        padding: 1px 0;
+    }
+
+    /* 検索フォーム */
+    body.index-attende .as-form {
+        border-bottom: none;
+        padding-right: 0;
+        margin-bottom: 0;
+    }
+
+    body.index-attende .as-grid {
+        display: grid;
         width: 100%;
+        column-gap: 10px;
+        row-gap: 2px;
+        align-items: end;
+        margin-bottom: 2px;
     }
 
-        body.index-attende .as-table th,
-        body.index-attende .as-table td {
-        overflow: hidden;
-        text-overflow: ellipsis;
+    body.index-attende .as-grid-1 {
+        grid-template-columns: 300px 430px 170px 78px 78px;
+    }
+
+    body.index-attende .as-grid-2 {
+        grid-template-columns: 300px 210px 180px 160px 1fr;
+    }
+
+    body.index-attende .as-label {
+        display: block;
+        font-weight: 800;
+        margin-bottom: 2px;
+    }
+
+    body.index-attende .as-input {
+        width: 100%;
+        height: 28px;
+        border: 1px solid #d0d0d0;
+        padding: 2px 8px;
+        background: #fff;
+        color: #000;
+        border-radius: 4px;
+    }
+
+    body.index-attende .as-check {
+        display: flex;
+        align-items: center;
+        padding-top: 14px;
+    }
+
+    body.index-attende .as-checkline {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        font-weight: 700;
         white-space: nowrap;
     }
 
-    /* 会社名 */
-    body.index-attende .as-table th:nth-child(1),
-    body.index-attende .as-table td:nth-child(1) {
-        width: 260px; 
+    body.index-attende .as-action {
+        padding-top: 14px;
     }
 
-    /* 作業員ID */
-    body.index-attende .as-table th:nth-child(2),
-    body.index-attende .as-table td:nth-child(2) {
-        width: 120px;
+    /* 中間ボタン */
+    body.index-attende .as-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        outline: none;
+        box-shadow: none;
+        text-decoration: none;
+        cursor: pointer;
+        font-weight: 800;
+        box-sizing: border-box;
+        border-radius: 10px;
+        padding: 0 12px;
     }
 
-    /* 作業員名*/
-    body.index-attende .as-table th:nth-child(3),
-    body.index-attende .as-table td:nth-child(3) {
-        width: 260px; 
+    body.index-attende .as-btn-search {
+        width: 78px;
+        height: 34px;
+        background: #3cb371;
+        color: #fff;
     }
 
+    body.index-attende a.as-btn-search,
+    body.index-attende a.as-btn-search:link,
+    body.index-attende a.as-btn-search:visited,
+    body.index-attende a.as-btn-search:hover,
+    body.index-attende a.as-btn-search:active {
+        color: #fff;
+        text-decoration: none !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    body.index-attende .as-btn:focus,
+    body.index-attende .as-btn:active,
+    body.index-attende .as-btn-search:focus,
+    body.index-attende .as-btn-search:active,
+    body.index-attende .as-btn-primary:focus,
+    body.index-attende .as-btn-primary:active,
+    body.index-attende .as-btn-secondary:focus,
+    body.index-attende .as-btn-secondary:active {
+        outline: none !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    /* 件数表示 */
+    body.index-attende .as-hint {
+        margin: 1px 0 2px 0;
+        line-height: 1.2;
+    }
+
+    body.index-attende .as-hint-right {
+        text-align: right;
+        font-weight: 700;
+        margin-bottom: 2px;
+    }
+
+    /* 一覧テーブル */
+    body.index-attende .as-tablewrap {
+        margin-top: 2px;
+        border: 1px solid #d7d7d7;
+        height: 390px;
+        min-height: 260px;
+        max-height: none;
+        overflow-y: auto;
+        padding-bottom: 0;
+        flex: 1 1 auto;
+    }
+
+    body.index-attende .as-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        font-size: 11pt;
+    }
+
+        body.index-attende .as-table thead th {
+            background: #e9e9e9;
+            border-bottom: 1px solid #bdbdbd;
+            padding: 5px 6px;
+            text-align: left;
+            font-weight: 800;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        body.index-attende .as-table td {
+            border-bottom: 1px solid #d7d7d7;
+            padding: 4px 6px;
+            vertical-align: middle;
+            height: 28px;
+        }
+
+        body.index-attende .as-table th,
+        body.index-attende .as-table td {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        body.index-attende .as-table thead th a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+            body.index-attende .as-table thead th a:hover {
+                text-decoration: underline;
+            }
+
+        body.index-attende .as-table thead th.as-center {
+            text-align: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        /* 列幅 */
+        body.index-attende .as-table th:nth-child(1),
+        body.index-attende .as-table td:nth-child(1) {
+            width: 240px;
+        }
+
+        body.index-attende .as-table th:nth-child(2),
+        body.index-attende .as-table td:nth-child(2) {
+            width: 110px;
+        }
+
+        body.index-attende .as-table th:nth-child(3),
+        body.index-attende .as-table td:nth-child(3) {
+            width: 220px;
+        }
+
+        body.index-attende .as-table th:nth-child(4),
+        body.index-attende .as-table td:nth-child(4) {
+            width: 180px;
+        }
+
+        body.index-attende .as-table th:nth-child(5),
+        body.index-attende .as-table td:nth-child(5) {
+            width: 100px;
+        }
+
+        body.index-attende .as-table th:nth-child(6),
+        body.index-attende .as-table td:nth-child(6) {
+            width: 110px;
+        }
+
+        body.index-attende .as-table th:nth-child(7),
+        body.index-attende .as-table td:nth-child(7) {
+            width: 100px;
+        }
+
+        body.index-attende .as-table th:nth-child(8),
+        body.index-attende .as-table td:nth-child(8) {
+            width: 100px;
+        }
+
+    body.index-attende .as-center {
+        text-align: center;
+    }
+
+    /* フッター */
     body.index-attende .as-footer {
-        position: sticky;
-        bottom: 0;
+        margin-top: 2px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 2px 0 0 0;
         background: #fff;
-        padding: 10px 0;
         z-index: 3;
     }
 
-    body.index-attende .as-hint {
+    body.index-attende .as-footer-form {
+        margin: 0;
+    }
+
+    /* フッターボタン */
+    body.index-attende .as-btn-primary {
+        width: 153px;
+        min-width: 153px;
+        height: 56px;
+        background: #3cb371;
+        color: #fff;
+        text-align: center;
+        line-height: 1.15;
+    }
+
+    body.index-attende .as-btn-secondary {
+        width: 153px;
+        min-width: 153px;
+        height: 56px;
+        background: #2a78c5;
+        color: #fff;
+        line-height: 1.15;
     }
 
     body.index-attende .as-btn-disabled {
@@ -1036,72 +1058,29 @@ body.event-page {
         text-decoration: none;
     }
 
-    body.index-attende .as-table thead th a {
-        color: inherit;
-        text-decoration: none;
-    }
-
-    body.index-attende .as-table thead th a:hover {
-       text-decoration: underline;
-    }
-
-    body.index-attende .as-table thead th.as-center {
-        text-align: center;
-        padding-left: 0;
-        padding-right: 0;
-    }
-
-    body.index-attende .as-btn {
-        border-radius: 10px; 
-    }
-
-    body.index-attende {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        overflow: hidden;
-    }
-
-    body.index-attende .as-container {
-        flex: 1;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-    }
-
-/*2026/02/25 追加 Takada end  */
-
-/*2026/02/27 追加 Takada start  */
-
-        body.index-attende .as-hint-right {
-            text-align: right;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-/*2026/02/27 追加 Takada end  */
-
     /* =====================================================
     index（mployeeSearch ） : body.index-employee
     ===================================================== */
-
-    body.index-employee {
-        font-size: 11pt;
-        overflow-x: hidden;
-    }
+body.index-employee {
+    font-size: 11pt;
+    overflow-x: hidden;
+}
 
     body.index-employee * {
         font-size: inherit;
+        box-sizing: border-box;
     }
 
     /* header */
     body.index-employee .es-header {
         display: flex;
         width: 100%;
-        height: 90px;
+        height: 45px;
     }
 
     body.index-employee .es-tab {
         width: 140px;
+        height: 45px;
         background: #e8b1e6;
         color: #fff;
         font-weight: 800;
@@ -1113,6 +1092,7 @@ body.event-page {
 
     body.index-employee .es-title {
         flex: 1;
+        height: 45px;
         background: #129a3e;
         color: #fff;
         font-weight: 800;
@@ -1122,67 +1102,59 @@ body.event-page {
         padding-left: 36px;
     }
 
+    /* container */
     body.index-employee .es-container {
         position: relative;
-        width: 1000pt;
-        min-width: 600pt;
+        width: 98%;
+        max-width: 1640px;
+        min-width: 1000px;
         margin: 0 auto;
-        padding: 18px 0 20px 0;
-        box-sizing: border-box;
+        padding: 6px 0 8px 0;
     }
 
-    body.index-employee .es-dashline {
-        border-top: 2px dashed #aaa;
-        margin: 10px 0 14px 0;
-    }
-
-    body.index-employee .es-form {
-        padding-top: 10px;
-        padding-bottom: 12px;
-        margin-bottom: 10px;
+    body.index-employee .ee-top {
+        display: grid;
+        grid-template-columns: minmax(0,1fr) 170px;
+        gap: 6px 12px;
+        padding-bottom: 2px;
+        margin-bottom: 2px;
+        border-bottom: 1px solid #d6d6d6;
     }
 
     body.index-employee .es-grid {
         display: grid;
-        column-gap: 16px;
-        align-items: end;
-        margin-bottom: 10px;
+        column-gap: 10px;
+        row-gap: 2px;
+        margin-bottom: 4px;
     }
 
     body.index-employee .es-grid-1 {
-        grid-template-columns: 220px 520px 100px 100px;
+        grid-template-columns: 200px minmax(280px,1fr) 78px 78px;
     }
 
     body.index-employee .es-grid-2 {
-        grid-template-columns: 260px 260px 220px 220px;
+        grid-template-columns: 250px 250px 190px 170px;
     }
 
     body.index-employee .es-label {
-        display: block;
         font-weight: 800;
-        margin: 0 0 6px 0;
+        margin-bottom: 3px;
     }
 
-        body.index-employee .es-input {
-            width: 100%;
-            height: 34px;
-            border: 1px solid #d0d0d0;
-            padding: 4px 10px;
-            box-sizing: border-box;
-            background: #fff;
-            color: #000;
-            border-radius: 4px;
-        }
-
-    body.index-employee .es-hint {
-        margin: 10px 0 14px 0;
+    body.index-employee .es-input {
+        width: 100%;
+        height: 28px;
+        border: 1px solid #d0d0d0;
+        padding: 2px 8px;
+        border-radius: 4px;
     }
 
+    /* 検索・クリアボタン配置 */
     body.index-employee .es-action {
         display: flex;
-        gap: 12px;
+        gap: 8px;
         align-items: center;
-        padding-top: 18px;
+        padding-top: 16px;
     }
 
     body.index-employee .es-btn {
@@ -1190,192 +1162,133 @@ body.event-page {
         align-items: center;
         justify-content: center;
         border: none;
+        outline: none;
+        box-shadow: none;
         text-decoration: none;
         cursor: pointer;
         font-weight: 800;
-        width: 200px;
-        height: 44px;
-        padding: 0 18px;
+        padding: 0 12px;
         box-sizing: border-box;
+        border-radius: 10px;
     }
 
+    /* 検索・クリア */
     body.index-employee .es-btn-search {
         background: #3cb371;
         color: #fff;
-        width: 100px;
+        width: 78px;
         height: 34px;
+        padding: 0 8px;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        text-decoration: none !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
     }
 
+    /* aタグのクリアボタン対策 */
+    body.index-employee a.es-btn-search,
+    body.index-employee a.es-btn-search:link,
+    body.index-employee a.es-btn-search:visited,
+    body.index-employee a.es-btn-search:hover,
+    body.index-employee a.es-btn-search:active {
+        color: #fff;
+        text-decoration: none !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    /* フォーカス時の黒枠を消す */
+    body.index-employee .es-btn:focus,
+    body.index-employee .es-btn:active,
+    body.index-employee .es-btn-search:focus,
+    body.index-employee .es-btn-search:active,
+    body.index-employee .es-btn-select:focus,
+    body.index-employee .es-btn-select:active,
+    body.index-employee .es-btn-back:focus,
+    body.index-employee .es-btn-back:active {
+        outline: none !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    /* checkbox */
     body.index-employee .es-checkline {
         display: flex;
-        gap: 10px;
+        gap: 8px;
         align-items: center;
         font-weight: 700;
     }
 
-    body.index-employee .es-btn-select{
-    width: 200px;
-    height: 74px;
-}
+    /* login */
+    body.index-employee .ee-side {
+        justify-self: end;
+        min-width: 170px;
+    }
 
+    body.index-employee .ev-login-row {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        column-gap: 6px;
+    }
+
+    body.index-employee .ev-login-label {
+        font-weight: 700;
+    }
+
+    body.index-employee .ev-login-value {
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    /* result table */
     body.index-employee .es-tablewrap {
-        margin-top: 6px;
-        border: 2px solid #1d1d1d;
+        margin-top: 2px;
+        border: 1px solid #e0e0e0;
+        height: 360px;
+        overflow-y: auto;
     }
 
     body.index-employee .es-table {
         width: 100%;
         border-collapse: collapse;
-    }
-
-    body.index-employee .es-table thead th {
-        background: #cfe7f6;
-        border-bottom: 2px solid #1d1d1d;
-        padding: 8px 6px;
-        text-align: left;
-    }
-
-    body.index-employee .es-table tbody td {
-        border-top: 1px solid #1d1d1d;
-        padding: 6px 6px;
-    }
-
-    body.index-employee .es-row {
-        cursor: pointer;
-    }
-
-    body.index-employee .es-footer {
-        margin-top: 16px;
-        display: flex;
-        justify-content: flex-end;
-        gap: 16px;
-    }
-
-    body.index-employee .es-btn-back {
-        background: #4b86c5;
-        color: #fff;
-        width: 200px;
-        height: 74px;
-    }
-
-    body.index-employee {
-        font-size: 11pt;
-    }
-
-    body.index-employee .ev-loginbox {
-        position: absolute;
-        top: 100px;
-        right: 10pt;
-        left: auto;
-        min-width: 260px;
-    }
-
-    /* ラベル */
-    body.index-employee .ev-login-row {
-        display: grid;
-        grid-template-columns: 70px 1fr;
-        column-gap: 23px;
-        align-items: center;
-    }
-
-    body.index-employee .ee-side {
-        top: 100px; 
-        right: 300px; 
-        z-index: 50;
-    }
-
-    body.index-employee .ev-login-label {
-        text-align: left;
-    }
-
-    body.index-employee .ev-login-value {
-        text-align: right;
-    }
-
-    /* ③ 見出し（項目欄）を灰色に */
-    body.index-employee .es-tablewrap {
-        border: 1px solid #e0e0e0;
-    }
-
-    body.index-employee .es-table {
-        border-collapse: collapse;
-    }
-
-    body.index-employee .es-table tbody td {
-        border-top: 1px solid #eeeeee;
-    }
-
-    /* ③ 見出しの縦罫線も薄く（必要なら） */
-    body.index-employee .es-table thead th {
-        border-right: 1px solid #eeeeee;
-    }
-
-    body.index-employee .es-table thead th:last-child {
-        border-right: none;
-    }
-
-    /* EmployeeSearch 見出しを灰色に（共通CSSに勝つため強め） */
-    body.index-employee table.es-table thead th {
-        background-color: #e6e6e6 !important; /* 水色を確実に潰す */
-    }
-
-    /* 見出し下端の罫線を薄灰に（黒線を潰す） */
-    body.index-employee table.es-table thead th {
-        border-bottom: 1px solid #e0e0e0 !important;
-    }
-
-    body.index-employee .es-tablewrap {
-        border: 1px solid #e0e0e0 !important;
-    }
-
-    body.index-employee table.es-table tbody td {
-        border-top: 1px solid #eeeeee !important;
-    }
-
-    /* 一覧エリアの高さを固定（件数で下が動かない） */
-    body.index-employee .es-tablewrap {
-        height: 480px; /* ここを好みで調整 */
-        overflow-y: auto;
-    }
-
-    /* 戻るボタンを画面右下に固定 */
-    body.index-employee .es-footer {
-        /*position: fixed;*/
-        right: 40px;
-        bottom: 30px;
-        margin-top: 10px !important;
-        z-index: 10;
-    }
-
-    /* 通常行 */
-    body.index-employee .es-table .es-row {
-        cursor: pointer;
-        transition: background-color 0.15s ease;
-    }
-
-    /* マウスを乗せたとき */
-    body.index-employee .es-table .es-row:hover {
-        background-color: #f2f6fb; /* うっすらグレー */
-    }
-
-    /* クリックして選択された行（固定表示） */
-    body.index-employee .es-table .es-row.is-selected,
-    body.index-employee .es-table .es-row.is-selected:hover {
-        background-color: #e7f1ff; /* 薄い青 */
-        outline: 2px solid #0d6efd; /* 青枠 */
-        outline-offset: -2px; /* 内側に表示 */
-    }
-
-    body.index-employee .es-btn {
-        border-radius: 10px;
-    }
-/*2026/02/25 追加 Takada stert*/
-    /* EmployeeSearch：テーブルを固定レイアウトにして省略を効かせる */
-    body.index-employee table.es-table {
         table-layout: fixed;
     }
 
-    /* 1行固定＋省略表示 */
+        body.index-employee .es-table thead th {
+            background: #e6e6e6;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 5px 6px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        body.index-employee .es-table tbody td {
+            border-top: 1px solid #eeeeee;
+            padding: 4px 6px;
+            height: 28px;
+        }
+
+    body.index-employee .es-row:hover {
+        background-color: #f2f6fb;
+    }
+
+    body.index-employee .es-row.is-selected {
+        background-color: #e7f1ff;
+        outline: 2px solid #0d6efd;
+        outline-offset: -2px;
+    }
+
     body.index-employee table.es-table th,
     body.index-employee table.es-table td {
         overflow: hidden;
@@ -1383,13 +1296,16 @@ body.event-page {
         white-space: nowrap;
     }
 
-    /* 行の高さを安定させたい場合（任意） */
-    body.index-employee table.es-table tbody td {
-        height: 34px;
+    body.index-employee .es-table thead th a {
+        color: inherit;
+        text-decoration: none;
     }
 
-    /* 列幅（必要に応じて調整） */
-    /* 1:作業員ID, 2:会社名, 3:会社名カナ, 4:作業員名, 5:作業員名カナ, 6:生年月日, 7:除外日 */
+        body.index-employee .es-table thead th a:hover {
+            text-decoration: underline;
+        }
+
+    /* 列幅 */
     body.index-employee table.es-table th:nth-child(1),
     body.index-employee table.es-table td:nth-child(1) {
         width: 110px;
@@ -1397,17 +1313,17 @@ body.event-page {
 
     body.index-employee table.es-table th:nth-child(2),
     body.index-employee table.es-table td:nth-child(2) {
-        width: 220px;
+        width: 210px;
     }
 
     body.index-employee table.es-table th:nth-child(3),
     body.index-employee table.es-table td:nth-child(3) {
-        width: 180px;
+        width: 170px;
     }
 
     body.index-employee table.es-table th:nth-child(4),
     body.index-employee table.es-table td:nth-child(4) {
-        width: 170px;
+        width: 185px;
     }
 
     body.index-employee table.es-table th:nth-child(5),
@@ -1417,54 +1333,48 @@ body.event-page {
 
     body.index-employee table.es-table th:nth-child(6),
     body.index-employee table.es-table td:nth-child(6) {
-        width: 120px;
+        width: 95px;
     }
 
     body.index-employee table.es-table th:nth-child(7),
     body.index-employee table.es-table td:nth-child(7) {
-        width: 140px;
+        width: 105px;
     }
 
-    /* EmployeeSearch：ヘッダー（項目行）を固定する */
-    body.index-employee .es-tablewrap {
-        overflow-y: auto; /* これは今のままでOK */
+    /* footer */
+    body.index-employee .es-footer {
+        margin-top: 6px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
     }
 
-    /* sticky を効かせるため、th 側に指定 */
-    body.index-employee table.es-table thead th {
-        position: sticky;
-        top: 0;
-        z-index: 5; /* 行より前面に */
-        background-color: #e6e6e6; /* 透け防止（お好みで） */
+    /* footer buttons */
+    body.index-employee .es-btn-select {
+        width: 153px;
+        height: 56px;
+        background: #3cb371;
+        color: #fff;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        border-radius: 10px;
+        font-weight: 800;
+        text-decoration: none !important;
     }
-/*2026/02/25 追加 Takada end  */
 
-/*2026/03/02 追加 Takada start */
-        /* ===== EmployeeSearch 余白を詰める調整 ===== */
-
-        /* 上段(検索フォーム＋ログイン表示)～区切り線までの余白 */
-        body.index-employee .ee-top {
-            padding-bottom: 6px; /* 元: 12px（共通で効いてる） */
-            margin-bottom: 6px; /* 元: 12px（共通で効いてる） */
-        }
-
-        /* フォーム自体の上下余白＋下余白 */
-        body.index-employee .es-form {
-            padding-top: 6px; /* 元: 10px */
-            padding-bottom: 6px; /* 元: 12px */
-            margin-bottom: 4px; /* 元: 10px */
-        }
-
-        /* 1段目・2段目グリッド間の余白 */
-        body.index-employee .es-grid {
-            margin-bottom: 6px; /* 元: 10px */
-        }
-
-        /* 件数表示（es-hint）の上下余白 */
-        body.index-employee .es-hint {
-            margin: 4px 0 6px 0; /* 元: 10px 0 14px 0 */
-        }
-/*2026/03/02 追加 Takada end  */
+    body.index-employee .es-btn-back {
+        width: 153px;
+        height: 56px;
+        background: #4b86c5;
+        color: #fff;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        border-radius: 10px;
+        font-weight: 800;
+        text-decoration: none !important;
+    }
 /* =====================================================
    index(Company/Cooperate Search) : body.index-cooprete
    ===================================================== */
@@ -1476,6 +1386,7 @@ body.index-cooprete {
 
     body.index-cooprete * {
         font-size: inherit;
+        box-sizing: border-box;
     }
 
     /* ========================
@@ -1485,11 +1396,12 @@ body.index-cooprete {
     body.index-cooprete .es-header {
         display: flex;
         width: 100%;
-        height: 90px;
+        height: 45px;
     }
 
     body.index-cooprete .es-tab {
         width: 140px;
+        height: 45px;
         background: #e8b1e6;
         color: #fff;
         font-weight: 800;
@@ -1501,6 +1413,7 @@ body.index-cooprete {
 
     body.index-cooprete .es-title {
         flex: 1;
+        height: 45px;
         background: #129a3e;
         color: #fff;
         font-weight: 800;
@@ -1511,26 +1424,55 @@ body.index-cooprete {
     }
 
     /* ========================
-   Login (右上固定)
+   Main Container
+   ======================== */
+
+    body.index-cooprete .es-container {
+        position: relative;
+        width: 98%;
+        max-width: 1640px;
+        min-width: 1000px;
+        margin: 0 auto;
+        padding: 6px 0 8px 0;
+    }
+
+    /* ========================
+   Top area (search + login)
+   ======================== */
+
+    body.index-cooprete .ee-top {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 230px;
+        gap: 6px 12px;
+        padding-bottom: 2px;
+        margin-bottom: 2px;
+        border-bottom: 1px solid #d6d6d6;
+        align-items: start;
+    }
+
+    /* ========================
+   Login
    ======================== */
 
     body.index-cooprete .ee-side {
-        top: 100px;
-        right: 200px; /* ← ここを調整 */
-        z-index: 50;
+        justify-self: end;
+        min-width: 230px;
+        max-width: 230px;
+        margin-top: 0;
     }
 
     body.index-cooprete .ee-login {
-        min-width: 280px;
-        font-size: 12pt;
-        line-height: 1.6;
+        width: 100%;
+        font-size: 11pt;
+        line-height: 1.35;
     }
 
     body.index-cooprete .ev-login-row {
         display: grid;
-        grid-template-columns: 70px 120px;
-        column-gap: 10px;
+        grid-template-columns: 56px 168px;
+        column-gap: 6px;
         align-items: center;
+        justify-content: end;
     }
 
     body.index-cooprete .ev-login-label {
@@ -1539,21 +1481,9 @@ body.index-cooprete {
     }
 
     body.index-cooprete .ev-login-value {
+        width: 168px;
         text-align: right;
         white-space: nowrap;
-    }
-
-    /* ========================
-   Main Container
-   ======================== */
-
-    body.index-cooprete .es-container {
-        position: relative;
-        width: 1000pt;
-        min-width: 600pt;
-        margin: 0 auto;
-        padding: 12px 0;
-        box-sizing: border-box;
     }
 
     /* ========================
@@ -1561,45 +1491,50 @@ body.index-cooprete {
    ======================== */
 
     body.index-cooprete .es-form {
-        padding-top: 10px;
-        padding-bottom: 12px;
-        margin-bottom: 10px;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-bottom: 0;
     }
 
     body.index-cooprete .es-grid {
         display: grid;
-        column-gap: 16px;
+        column-gap: 10px;
+        row-gap: 2px;
         align-items: end;
-        margin-bottom: 10px;
+        margin-bottom: 4px;
     }
 
+    /* 入力欄を少し短くして、右側要素を内側へ */
     body.index-cooprete .es-grid-1 {
-        grid-template-columns: 220px 520px 100px 100px;
+        grid-template-columns: minmax(220px, 1120px) 78px 78px;
+        justify-content: start;
     }
 
     body.index-cooprete .es-span2 {
-        grid-column: 1 / span 2;
+        grid-column: auto;
     }
 
     body.index-cooprete .es-label {
         font-weight: 800;
-        margin-bottom: 6px;
+        margin-bottom: 3px;
+        display: block;
     }
 
     body.index-cooprete .es-input {
         width: 100%;
-        height: 34px;
+        height: 28px;
         border: 1px solid #bdbdbd;
-        padding: 4px 10px;
-        box-sizing: border-box;
+        padding: 2px 8px;
         border-radius: 4px;
+        background: #fff;
+        color: #000;
     }
 
     body.index-cooprete .es-action {
         display: flex;
-        gap: 12px;
+        gap: 8px;
         align-items: center;
-        padding-top: 18px;
+        padding-top: 16px;
     }
 
     body.index-cooprete .es-btn {
@@ -1607,8 +1542,13 @@ body.index-cooprete {
         align-items: center;
         justify-content: center;
         border: none;
+        outline: none;
+        box-shadow: none;
+        text-decoration: none;
         cursor: pointer;
         font-weight: 800;
+        padding: 0 12px;
+        box-sizing: border-box;
         border-radius: 10px;
     }
 
@@ -1616,8 +1556,50 @@ body.index-cooprete {
     body.index-cooprete .es-btn-search {
         background: #3cb371;
         color: #fff;
-        width: 100px;
+        width: 78px;
         height: 34px;
+        padding: 0 8px;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        text-decoration: none !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    body.index-cooprete a.es-btn-search,
+    body.index-cooprete a.es-btn-search:link,
+    body.index-cooprete a.es-btn-search:visited,
+    body.index-cooprete a.es-btn-search:hover,
+    body.index-cooprete a.es-btn-search:active {
+        color: #fff;
+        text-decoration: none !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    body.index-cooprete .es-btn:focus,
+    body.index-cooprete .es-btn:active,
+    body.index-cooprete .es-btn-search:focus,
+    body.index-cooprete .es-btn-search:active,
+    body.index-cooprete .es-btn-back:focus,
+    body.index-cooprete .es-btn-back:active {
+        outline: none !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    /* 件数メッセージ */
+    body.index-cooprete .es-hint {
+        margin: 4px 0 4px 0;
+        line-height: 1.3;
     }
 
     /* ========================
@@ -1625,35 +1607,35 @@ body.index-cooprete {
    ======================== */
 
     body.index-cooprete .es-tablewrap {
-        margin-top: 6px;
+        margin-top: 2px;
         border: 1px solid #dcdcdc;
-        height: 55vh; /* 安定サイズ */
-        min-height: 300px;
+        height: 420px;
+        min-height: 260px;
         overflow-y: auto;
     }
 
     body.index-cooprete .es-table {
         width: 100%;
         border-collapse: collapse;
+        table-layout: fixed;
     }
 
         body.index-cooprete .es-table thead th {
             background: #e5e5e5;
             border-bottom: 1px solid #dcdcdc;
-            padding: 8px 6px;
+            padding: 5px 6px;
             text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 2;
         }
 
         body.index-cooprete .es-table tbody td {
             border-bottom: 1px solid #eeeeee;
-            padding: 6px;
+            padding: 4px 6px;
+            height: 28px;
         }
 
-        body.index-cooprete .es-table tbody tr:nth-child(even) {
-            background-color: #f7f7f7;
-        }
-
-    /* hover */
     body.index-cooprete .es-row {
         cursor: pointer;
         transition: background-color 0.15s ease;
@@ -1663,7 +1645,6 @@ body.index-cooprete {
             background-color: #f2f6fb;
         }
 
-        /* selected */
         body.index-cooprete .es-row.es-selected,
         body.index-cooprete .es-row.es-selected:hover {
             background-color: #e7f1ff;
@@ -1671,92 +1652,83 @@ body.index-cooprete {
             outline-offset: -2px;
         }
 
+    body.index-cooprete table.es-table th,
+    body.index-cooprete table.es-table td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    body.index-cooprete table.es-table thead th a {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: inherit;
+        text-decoration: none;
+    }
+
+        body.index-cooprete table.es-table thead th a:hover {
+            text-decoration: underline;
+        }
+
+    /* 列幅 */
+    body.index-cooprete table.es-table th:nth-child(1),
+    body.index-cooprete table.es-table td:nth-child(1) {
+        width: 150px;
+    }
+
+    body.index-cooprete table.es-table th:nth-child(2),
+    body.index-cooprete table.es-table td:nth-child(2) {
+        width: 240px;
+    }
+
+    body.index-cooprete table.es-table th:nth-child(3),
+    body.index-cooprete table.es-table td:nth-child(3) {
+        width: 240px;
+    }
+
+    body.index-cooprete table.es-table th:nth-child(4),
+    body.index-cooprete table.es-table td:nth-child(4) {
+        width: auto;
+    }
+
     /* ========================
    Footer
    ======================== */
 
     body.index-cooprete .es-footer {
-        margin-top: 16px;
+        margin-top: 4px;
         display: flex;
-        gap: 20px;
+        gap: 12px;
         justify-content: flex-end;
     }
 
     /* 選択ボタン */
     body.index-cooprete #selectForm .es-btn-search {
-        width: 200px;
-        height: 74px;
+        width: 153px;
+        height: 56px;
+        background: #3cb371;
+        color: #fff;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        border-radius: 10px;
+        font-weight: 800;
+        text-decoration: none !important;
     }
 
     /* 戻るボタン */
     body.index-cooprete .es-btn-back {
+        width: 153px;
+        height: 56px;
         background: #4b86c5;
         color: #fff;
-        width: 200px;
-        height: 74px;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
         border-radius: 10px;
+        font-weight: 800;
+        text-decoration: none !important;
+        line-height: 1.15;
     }
-/*2026/02/25 追加 Takada start*/
-    /* テーブルを固定レイアウトにして列幅を安定させる */
-    body.index-cooprete table.es-table {
-        table-layout: fixed;
-        width: 100%;
-    }
-
-        /* ヘッダをスクロール固定 */
-        body.index-cooprete table.es-table thead th {
-            position: sticky;
-            top: 0;
-            z-index: 2; /* 行より前面に */
-            background: #e5e5e5; /* 透け防止（既存色に合わせる） */
-        }
-
-        /* ヘッダ・明細とも1行固定＋省略 */
-        body.index-cooprete table.es-table th,
-        body.index-cooprete table.es-table td {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap; /* ★改行させない（協力会社コード対策） */
-        }
-
-        /* クリック用のaが幅を持つように（省略やクリック領域が安定） */
-        body.index-cooprete table.es-table thead th a {
-            display: block;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            color: inherit;
-            text-decoration: none;
-        }
-
-            body.index-cooprete table.es-table thead th a:hover {
-                text-decoration: underline;
-            }
-
-        /* 行の高さを安定させたい場合（任意） */
-        body.index-cooprete table.es-table tbody td {
-            height: 34px;
-        }
-
-        /* 列幅（バランス調整：必要なら数値を微調整してください） */
-        body.index-cooprete table.es-table th:nth-child(1),
-        body.index-cooprete table.es-table td:nth-child(1) {
-            width: 150px; /* 協力会社コード：改行しない幅を確保 */
-        }
-
-        body.index-cooprete table.es-table th:nth-child(2),
-        body.index-cooprete table.es-table td:nth-child(2) {
-            width: 240px; /* 会社名 */
-        }
-
-        body.index-cooprete table.es-table th:nth-child(3),
-        body.index-cooprete table.es-table td:nth-child(3) {
-            width: 240px; /* 会社名カナ */
-        }
-
-        /* 住所は残り幅を使う（固定したいならここも width 指定） */
-        body.index-cooprete table.es-table th:nth-child(4),
-        body.index-cooprete table.es-table td:nth-child(4) {
-            width: auto;
-        }
-/*2026/02/25 追加 Takada end  */
