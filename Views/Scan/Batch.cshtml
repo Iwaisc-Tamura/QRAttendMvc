@@ -122,7 +122,6 @@
                    autocomplete="off" autocorrect="off" spellcheck="false" inputmode="numeric" />
         </div>
 
-        <hr />
         <div class="ee-section-title">記録結果</div>
         <div class="ee-log-box">
             <textarea id="logArea" class="form-control ee-log" rows="6" readonly></textarea>
@@ -368,13 +367,16 @@
         const data = await res.json();
         const t = data.time ? data.time.slice(0, 2) + ":" + data.time.slice(2, 4) : "";
         const isNoMaster = (data.message || "").includes("作業員マスタに登録がありません");
+        const displayKana = data.nameKana || "";
+        const displayName = data.name || "";
+        const displayText = displayName ? (displayKana ? `${displayName}（${displayKana}）` : displayName) : (displayKana || "");
 
-        showReadResult(data.code || workerCd || raw, data.name || (data.result === "NG" ? data.message : "－"), t);
+        showReadResult(data.code || workerCd || raw, displayText || (data.result === "NG" ? data.message : "－"), t);
 
         if (data.result === "OK") {
             setIcon("OK");
             playBeep("OK");
-            appendLog(`${data.code} ${data.name ?? ""} ${t} ${data.message}`);
+            appendLog(`${data.code} ${displayText ?? ""} ${t} ${data.message}`);
             try { input.focus(); } catch (e) {}
             return;
         }
@@ -382,7 +384,7 @@
         if (data.result === "WARN" || isNoMaster) {
             setIcon("WARN");
             playBeep("WARN");
-            appendLog(`${data.code ?? workerCd} ${data.name ?? ""} ${t} ${data.message}`);
+            appendLog(`${data.code ?? workerCd} ${displayText ?? ""} ${t} ${data.message}`);
             lockReading();
             return;
         }

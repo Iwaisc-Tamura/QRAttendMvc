@@ -250,7 +250,7 @@ namespace QRAttendMvc.Controllers
             public string? Prefix { get; set; }
         }
 
-        private async Task<(bool ok, string result, string mark, string message, string? name)>
+        private async Task<(bool ok, string result, string mark, string message, string? name, string? nameKana)>
             ProcessEntryExitAsync(string workerCd, string kind, string? overrideKaisaiCd = null, string? qrPrefix = null)
         {
             var now = DateTime.Now;
@@ -263,7 +263,7 @@ namespace QRAttendMvc.Controllers
 
             if (string.IsNullOrEmpty(kaisaiCd))
             {
-                return (false, "NG", "×", "イベントが確定していません。", null);
+                return (false, "NG", "×", "イベントが確定していません。", null, null);
             }
 
             // 操作者コードをセッションから取得
@@ -278,6 +278,20 @@ namespace QRAttendMvc.Controllers
                 var name = string.Join(" ", new[] { entryRow?.FamilyName, entryRow?.FirstName }
                     .Where(s => !string.IsNullOrWhiteSpace(s)));
                 return string.IsNullOrWhiteSpace(name) ? "-" : name;
+            }
+
+            string ResolveDisplayNameKana(Tt02EntryExit? entryRow)
+            {
+                if (emp != null)
+                {
+                    var kana = string.Join(" ", new[] { emp.FamilyNameKana, emp.FirstNameKana }
+                        .Where(s => !string.IsNullOrWhiteSpace(s)));
+                    return string.IsNullOrWhiteSpace(kana) ? "" : kana;
+                }
+
+                var rowKana = string.Join(" ", new[] { entryRow?.FamilyNameKana, entryRow?.FirstNameKana }
+                    .Where(s => !string.IsNullOrWhiteSpace(s)));
+                return string.IsNullOrWhiteSpace(rowKana) ? "" : rowKana;
             }
 
             // 協力会社マスタ（会社名などを補完） — emp が存在する場合のみ取得
@@ -329,7 +343,7 @@ namespace QRAttendMvc.Controllers
                     uTimeStamp: null
                 );
                 var display = ResolveDisplayName(row);
-                return (false, "WARN", "△", "入場記録がないため退場登録できません。", display);
+                return (false, "WARN", "△", "入場記録がないため退場登録できません。", display, ResolveDisplayNameKana(row));
             }
 
             // 新規レコード作成時は可能な限りマスタ情報で埋める（IN の場合のみ）
@@ -431,7 +445,7 @@ namespace QRAttendMvc.Controllers
                         uTimeStamp: null
                     );
                     var display = ResolveDisplayName(row);
-                    return (false, "NG", "×", $"退場時刻が入場時刻より前です（入場:{ToHHmm(row.EntryTime)}）", display);
+                    return (false, "NG", "×", $"退場時刻が入場時刻より前です（入場:{ToHHmm(row.EntryTime)}）", display, ResolveDisplayNameKana(row));
                 }
 
                 // 退場時は時間を毎回更新
@@ -522,16 +536,18 @@ namespace QRAttendMvc.Controllers
             {
                 // 追跡ログとして簡潔に返す（詳細はサーバ側ログ参照）
                 var display = ResolveDisplayName(row);
-                return (false, "NG", "×", "DB書き込みエラーが発生しました。係員に問い合わせてください。", display);
+                return (false, "NG", "×", "DB書き込みエラーが発生しました。係員に問い合わせてください。", display, ResolveDisplayNameKana(row));
             }
             if (isDuplicateEntry) {
                 return (true, "OK", "〇",
                     kind == "IN" ? $"既に入場済みです。({ToHHmm(row.EntryTime)})" : "退場記録OK",
-                    ResolveDisplayName(row));
+                    ResolveDisplayName(row),
+                    ResolveDisplayNameKana(row));
             }
             return (true, "OK", "〇",
                 kind == "IN" ? "入場記録OK" : "退場記録OK",
-                ResolveDisplayName(row));
+                ResolveDisplayName(row),
+                ResolveDisplayNameKana(row));
         }
 
         // QR または手入力で入退場記録（連続登録） 
@@ -756,6 +772,43 @@ namespace QRAttendMvc.Controllers
             // 入場の場合、仮QRは使用不可 — ログ ACTION_CD=T03
             if (qrPrefix == "2" && kind == "IN")
             {
+                var sessionKaisai = HttpContext.Session.GetString(SessionKeyCurrentKaisaiCd);
+                var existing = await _db.EntryExitLogs.AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.KaisaiCd == sessionKaisai && x.EmployeeCd == workerCd);
+
+                if (existing != null && (!string.IsNullOrWhiteSpace(existing.EntryTime) || !string.IsNullOrWhiteSpace(existing.ExitTime)))
+                {
+                    var empForDisplay = await _db.Employees.AsNoTracking()
+                        .FirstOrDefaultAsync(x => x.EmployeeCd == workerCd);
+
+                    string displayName = empForDisplay != null
+                        ? empForDisplay.DisplayName
+                        : string.Join(" ", new[] { existing.FamilyName, existing.FirstName }
+                            .Where(s => !string.IsNullOrWhiteSpace(s)));
+
+                    string displayKana = empForDisplay != null
+                        ? string.Join(" ", new[] { empForDisplay.FamilyNameKana, empForDisplay.FirstNameKana }
+                            .Where(s => !string.IsNullOrWhiteSpace(s)))
+                        : string.Join(" ", new[] { existing.FamilyNameKana, existing.FirstNameKana }
+                            .Where(s => !string.IsNullOrWhiteSpace(s)));
+
+                    var message = string.IsNullOrWhiteSpace(existing.EntryTime)
+                        ? "既に入退場記録があります。"
+                        : $"既に入場済みです。({ToHHmm(existing.EntryTime)})";
+
+                    return Json(new
+                    {
+                        ok = true,
+                        result = "OK",
+                        mark = "〇",
+                        message = message,
+                        code = workerCd,
+                        name = string.IsNullOrWhiteSpace(displayName) ? null : displayName,
+                        nameKana = string.IsNullOrWhiteSpace(displayKana) ? null : displayKana,
+                        time = hhmm
+                    });
+                }
+
                 try
                 {
                     await _logService.ActionLogSaveAsync(
@@ -862,6 +915,7 @@ namespace QRAttendMvc.Controllers
                 message = result.message,
                 code = workerCd,
                 name = result.name,
+                nameKana = result.nameKana,
                 time = hhmm
             });
         }
@@ -1216,7 +1270,6 @@ namespace QRAttendMvc.Controllers
             var hhmm = now.ToString("HHmm");
 
             if (req == null || string.IsNullOrWhiteSpace(req.WorkerCd)
-                || string.IsNullOrWhiteSpace(req.WorkerName)
                 || string.IsNullOrWhiteSpace(req.WorkerKana)
                 || string.IsNullOrWhiteSpace(req.CompanyCd)
                 || string.IsNullOrWhiteSpace(req.BirthDate))
